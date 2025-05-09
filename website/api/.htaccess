@@ -1,0 +1,27 @@
+# Enable RewriteEngine
+RewriteEngine On
+
+# Handle API endpoints without .php extension
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^cve-search$ cve-search.php [QSA,L]
+RewriteRule ^cve-proxy$ cve-proxy.php [QSA,L]
+RewriteRule ^feeds$ feeds.php [QSA,L]
+
+# Security headers
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-XSS-Protection "1; mode=block"
+
+# Set proper CORS headers for API
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type"
+
+# Content-type for JSON
+<FilesMatch "\.(php)$">
+    Header set Content-Type "application/json"
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes

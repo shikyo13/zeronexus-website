@@ -1,0 +1,35 @@
+{
+  "name": "ZeroNexus - Adam Hunt",
+  "short_name": "ZeroNexus",
+  "description": "Welcome to ZeroNexus, the personal site of Adam Hunt. Dog Dad, Travel enthusiast, Techie, IT Guru, Networking Expert, Amateur Dev, and all-around nerd.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#181a1b",
+  "theme_color": "#181a1b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "100x100",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Security News",
+      "url": "/security-news.html",
+      "description": "View Security News Feed"
+    }
+  ],
+  "categories": ["personal", "technology", "blog"],
+  "dir": "ltr",
+  "lang": "en",
+  "prefer_related_applications": false
+}

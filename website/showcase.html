@@ -1,0 +1,173 @@
+<?php
+// This function gets image details, either from a JSON file or from the filename
+function getImageMetadata($filepath) {
+    $metadata = [
+        'title' => '',
+        'description' => '',
+        'tags' => ['Digital Art'] // Default tag for all artwork
+    ];
+    
+    // Look for a matching JSON file (optional)
+    $jsonFile = pathinfo($filepath, PATHINFO_DIRNAME) . '/' . 
+                pathinfo($filepath, PATHINFO_FILENAME) . '.json';
+    
+    if (file_exists($jsonFile)) {
+        // Use JSON data if it exists
+        $jsonData = json_decode(file_get_contents($jsonFile), true);
+        if ($jsonData) {
+            $metadata = array_merge($metadata, $jsonData);
+        }
+    } else {
+        // Create a title from the filename if no JSON exists
+        $metadata['title'] = ucwords(str_replace('-', ' ', 
+                            pathinfo($filepath, PATHINFO_FILENAME)));
+    }
+    
+    return $metadata;
+}
+
+// Helper function to check if a file is an image
+function isImage($filepath) {
+    $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $extension = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
+    return in_array($extension, $allowedTypes);
+}
+?>
+<!DOCTYPE html>
+<!-- [Keep your existing HTML head section exactly as is, up until the projects grid] -->
+
+            <!-- Projects Grid -->
+            <div class="projects-container">
+                <div class="row g-4">
+                    <!-- Keep your existing game cards exactly as they are -->
+                    <div class="col-md-6 col-lg-4 project-item" data-category="games">
+                        <a href="https://metalsnake.zeronexus.net" class="text-decoration-none">
+                            <div class="project-card p-3">
+                                <img src="/metalsnakepreview.png" alt="Metal Snake Game Preview" class="preview-image mb-3">
+                                <h3 class="h5 text-white">Metal Snake</h3>
+                                <p class="text-muted">A modern take on the classic Snake game with unique mechanics and metallic aesthetics.</p>
+                                <div class="d-flex flex-wrap">
+                                    <span class="category-badge">Game</span>
+                                    <span class="category-badge">JavaScript</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 project-item" data-category="games">
+                        <a href="https://flippyblock.zeronexus.net" class="text-decoration-none">
+                            <div class="project-card p-3">
+                                <img src="/flippyblockpreview.png" alt="Flippy Block Game Preview" class="preview-image mb-3">
+                                <h3 class="h5 text-white">Flippy Block</h3>
+                                <p class="text-muted">An addictive puzzle game where you flip blocks to create paths and solve challenges.</p>
+                                <div class="d-flex flex-wrap">
+                                    <span class="category-badge">Game</span>
+                                    <span class="category-badge">JavaScript</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Add the dynamic art cards section -->
+                    <?php
+                    // Scan the artwork directory for images
+                    $artworkDir = 'artwork/';
+                    $images = glob($artworkDir . '*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
+
+                    foreach ($images as $image) {
+                        if (!isImage($image)) continue;
+                        
+                        $metadata = getImageMetadata($image);
+                        ?>
+                        <div class="col-md-6 col-lg-4 project-item" data-category="art">
+                            <div class="project-card p-3">
+                                <img 
+                                    src="<?php echo htmlspecialchars($image); ?>" 
+                                    alt="<?php echo htmlspecialchars($metadata['title']); ?>" 
+                                    class="preview-image mb-3"
+                                    loading="lazy"
+                                >
+                                <h3 class="h5 text-white"><?php echo htmlspecialchars($metadata['title']); ?></h3>
+                                <?php if (!empty($metadata['description'])): ?>
+                                    <p class="text-muted"><?php echo htmlspecialchars($metadata['description']); ?></p>
+                                <?php endif; ?>
+                                <div class="d-flex flex-wrap">
+                                    <?php foreach ($metadata['tags'] as $tag): ?>
+                                        <span class="category-badge"><?php echo htmlspecialchars($tag); ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                                <button 
+                                    class="card-button mt-3"
+                                    onclick="showFullImage('<?php echo htmlspecialchars($image); ?>', '<?php echo htmlspecialchars($metadata['title']); ?>')"
+                                >
+                                    <i class="fas fa-expand-alt me-2"></i>View Full Size
+                                </button>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                    ?>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Bootstrap JS for modals -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Keep your existing filtering script and add the image viewer function -->
+    <script>
+        // Your existing filtering code stays exactly the same
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const projectItems = document.querySelectorAll('.project-item');
+
+            function filterProjects(category) {
+                projectItems.forEach(item => {
+                    if (category === 'all' || item.dataset.category === category) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    filterProjects(link.dataset.category);
+                });
+            });
+        });
+
+        // Add the full-size image viewer function
+        function showFullImage(src, title) {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content bg-dark">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title text-white">${title}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center p-0">
+                            <img src="${src}" alt="${title}" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+            
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+    </script>
+</body>
+</html>
