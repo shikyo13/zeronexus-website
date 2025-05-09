@@ -35,16 +35,16 @@ include 'includes/header.php';
   <div class="source-tabs mb-4">
     <ul class="nav nav-pills justify-content-center">
       <li class="nav-item">
-        <a class="nav-link active mx-1" href="#" data-source="all">All Sources</a>
+        <a id="filter-all" class="nav-link active mx-1" href="#all" data-source="all">All Sources</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link mx-1" href="#" data-source="bleepingcomputer">BleepingComputer</a>
+        <a id="filter-bleepingcomputer" class="nav-link mx-1" href="#bleepingcomputer" data-source="bleepingcomputer">BleepingComputer</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link mx-1" href="#" data-source="krebsonsecurity">Krebs on Security</a>
+        <a id="filter-krebsonsecurity" class="nav-link mx-1" href="#krebsonsecurity" data-source="krebsonsecurity">Krebs on Security</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link mx-1" href="#" data-source="thehackernews">The Hacker News</a>
+        <a id="filter-thehackernews" class="nav-link mx-1" href="#thehackernews" data-source="thehackernews">The Hacker News</a>
       </li>
     </ul>
   </div>

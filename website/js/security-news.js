@@ -3,10 +3,17 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+  // DOM element references
   const securityFeed = document.getElementById('security-feed');
   const loadingIndicator = document.getElementById('loading');
   const errorMessage = document.getElementById('error-message');
-  const sourceLinks = document.querySelectorAll('.source-tabs .nav-link');
+
+  // Source filter elements with specific IDs
+  const filterAll = document.getElementById('filter-all');
+  const filterBleepingComputer = document.getElementById('filter-bleepingcomputer');
+  const filterKrebsOnSecurity = document.getElementById('filter-krebsonsecurity');
+  const filterHackerNews = document.getElementById('filter-thehackernews');
+  const sourceLinks = [filterAll, filterBleepingComputer, filterKrebsOnSecurity, filterHackerNews];
 
   // Keep track of all articles and current filter
   let allArticles = [];
@@ -200,21 +207,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make sure we have source links before attaching event listeners
     if (sourceLinks && sourceLinks.length > 0) {
       sourceLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
+        if (link) { // Check if the element exists
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
 
-          // Log to help debug
-          console.log('Filter clicked:', this.getAttribute('data-source'));
+            // Debug information
+            console.log('Filter clicked:', this.id, this.getAttribute('data-source'));
 
-          // Update active state
-          sourceLinks.forEach(l => l.classList.remove('active'));
-          this.classList.add('active');
+            // Update active state
+            sourceLinks.forEach(l => {
+              if (l) l.classList.remove('active');
+            });
+            this.classList.add('active');
 
-          // Set filter and redisplay
-          currentFilter = this.getAttribute('data-source');
-          displayArticles();
-        });
+            // Set filter and redisplay
+            currentFilter = this.getAttribute('data-source');
+            displayArticles();
+
+            // Update URL hash for bookmarking
+            window.location.hash = this.getAttribute('data-source');
+          });
+        }
       });
+
+      // Check for hash in URL and activate corresponding filter
+      if (window.location.hash) {
+        const source = window.location.hash.substring(1);
+        const filterLink = document.querySelector(`[data-source="${source}"]`);
+        if (filterLink) {
+          // Simulate a click on the filter link
+          filterLink.click();
+        }
+      }
     } else {
       console.error('Source filter links not found');
     }
