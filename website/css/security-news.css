@@ -1,0 +1,95 @@
+/* 
+ * Security News Page Styles - ZeroNexus
+ */
+
+/* Container and layout */
+.feed-container {
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+/* Feed items styling */
+.feed-item {
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem 0;
+}
+
+.feed-item:last-child {
+  border-bottom: none;
+}
+
+.feed-item a:hover h3 {
+  color: var(--link-color);
+  transition: color var(--transition-speed) ease;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Thumbnail styling */
+.feed-item img {
+  background-color: #2d3238;
+  transition: opacity var(--transition-speed) ease;
+  border: 1px solid var(--border-color);
+  object-fit: cover;
+  height: 100px;
+  width: 150px;
+}
+
+.feed-item img:hover {
+  opacity: 0.9;
+}
+
+.feed-item .flex-grow-1 {
+  min-width: 0;
+}
+
+/* Loading animation */
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 0.25rem solid #2d3238;
+  border-top-color: var(--link-color);
+  border-radius: 50%;
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Back to home link */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+}
+
+.back-link:hover {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+/* Error message styling */
+.error-message {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 0.5rem;
+  padding: 2rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+  .feed-item .flex-shrink-0 {
+    display: none; /* Hide thumbnails on very small screens */
+  }
+}

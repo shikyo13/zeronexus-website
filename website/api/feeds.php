@@ -10,23 +10,87 @@
  * - source: Filter by source (optional)
  */
 
-// Set headers for JSON response
+// Set security headers
 header('Content-Type: application/json');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-XSS-Protection: 1; mode=block');
 
-// Enable CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+// Enable CORS for specific origins
+$allowedOrigins = [
+    'https://zeronexus.net',
+    'https://www.zeronexus.net',
+    'http://localhost:8081' // For local development
+];
+
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Methods: GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+}
 
 // Exit on OPTIONS request (preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Get request parameters
+// Very basic rate limiting based on IP
+function checkRateLimit() {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $rateLimitFile = sys_get_temp_dir() . '/zeronexus_rate_' . md5($ip);
+    $currentTime = time();
+    
+    // Check if file exists and read it
+    if (file_exists($rateLimitFile)) {
+        $data = json_decode(file_get_contents($rateLimitFile), true);
+        
+        // Reset counter if more than 1 minute has passed
+        if ($currentTime - $data['timestamp'] > 60) {
+            $data = [
+                'count' => 1,
+                'timestamp' => $currentTime
+            ];
+        } else {
+            $data['count']++;
+            
+            // If more than 60 requests in a minute, rate limit
+            if ($data['count'] > 60) {
+                http_response_code(429);
+                echo json_encode(['error' => true, 'message' => 'Too many requests. Please try again later.']);
+                exit;
+            }
+        }
+    } else {
+        $data = [
+            'count' => 1,
+            'timestamp' => $currentTime
+        ];
+    }
+    
+    // Write updated data
+    file_put_contents($rateLimitFile, json_encode($data));
+}
+
+// Apply rate limiting
+checkRateLimit();
+
+// Get and validate request parameters
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $limit = isset($_GET['limit']) ? min(50, max(1, intval($_GET['limit']))) : 30;
+
+// Validate source parameter against allowed values
+$allowedSources = ['all', 'bleepingcomputer', 'krebsonsecurity', 'thehackernews'];
 $source = isset($_GET['source']) ? $_GET['source'] : null;
+
+if ($source !== null && !in_array($source, $allowedSources)) {
+    // Invalid source parameter, return error
+    http_response_code(400);
+    echo json_encode(['error' => true, 'message' => 'Invalid source parameter']);
+    exit;
+}
 
 // Calculate offset for pagination
 $offset = ($page - 1) * $limit;

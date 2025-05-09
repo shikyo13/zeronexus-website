@@ -10,7 +10,9 @@
     
     <!-- Preload critical resources -->
     <link rel="preload" href="/css/base.css" as="style" />
-    <link rel="preload" href="/css/index.css" as="style" />
+    <?php if (isset($page_css)): ?>
+      <link rel="preload" href="<?php echo $page_css; ?>" as="style" />
+    <?php endif; ?>
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" />
     <link rel="preload" href="/js/common.js" as="script" />
     
@@ -19,16 +21,16 @@
     <meta name="theme-color" content="#181a1b" media="(prefers-color-scheme: dark)" />
 
     <!-- SEO meta tags -->
-    <title>ZeroNexus - Adam Hunt | IT Professional & Tech Enthusiast</title>
+    <title><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'ZeroNexus - Adam Hunt'; ?></title>
     <meta
       name="description"
-      content="Welcome to ZeroNexus, the digital home of Adam Hunt - IT Professional specializing in networking, security, and development. Explore my projects, games, and technical insights."
+      content="<?php echo isset($page_description) ? htmlspecialchars($page_description) : 'Welcome to ZeroNexus, the digital home of Adam Hunt - IT Professional specializing in networking, security, and development.'; ?>"
     />
     <meta name="author" content="Adam Hunt" />
     
     <!-- Social sharing meta tags -->
-    <meta property="og:title" content="ZeroNexus - Adam Hunt | IT Professional & Tech Enthusiast" />
-    <meta property="og:description" content="Welcome to ZeroNexus, the digital home of Adam Hunt - IT Professional specializing in networking, security, and development." />
+    <meta property="og:title" content="<?php echo isset($page_title) ? htmlspecialchars($page_title) : 'ZeroNexus - Adam Hunt'; ?>" />
+    <meta property="og:description" content="<?php echo isset($page_description) ? htmlspecialchars($page_description) : 'Welcome to ZeroNexus, the digital home of Adam Hunt - IT Professional specializing in networking, security, and development.'; ?>" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://zeronexus.net" />
     <meta property="og:image" content="https://zeronexus.net/favicon.png" />
@@ -49,7 +51,11 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="/css/index.css">
+    <?php if (isset($page_css)): ?>
+      <link rel="stylesheet" href="<?php echo $page_css; ?>">
+    <?php endif; ?>
+    
+    <?php if (isset($extra_head)): echo $extra_head; endif; ?>
   </head>
 
   <body>
@@ -58,10 +64,13 @@
         <i class="fa-solid fa-mug-hot fa-2x fa-fw" title="ZeroNexus"></i>
       </div>
       <h1 class="mb-3">
-        ZeroNexus
-        <span class="d-block mt-2 h4 fw-normal">Adam Hunt</span>
+        <?php echo isset($header_title) ? htmlspecialchars($header_title) : 'ZeroNexus'; ?>
+        <?php if (isset($header_subtitle)): ?>
+          <span class="d-block mt-2 h4 fw-normal"><?php echo htmlspecialchars($header_subtitle); ?></span>
+        <?php endif; ?>
       </h1>
 
+      <?php if (!isset($hide_social_icons) || !$hide_social_icons): ?>
       <!-- Social media navigation -->
       <nav class="social-icons d-flex flex-wrap justify-content-center gap-3" aria-label="Social media links">
         <a
@@ -132,43 +141,4 @@
           <span class="visually-hidden">The IT Guy KC</span>
         </a>
       </nav>
-    </header>
-
-    <main>
-      <!-- Updates section -->
-      <section class="updates-section" id="updates">
-        <bsky-embed
-          username="adamahunt.bsky.social"
-          mode="dark"
-          limit="10"
-          link-target="_blank"
-          link-image="true"
-          load-more="true"
-        ></bsky-embed>
-      </section>
-    </main>
-
-    <footer>
-      <p class="text-body-secondary">
-        &copy; <span id="year"></span> ZeroNexus
-      </p>
-      <p class="text-body-secondary mb-0">
-        Created by Adam Hunt. All rights reserved.
-      </p>
-    </footer>
-
-    <!-- Scripts -->
-    <script defer src="https://kit.fontawesome.com/4215701992.js" crossorigin="anonymous"></script>
-    <script defer
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-    
-    <!-- Bluesky Embed -->
-    <script type="module" src="/js/bsky-embed.es.js"></script>
-    
-    <!-- Custom scripts -->
-    <script src="/js/common.js" defer></script>
-  </body>
-</html>
+      <?php endif; ?>
