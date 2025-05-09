@@ -28,7 +28,7 @@ include 'includes/header.php';
   <!-- Page title -->
   <div class="page-header">
     <h2>Security News</h2>
-    <p class="text-muted">Latest cybersecurity updates from trusted sources</p>
+    <p class="subtitle">Latest cybersecurity updates from trusted sources</p>
   </div>
 
   <!-- Source filter tabs -->

@@ -197,19 +197,27 @@ document.addEventListener('DOMContentLoaded', function() {
    * Sets up filtering by source
    */
   function setupSourceFilters() {
-    sourceLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
+    // Make sure we have source links before attaching event listeners
+    if (sourceLinks && sourceLinks.length > 0) {
+      sourceLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
 
-        // Update active state
-        sourceLinks.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
+          // Log to help debug
+          console.log('Filter clicked:', this.getAttribute('data-source'));
 
-        // Set filter and redisplay
-        currentFilter = this.getAttribute('data-source');
-        displayArticles();
+          // Update active state
+          sourceLinks.forEach(l => l.classList.remove('active'));
+          this.classList.add('active');
+
+          // Set filter and redisplay
+          currentFilter = this.getAttribute('data-source');
+          displayArticles();
+        });
       });
-    });
+    } else {
+      console.error('Source filter links not found');
+    }
   }
 
   /**
