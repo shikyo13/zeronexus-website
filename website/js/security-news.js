@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create source name span
         const sourceName = document.createElement('span');
-        sourceName.className = 'text-body-secondary';
+        sourceName.className = 'ms-1 fw-bold'; // Changed from text-body-secondary to make it more visible
         sourceName.textContent = sourceInfo.name;
-        
+
         // Create date span
         const dateSpan = document.createElement('span');
-        dateSpan.className = 'text-body-secondary ms-auto';
+        dateSpan.className = 'ms-auto text-white-50'; // Changed from text-body-secondary for better contrast
         dateSpan.textContent = formattedDate;
         
         // Assemble header
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create description
         const description = document.createElement('p');
-        description.className = 'text-body-secondary mb-0';
+        description.className = 'text-white-50 mb-0'; // Changed from text-body-secondary for better contrast
         description.style.fontSize = '0.95rem';
         
         const descText = article.description.length > 200 
