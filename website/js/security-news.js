@@ -30,7 +30,19 @@ document.addEventListener('DOMContentLoaded', function() {
       errorMessage.style.display = 'none';
 
       const response = await fetch('https://feeds.zeronexus.net/api/feeds');
+
+      // Parse and log response for debugging
       allArticles = await response.json();
+
+      console.log('Fetched articles:', allArticles.length);
+
+      // Log source distribution
+      const sourceCounts = {};
+      allArticles.forEach(article => {
+        const source = article.source || 'unknown';
+        sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+      });
+      console.log('Articles by source:', sourceCounts);
 
       // Display articles with current filter
       displayArticles();
@@ -49,10 +61,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear existing content
     securityFeed.innerHTML = '';
 
+    // Debug current filter
+    console.log('Applying filter:', currentFilter);
+    console.log('Total articles:', allArticles.length);
+
     // Filter articles if needed
-    const articles = currentFilter === 'all'
-      ? allArticles
-      : allArticles.filter(article => article.source === currentFilter);
+    let articles = [];
+    if (currentFilter === 'all') {
+      articles = [...allArticles]; // Create a copy of all articles
+    } else {
+      articles = allArticles.filter(article => {
+        console.log(`Article source: ${article.source}, comparing with: ${currentFilter}`);
+        return article.source === currentFilter;
+      });
+    }
+
+    console.log('Filtered articles:', articles.length);
 
     if (articles.length === 0) {
       const noResults = document.createElement('div');
@@ -251,6 +275,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up filtering
     setupSourceFilters();
 
+    // Add direct click test for debugging
+    document.querySelectorAll('[data-source]').forEach(el => {
+      console.log('Found filter element:', el.id, el.getAttribute('data-source'));
+      // Force explicit click handler
+      el.onclick = function(e) {
+        e.preventDefault();
+        console.log('DIRECT CLICK:', this.getAttribute('data-source'));
+        currentFilter = this.getAttribute('data-source');
+
+        // Update active classes
+        document.querySelectorAll('[data-source]').forEach(link => {
+          link.classList.remove('active');
+        });
+        this.classList.add('active');
+
+        // Apply filter and update URL
+        displayArticles();
+        window.location.hash = this.getAttribute('data-source');
+        return false;
+      };
+    });
+
     // Load initial data
     fetchFeeds();
 
@@ -267,6 +313,22 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchFeeds();
       }
     });
+
+    // Apply filter from URL hash immediately if present
+    if (window.location.hash) {
+      const source = window.location.hash.substring(1);
+      console.log('Initial hash filter:', source);
+      currentFilter = source;
+
+      // Update active state of filter links
+      const filterLink = document.querySelector(`[data-source="${source}"]`);
+      if (filterLink) {
+        document.querySelectorAll('[data-source]').forEach(link => {
+          link.classList.remove('active');
+        });
+        filterLink.classList.add('active');
+      }
+    }
   }
 
   // Initialize the feed
