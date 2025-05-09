@@ -6,11 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const securityFeed = document.getElementById('security-feed');
   const loadingIndicator = document.getElementById('loading');
   const errorMessage = document.getElementById('error-message');
+  const sourceLinks = document.querySelectorAll('.source-tabs .nav-link');
+
+  // Keep track of all articles and current filter
+  let allArticles = [];
+  let currentFilter = 'all';
 
   /**
-   * Fetches and displays security feed articles
+   * Fetches all feed articles and stores them
    */
-  async function fetchAndDisplayFeeds() {
+  async function fetchFeeds() {
     try {
       // Show loading indicator
       loadingIndicator.style.display = 'block';
@@ -18,130 +23,145 @@ document.addEventListener('DOMContentLoaded', function() {
       errorMessage.style.display = 'none';
 
       const response = await fetch('https://feeds.zeronexus.net/api/feeds');
-      const articles = await response.json();
-      
-      // Clear existing content
-      securityFeed.innerHTML = '';
-      
-      // Create article elements
-      articles.forEach(article => {
-        const sourceInfo = getSourceInfo(article.source);
-        const articleDate = new Date(article.date);
-        const formattedDate = articleDate.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        });
-        
-        const articleElement = document.createElement('div');
-        articleElement.className = 'feed-item';
-        
-        // Create header div with source info
-        const headerDiv = document.createElement('div');
-        headerDiv.className = 'feed-header';
-        
-        // Create icon
-        const icon = document.createElement('i');
-        icon.className = `${sourceInfo.icon} fa-fw`;
-        icon.style.color = sourceInfo.color;
-        
-        // Create source name span
-        const sourceName = document.createElement('span');
-        sourceName.className = 'ms-1 fw-bold'; // Keep the bold styling
-        sourceName.style.color = '#ffffff'; // Force white color for the source name
-        sourceName.textContent = sourceInfo.name;
+      allArticles = await response.json();
 
-        // Create date span
-        const dateSpan = document.createElement('span');
-        dateSpan.className = 'ms-auto';
-        dateSpan.style.color = '#ffffff'; // Force white color for better visibility
-        dateSpan.textContent = formattedDate;
-        
-        // Assemble header
-        headerDiv.appendChild(icon);
-        headerDiv.appendChild(sourceName);
-        headerDiv.appendChild(dateSpan);
-        articleElement.appendChild(headerDiv);
-        
-        // Create content div
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'd-flex gap-3';
-        
-        // Add thumbnail if available
-        if (article.thumbnail) {
-          const thumbnailDiv = document.createElement('div');
-          thumbnailDiv.className = 'flex-shrink-0';
-          thumbnailDiv.style.width = '150px';
-          
-          const img = document.createElement('img');
-          img.src = article.thumbnail;
-          // Add responsive image attributes
-          if (article.thumbnail) {
-            // In a real application, you would generate these URLs based on the thumbnail
-            img.srcset = `${article.thumbnail} 300w, ${article.thumbnail} 200w, ${article.thumbnail} 100w`;
-            img.sizes = '(max-width: 576px) 0px, 150px'; // Hide on very small screens
-          }
-          img.alt = article.title;
-          img.className = 'img-fluid rounded';
-          img.style.objectFit = 'cover';
-          img.style.height = '100px';
-          img.style.width = '150px';
-          img.setAttribute('loading', 'lazy');
-          img.setAttribute('decoding', 'async');
-          img.onerror = function() { this.style.display = 'none'; };
-          
-          thumbnailDiv.appendChild(img);
-          contentDiv.appendChild(thumbnailDiv);
-        }
-        
-        // Create content
-        const textDiv = document.createElement('div');
-        textDiv.className = 'flex-grow-1';
-        
-        // Create title link
-        const titleLink = document.createElement('a');
-        titleLink.href = article.link;
-        titleLink.target = '_blank';
-        titleLink.rel = 'noreferrer';
-        titleLink.className = 'text-decoration-none';
-        
-        const titleHeading = document.createElement('h3');
-        titleHeading.style.fontSize = '1.2rem';
-        titleHeading.style.color = '#fff';
-        titleHeading.textContent = article.title;
-        
-        titleLink.appendChild(titleHeading);
-        textDiv.appendChild(titleLink);
-        
-        // Create description
-        const description = document.createElement('p');
-        description.className = 'mb-0'; // Remove text-white-50 class
-        description.style.fontSize = '0.95rem';
-        description.style.color = '#ffffff'; // Set to full white for better visibility
-        
-        const descText = article.description.length > 200 
-          ? article.description.substring(0, 200) + '...'
-          : article.description;
-        
-        description.textContent = descText;
-        textDiv.appendChild(description);
-        
-        // Assemble content
-        contentDiv.appendChild(textDiv);
-        articleElement.appendChild(contentDiv);
-        
-        // Add to container
-        securityFeed.appendChild(articleElement);
-      });
+      // Display articles with current filter
+      displayArticles();
 
-      // Hide loading indicator and show content
-      loadingIndicator.style.display = 'none';
-      securityFeed.style.display = 'flex';
     } catch (error) {
       console.error('Failed to fetch security feeds:', error);
       loadingIndicator.style.display = 'none';
       errorMessage.style.display = 'block';
     }
+  }
+
+  /**
+   * Filters and displays articles based on current source filter
+   */
+  function displayArticles() {
+    // Clear existing content
+    securityFeed.innerHTML = '';
+
+    // Filter articles if needed
+    const articles = currentFilter === 'all'
+      ? allArticles
+      : allArticles.filter(article => article.source === currentFilter);
+
+    if (articles.length === 0) {
+      const noResults = document.createElement('div');
+      noResults.className = 'text-center my-5';
+      noResults.innerHTML = '<p>No articles found for this source.</p>';
+      securityFeed.appendChild(noResults);
+
+      // Hide loading and show content
+      loadingIndicator.style.display = 'none';
+      securityFeed.style.display = 'flex';
+      return;
+    }
+
+    // Create article elements
+    articles.forEach(article => {
+      const sourceInfo = getSourceInfo(article.source);
+      const articleDate = new Date(article.date);
+      const formattedDate = articleDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      const articleElement = document.createElement('div');
+      articleElement.className = 'feed-item';
+      articleElement.setAttribute('data-source', article.source);
+
+      // Add thumbnail if available
+      if (article.thumbnail) {
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'image-container';
+
+        const img = document.createElement('img');
+        img.src = article.thumbnail;
+        img.alt = article.title;
+        img.setAttribute('loading', 'lazy');
+        img.setAttribute('decoding', 'async');
+        img.onerror = function() { this.style.display = 'none'; };
+
+        imageContainer.appendChild(img);
+        articleElement.appendChild(imageContainer);
+      }
+
+      // Create header div with source info
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'feed-header';
+
+      // Create source icon in container
+      const iconContainer = document.createElement('div');
+      iconContainer.className = 'source-icon';
+
+      const icon = document.createElement('i');
+      icon.className = `${sourceInfo.icon} fa-fw`;
+      icon.style.color = sourceInfo.color;
+
+      iconContainer.appendChild(icon);
+
+      // Create source badge
+      const sourceBadge = document.createElement('div');
+      sourceBadge.className = 'source-badge';
+      sourceBadge.style.color = '#ffffff';
+      sourceBadge.textContent = sourceInfo.name;
+
+      // Create date span
+      const dateSpan = document.createElement('span');
+      dateSpan.className = 'ms-auto';
+      dateSpan.style.color = '#ffffff';
+      dateSpan.textContent = formattedDate;
+
+      // Assemble header
+      headerDiv.appendChild(iconContainer);
+      headerDiv.appendChild(sourceBadge);
+      headerDiv.appendChild(dateSpan);
+      articleElement.appendChild(headerDiv);
+
+      // Create content div
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'feed-content';
+
+      // Create title link
+      const titleLink = document.createElement('a');
+      titleLink.href = article.link;
+      titleLink.target = '_blank';
+      titleLink.rel = 'noreferrer';
+      titleLink.className = 'text-decoration-none';
+
+      const titleHeading = document.createElement('h3');
+      titleHeading.style.fontSize = '1.2rem';
+      titleHeading.style.color = '#fff';
+      titleHeading.textContent = article.title;
+
+      titleLink.appendChild(titleHeading);
+      contentDiv.appendChild(titleLink);
+
+      // Create description
+      const description = document.createElement('p');
+      description.className = 'mb-0';
+      description.style.color = '#ffffff';
+
+      const descText = article.description.length > 200
+        ? article.description.substring(0, 200) + '...'
+        : article.description;
+
+      description.textContent = descText;
+      contentDiv.appendChild(description);
+
+      // Assemble article
+      articleElement.appendChild(contentDiv);
+
+      // Add to container
+      securityFeed.appendChild(articleElement);
+    });
+
+    // Hide loading indicator and show content
+    loadingIndicator.style.display = 'none';
+    securityFeed.style.display = 'flex';
   }
 
   /**
@@ -165,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         color: '#198754'
       }
     };
-    
+
     return sourceMap[source] || {
       name: 'Security News',
       icon: 'fa-solid fa-newspaper',
@@ -173,20 +193,50 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  // Initial load
-  fetchAndDisplayFeeds();
+  /**
+   * Sets up filtering by source
+   */
+  function setupSourceFilters() {
+    sourceLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
 
-  // Check if page is visible and refresh feeds every 15 minutes
-  let interval = setInterval(function() {
-    if (document.visibilityState === 'visible') {
-      fetchAndDisplayFeeds();
-    }
-  }, 15 * 60 * 1000);
+        // Update active state
+        sourceLinks.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
 
-  // Handle visibility changes
-  document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-      fetchAndDisplayFeeds();
-    }
-  });
+        // Set filter and redisplay
+        currentFilter = this.getAttribute('data-source');
+        displayArticles();
+      });
+    });
+  }
+
+  /**
+   * Initialize the feed
+   */
+  function initFeed() {
+    // Set up filtering
+    setupSourceFilters();
+
+    // Load initial data
+    fetchFeeds();
+
+    // Set up periodic refresh
+    setInterval(function() {
+      if (document.visibilityState === 'visible') {
+        fetchFeeds();
+      }
+    }, 15 * 60 * 1000);
+
+    // Refresh when returning to page
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        fetchFeeds();
+      }
+    });
+  }
+
+  // Initialize the feed
+  initFeed();
 });

@@ -123,7 +123,7 @@
         </a>
         
         <a
-          href="/security-news.html"
+          href="/security-news.php"
           title="Security News"
           aria-label="View Security News Feed"
         >
