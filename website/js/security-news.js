@@ -47,12 +47,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create source name span
         const sourceName = document.createElement('span');
-        sourceName.className = 'ms-1 fw-bold'; // Changed from text-body-secondary to make it more visible
+        sourceName.className = 'ms-1 fw-bold'; // Keep the bold styling
+        sourceName.style.color = '#ffffff'; // Force white color for the source name
         sourceName.textContent = sourceInfo.name;
 
         // Create date span
         const dateSpan = document.createElement('span');
-        dateSpan.className = 'ms-auto text-white-50'; // Changed from text-body-secondary for better contrast
+        dateSpan.className = 'ms-auto';
+        dateSpan.style.color = '#ffffff'; // Force white color for better visibility
         dateSpan.textContent = formattedDate;
         
         // Assemble header
@@ -113,8 +115,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create description
         const description = document.createElement('p');
-        description.className = 'text-white-50 mb-0'; // Changed from text-body-secondary for better contrast
+        description.className = 'mb-0'; // Remove text-white-50 class
         description.style.fontSize = '0.95rem';
+        description.style.color = '#ffffff'; // Set to full white for better visibility
         
         const descText = article.description.length > 200 
           ? article.description.substring(0, 200) + '...'
