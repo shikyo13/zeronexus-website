@@ -104,11 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
       articleElement.className = 'feed-item';
       articleElement.setAttribute('data-source', article.source);
 
-      // Add thumbnail if available
-      if (article.thumbnail) {
-        const imageContainer = document.createElement('div');
-        imageContainer.className = 'image-container';
+      // Create image container
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'image-container';
 
+      // For articles with a thumbnail
+      if (article.thumbnail) {
         const img = document.createElement('img');
         img.src = article.thumbnail;
         img.alt = article.title;
@@ -118,6 +119,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         imageContainer.appendChild(img);
         articleElement.appendChild(imageContainer);
+      }
+      // For BleepingComputer articles without thumbnails, try to fetch one
+      else if (article.source === 'bleepingcomputer') {
+        // Add a placeholder initially
+        const img = document.createElement('img');
+        img.src = 'https://via.placeholder.com/300x200?text=Loading...';
+        img.alt = article.title;
+        img.setAttribute('loading', 'lazy');
+        img.setAttribute('decoding', 'async');
+
+        // Add to DOM immediately with placeholder
+        imageContainer.appendChild(img);
+        articleElement.appendChild(imageContainer);
+
+        // Try to fetch the actual image
+        fetch(`/api/article-image.php?url=${encodeURIComponent(article.link)}&source=bleepingcomputer`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.image) {
+              // Update the image src with the fetched image
+              img.src = data.image;
+            } else {
+              // If no image was found, use a branded placeholder
+              img.src = 'https://via.placeholder.com/300x200?text=BleepingComputer';
+            }
+          })
+          .catch(error => {
+            console.error('Failed to fetch article image:', error);
+            // Set a fallback on error
+            img.src = 'https://via.placeholder.com/300x200?text=No+Image';
+          });
       }
 
       // Create header div with source info
