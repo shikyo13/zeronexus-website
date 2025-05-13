@@ -1,0 +1,204 @@
+/* 
+ * Network Admin Tools CSS
+ * Styling for the Network Admin Tools page
+ */
+
+/* Tab navigation styling */
+#toolTabs {
+  border-bottom: 1px solid var(--border-color);
+}
+
+#toolTabs .nav-link {
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 0.75rem 1rem;
+  margin-right: 0.5rem;
+  transition: all var(--transition-speed) ease;
+}
+
+#toolTabs .nav-link:hover {
+  color: var(--text-color);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom-color: rgba(13, 110, 253, 0.5);
+}
+
+#toolTabs .nav-link.active {
+  color: var(--link-color);
+  background-color: transparent;
+  border-bottom-color: var(--link-color);
+}
+
+/* Tool cards styling */
+.tool-card {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tool-card .card-header {
+  padding: 1.5rem;
+  text-align: center;
+  background-color: rgba(30, 41, 59, 0.5);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tool-card .card-header i {
+  margin-bottom: 1rem;
+  color: var(--link-color);
+}
+
+.tool-card .card-header h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+  font-weight: 600;
+}
+
+.tool-card .card-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-card .card-body p {
+  flex: 1;
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+}
+
+.tool-card .btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+/* Modal customization */
+.modal-content {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-title {
+  color: var(--text-color);
+}
+
+/* Tool specific styles */
+.tool-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.tool-input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.tool-input-group .form-control {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.tool-input-group .form-control:focus {
+  border-color: var(--link-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.tool-output {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+/* Subnet Calculator Styles */
+.result-group {
+  margin-bottom: 0.5rem;
+}
+
+.result-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.result-value {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+}
+
+#resultBinaryMask {
+  word-break: break-all;
+  letter-spacing: 0.05rem;
+}
+
+.alert-info {
+  background-color: rgba(13, 202, 240, 0.1);
+  border-color: rgba(13, 202, 240, 0.2);
+  color: var(--text-color);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.2);
+  color: var(--text-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #toolTabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .tool-card .card-header {
+    padding: 1rem;
+  }
+  
+  .tool-card .card-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  #toolTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  #toolTabs .nav-link i {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
+  .tool-card .card-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .tool-card .card-header i {
+    font-size: 1.5rem !important;
+  }
+}
