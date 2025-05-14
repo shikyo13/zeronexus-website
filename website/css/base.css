@@ -49,9 +49,71 @@ header {
 footer {
   text-align: center;
   margin: 2rem 0 0;
-  padding: 1rem;
+  padding: 1.5rem 1rem;
   border-top: 1px solid var(--border-color);
   margin-top: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+footer .text-body-secondary {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Main site navigation */
+.site-nav {
+  margin-bottom: 1.5rem;
+}
+
+.site-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all var(--transition-speed) ease;
+}
+
+.site-nav a,
+.site-nav a i {
+  color: var(--link-color);
+}
+
+.site-nav a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-3px);
+  text-decoration: none;
+}
+
+.site-nav a.active {
+  background-color: rgba(13, 110, 253, 0.15);
+  color: var(--link-color);
+}
+
+.site-nav .nav-label {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--link-color);
+}
+
+/* Make site nav more responsive on mobile */
+@media (max-width: 576px) {
+  .site-nav {
+    gap: 0.5rem !important;
+  }
+
+  .site-nav a {
+    padding: 0.5rem;
+  }
+
+  .site-nav i {
+    font-size: 1.5rem !important;
+  }
+
+  .site-nav .nav-label {
+    font-size: 0.75rem;
+  }
 }
 
 /* Utility classes */

@@ -92,8 +92,8 @@
           <span class="nav-label">CVE Dashboard</span>
         </a>
 
-        <a href="/network-admin.php" <?php echo basename($_SERVER['PHP_SELF']) == 'network-admin.php' ? 'class="active"' : ''; ?> title="Network Admin Tools">
-          <i class="fa-solid fa-network-wired fa-2x fa-fw" aria-hidden="true"></i>
+        <a href="/network-admin.php" <?php echo basename($_SERVER['PHP_SELF']) == 'network-admin.php' ? 'class="active"' : ''; ?> title="IT Admin Tools">
+          <i class="fa-solid fa-screwdriver-wrench fa-2x fa-fw" aria-hidden="true"></i>
           <span class="nav-label">Admin Tools</span>
         </a>
       </nav>

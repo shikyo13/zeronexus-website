@@ -369,12 +369,396 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * DNS Lookup functionality
- * To be implemented
+ * Implements DNS record lookup and visualization
  */
-function performDnsLookup() {
-  // Placeholder for DNS lookup implementation
-  console.log('DNS lookup will be implemented in a future update');
+function setupDnsLookup() {
+  // Get DOM elements
+  const domainInput = document.getElementById('domainName');
+  const recordTypeSelect = document.getElementById('recordType');
+  const lookupBtn = document.getElementById('lookupDnsBtn');
+  const clearBtn = document.getElementById('clearDnsBtn');
+  const copyResultsBtn = document.getElementById('copyDnsResultsBtn');
+  const toggleVisualizationBtn = document.getElementById('toggleVisualizationBtn');
+  const resultsDiv = document.getElementById('dnsResults');
+  const dnsRecordsDiv = document.getElementById('dnsRecords');
+  const dnsVisualizationDiv = document.getElementById('dnsVisualization');
+  const resultDomainSpan = document.getElementById('resultDomain');
+  const errorDiv = document.getElementById('dnsError');
+  const errorText = document.getElementById('dnsErrorText');
+  const loadingDiv = document.getElementById('dnsLoading');
+
+  // Set up event listeners
+  if (lookupBtn) {
+    lookupBtn.addEventListener('click', performDnsLookup);
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', clearDnsForm);
+  }
+
+  if (copyResultsBtn) {
+    copyResultsBtn.addEventListener('click', copyDnsResults);
+  }
+
+  if (toggleVisualizationBtn) {
+    toggleVisualizationBtn.addEventListener('click', toggleVisualization);
+  }
+
+  // Input validation with Enter key
+  if (domainInput) {
+    domainInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        performDnsLookup();
+      }
+    });
+  }
+
+  /**
+   * Perform DNS lookup based on form inputs
+   */
+  function performDnsLookup() {
+    // Clear previous results and errors
+    hideError();
+    hideResults();
+    showLoading();
+
+    // Get input values
+    const domain = domainInput.value.trim();
+    const recordType = recordTypeSelect.value;
+
+    // Validate domain
+    if (!domain) {
+      hideLoading();
+      showError('Please enter a domain name or IP address.');
+      return;
+    }
+
+    // Basic domain or IP validation
+    const isDomain = /^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}$/.test(domain);
+    const isIPv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(domain);
+    const isIPv6 = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(domain) ||
+                  /^([0-9a-fA-F]{1,4}:){1,7}:$/.test(domain) ||
+                  /^:((:[0-9a-fA-F]{1,4}){1,7}|:)$/.test(domain) ||
+                  /^([0-9a-fA-F]{1,4}:){1,7}(:[0-9a-fA-F]{1,4}){1,7}$/.test(domain);
+
+    if (recordType === 'PTR' && !isIPv4 && !isIPv6) {
+      hideLoading();
+      showError('For PTR (reverse lookup), please enter a valid IP address.');
+      return;
+    }
+
+    if (recordType !== 'PTR' && !isDomain) {
+      hideLoading();
+      showError('Please enter a valid domain name (e.g., example.com).');
+      return;
+    }
+
+    // Create API URL
+    const apiUrl = `/api/dns-lookup.php?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(recordType)}`;
+
+    // Make API request
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        hideLoading();
+
+        if (data.error) {
+          showError(data.message || 'An error occurred during DNS lookup.');
+          return;
+        }
+
+        displayDnsResults(data);
+      })
+      .catch(error => {
+        hideLoading();
+        showError('Failed to perform DNS lookup: ' + error.message);
+      });
+  }
+
+  /**
+   * Display DNS lookup results
+   */
+  function displayDnsResults(data) {
+    // Set domain name in results
+    resultDomainSpan.textContent = data.domain;
+
+    // Clear previous results
+    dnsRecordsDiv.innerHTML = '';
+
+    // Check if we have records
+    if (!data.records || data.records.length === 0) {
+      dnsRecordsDiv.innerHTML = '<div class="p-3 text-center">No DNS records found for the specified type.</div>';
+      showResults();
+      return;
+    }
+
+    // Process each record
+    data.records.forEach(record => {
+      const recordItem = document.createElement('div');
+      recordItem.className = 'dns-record-item';
+
+      // Create record type badge
+      const recordType = document.createElement('span');
+      recordType.className = `dns-record-type ${record.type.toLowerCase()}`;
+      recordType.textContent = record.type;
+      recordItem.appendChild(recordType);
+
+      // Host name (if available)
+      if (record.host) {
+        const hostSpan = document.createElement('span');
+        hostSpan.textContent = record.host;
+        recordItem.appendChild(hostSpan);
+      }
+
+      // Create record content container
+      const recordContent = document.createElement('div');
+      recordContent.className = 'dns-record-content';
+
+      // Add record-specific content based on type
+      switch (record.type) {
+        case 'A':
+        case 'AAAA':
+          addProperty(recordContent, 'IP', record.ip || record.ipv6 || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'MX':
+          addProperty(recordContent, 'Target', record.target || 'N/A');
+          addProperty(recordContent, 'Priority', record.pri || record.priority || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'NS':
+          addProperty(recordContent, 'Target', record.target || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'TXT':
+          addProperty(recordContent, 'Text', record.txt || record.entries?.join('<br>') || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'CNAME':
+          addProperty(recordContent, 'Target', record.target || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'SOA':
+          addProperty(recordContent, 'MName', record.mname || 'N/A');
+          addProperty(recordContent, 'RName', record.rname || 'N/A');
+          addProperty(recordContent, 'Serial', record.serial || 'N/A');
+          addProperty(recordContent, 'Refresh', record.refresh || 'N/A');
+          addProperty(recordContent, 'Retry', record.retry || 'N/A');
+          addProperty(recordContent, 'Expire', record.expire || 'N/A');
+          addProperty(recordContent, 'Minimum', record.minimum || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'PTR':
+          addProperty(recordContent, 'Target', record.target || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'SRV':
+          addProperty(recordContent, 'Target', record.target || 'N/A');
+          addProperty(recordContent, 'Priority', record.pri || record.priority || 'N/A');
+          addProperty(recordContent, 'Weight', record.weight || 'N/A');
+          addProperty(recordContent, 'Port', record.port || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        case 'CAA':
+          addProperty(recordContent, 'Flags', record.flags || 'N/A');
+          addProperty(recordContent, 'Tag', record.tag || 'N/A');
+          addProperty(recordContent, 'Value', record.value || 'N/A');
+          addProperty(recordContent, 'TTL', record.ttl || 'N/A');
+          break;
+
+        default:
+          // For all other record types, add all properties
+          Object.keys(record).forEach(key => {
+            if (key !== 'type' && key !== 'host') {
+              addProperty(recordContent, key, record[key]);
+            }
+          });
+          break;
+      }
+
+      recordItem.appendChild(recordContent);
+      dnsRecordsDiv.appendChild(recordItem);
+    });
+
+    // Show results
+    showResults();
+
+    // Create visualization if enabled
+    createVisualization(data);
+  }
+
+  /**
+   * Helper to add a property to the record content
+   */
+  function addProperty(container, name, value) {
+    const propName = document.createElement('div');
+    propName.className = 'dns-property';
+    propName.textContent = name;
+
+    const propValue = document.createElement('div');
+    propValue.className = 'dns-value';
+    propValue.innerHTML = value; // Using innerHTML to support line breaks
+
+    container.appendChild(propName);
+    container.appendChild(propValue);
+  }
+
+  /**
+   * Create a visualization for DNS record relationships
+   */
+  function createVisualization(data) {
+    // Basic placeholder for visualization
+    dnsVisualizationDiv.innerHTML = '';
+
+    // For now, we'll just add a simple placeholder
+    const visualPlaceholder = document.createElement('div');
+    visualPlaceholder.style.height = '100%';
+    visualPlaceholder.style.display = 'flex';
+    visualPlaceholder.style.alignItems = 'center';
+    visualPlaceholder.style.justifyContent = 'center';
+    visualPlaceholder.style.flexDirection = 'column';
+    visualPlaceholder.innerHTML = `
+      <i class="fas fa-project-diagram fa-3x mb-3" style="opacity: 0.5;"></i>
+      <div style="text-align: center;">
+        DNS visualization will be implemented in a future update.<br>
+        Currently showing ${data.records.length} ${data.type} record(s) for ${data.domain}.
+      </div>
+    `;
+
+    dnsVisualizationDiv.appendChild(visualPlaceholder);
+  }
+
+  /**
+   * Toggle between records view and visualization
+   */
+  function toggleVisualization() {
+    const isVisualizationVisible = !dnsVisualizationDiv.classList.contains('d-none');
+    const toggleText = toggleVisualizationBtn.querySelector('span');
+
+    if (isVisualizationVisible) {
+      // Switch to records view
+      dnsVisualizationDiv.classList.add('d-none');
+      dnsRecordsDiv.parentElement.classList.remove('d-none');
+      toggleText.textContent = 'Show Visualization';
+    } else {
+      // Switch to visualization view
+      dnsVisualizationDiv.classList.remove('d-none');
+      dnsRecordsDiv.parentElement.classList.add('d-none');
+      toggleText.textContent = 'Show Records';
+    }
+  }
+
+  /**
+   * Clear the DNS lookup form
+   */
+  function clearDnsForm() {
+    domainInput.value = '';
+    recordTypeSelect.value = 'A';
+    hideResults();
+    hideError();
+    domainInput.focus();
+  }
+
+  /**
+   * Copy DNS results to clipboard
+   */
+  function copyDnsResults() {
+    let resultsText = `DNS Lookup Results for ${resultDomainSpan.textContent}\n`;
+    resultsText += `Record Type: ${recordTypeSelect.options[recordTypeSelect.selectedIndex].text}\n\n`;
+
+    const recordItems = dnsRecordsDiv.querySelectorAll('.dns-record-item');
+
+    recordItems.forEach((item, index) => {
+      const type = item.querySelector('.dns-record-type').textContent;
+      resultsText += `Record ${index + 1} [${type}]:\n`;
+
+      const properties = item.querySelectorAll('.dns-property');
+      const values = item.querySelectorAll('.dns-value');
+
+      for (let i = 0; i < properties.length; i++) {
+        resultsText += `${properties[i].textContent}: ${values[i].textContent}\n`;
+      }
+
+      resultsText += '\n';
+    });
+
+    navigator.clipboard.writeText(resultsText.trim())
+      .then(() => {
+        // Show copied notification
+        const originalText = copyResultsBtn.innerHTML;
+        copyResultsBtn.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+
+        setTimeout(() => {
+          copyResultsBtn.innerHTML = originalText;
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        showError('Failed to copy results to clipboard.');
+      });
+  }
+
+  /**
+   * Show error message
+   */
+  function showError(message) {
+    errorText.textContent = message;
+    errorDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide error message
+   */
+  function hideError() {
+    errorDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show results container
+   */
+  function showResults() {
+    resultsDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide results container
+   */
+  function hideResults() {
+    resultsDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show loading indicator
+   */
+  function showLoading() {
+    loadingDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide loading indicator
+   */
+  function hideLoading() {
+    loadingDiv.classList.add('d-none');
+  }
 }
+
+// Initialize DNS lookup when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+  setupDnsLookup();
+});
 
 /**
  * Security Headers Checker functionality
