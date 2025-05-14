@@ -4,20 +4,12 @@
  * Provides functionality for the Network Admin Tools page
  */
 
-// Global debugging
-console.log('Network Admin Tools JavaScript loaded');
+// Initialize global tools
 window.addEventListener('load', function() {
-  console.log('Window fully loaded');
-  // Check modal elements after window load
-  console.log('Ping modal elements after window load:');
-  console.log('- hostTarget:', document.getElementById('hostTarget'));
-  console.log('- runNetworkToolBtn:', document.getElementById('runNetworkToolBtn'));
   
   // Direct event binding for run button to ensure it works
   document.body.addEventListener('click', function(e) {
     if (e.target && (e.target.id === 'runNetworkToolBtn' || (e.target.parentElement && e.target.parentElement.id === 'runNetworkToolBtn'))) {
-      console.log('Run button clicked through event delegation!');
-      
       // Get values from form
       const hostInput = document.getElementById('hostTarget');
       const toolType = document.getElementById('toolType');
@@ -511,25 +503,10 @@ function setupSubnetCalculator() {
 
 // Call setup functions when document is ready
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM Content Loaded - setting up tools');
   setupSubnetCalculator();
   setupDnsLookup();
   setupSecurityHeadersChecker();
   setupPingTraceroute();
-  
-  // Direct event binding as a fallback
-  const runNetworkToolBtn = document.getElementById('runNetworkToolBtn');
-  if (runNetworkToolBtn) {
-    console.log('Adding direct event listener to run button');
-    runNetworkToolBtn.addEventListener('click', function() {
-      console.log('Run button clicked!');
-      const hostInput = document.getElementById('hostTarget');
-      const host = hostInput ? hostInput.value.trim() : '';
-      alert('Testing network tool functionality for host: ' + host);
-    });
-  } else {
-    console.log('Run button not found in DOM');
-  }
 });
 
 /**
