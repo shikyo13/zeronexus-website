@@ -217,12 +217,204 @@
 }
 
 .dns-visualization {
-  height: 300px;
+  min-height: 300px;
+  max-height: 400px;
   background-color: rgba(0, 0, 0, 0.15);
   border-radius: 0.25rem;
   padding: 1rem;
-  overflow: hidden;
+  overflow: auto;
   position: relative;
+}
+
+/* DNS Visualization Components */
+.dns-visualization-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.dns-domain-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.dns-node {
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.dns-domain-node {
+  background-color: rgba(13, 110, 253, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(13, 110, 253, 0.3);
+  min-width: 150px;
+}
+
+.dns-domain-node i {
+  font-size: 1.5rem;
+  color: var(--link-color);
+}
+
+.dns-node-label {
+  font-weight: bold;
+  word-break: break-word;
+}
+
+.dns-record-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dns-type-group {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.dns-type-header {
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dns-type-count {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.dns-record-nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.dns-record-node {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.dns-record-node:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dns-record-node i {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.dns-node-value {
+  font-size: 0.9rem;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Security Headers Checker Styles */
+.header-item {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.header-item.present {
+  background-color: rgba(25, 135, 84, 0.1);
+  border-color: rgba(25, 135, 84, 0.2);
+}
+
+.header-item.missing {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.2);
+}
+
+.header-item.warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.2);
+}
+
+.header-item .header-name {
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.header-item .header-status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.header-status.present {
+  background-color: rgba(25, 135, 84, 0.2);
+  color: #198754;
+}
+
+.header-status.missing {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.header-status.warning {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.header-item .header-value {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.header-item .header-description {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.recommendation-item {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.recommendation-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.recommendation-item .recommendation-title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.recommendation-item .recommendation-text {
+  font-size: 0.9rem;
 }
 
 /* Special record type styles */
@@ -266,6 +458,168 @@
   background-color: rgba(214, 51, 132, 0.2);
 }
 
+/* Ping/Traceroute Tool Styles */
+.network-output {
+  background-color: var(--code-bg);
+  color: var(--code-color);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  max-height: 350px;
+  overflow-y: auto;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 1rem;
+}
+
+.result-table td {
+  padding: 0.5rem;
+}
+
+.result-table td:first-child {
+  font-weight: bold;
+  width: 40%;
+}
+
+.traceroute-vis {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1rem 0;
+}
+
+.hop-container {
+  display: flex;
+  width: 100%;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.hop-number {
+  flex: 0 0 40px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.hop-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.hop-node-icon {
+  flex: 0 0 auto;
+  margin-right: 1rem;
+  color: var(--primary-color);
+}
+
+.hop-details {
+  flex: 1;
+}
+
+.hop-hostname {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.hop-ip {
+  font-size: 0.85rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: var(--text-muted);
+}
+
+.hop-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.hop-stat {
+  display: flex;
+  align-items: center;
+}
+
+.hop-stat-label {
+  margin-right: 0.25rem;
+  font-weight: bold;
+}
+
+.hop-stat-value {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.hop-path {
+  position: relative;
+  width: 2px;
+  background-color: var(--border-color);
+  margin: 0 auto;
+  height: 1.5rem;
+  margin-bottom: -0.5rem;
+}
+
+.latency-good {
+  color: var(--success-color);
+}
+
+.latency-medium {
+  color: var(--warning-color);
+}
+
+.latency-bad {
+  color: var(--danger-color);
+}
+
+/* For RTT Visualization */
+.rtt-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.rtt-bar-label {
+  flex: 0 0 50px;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.rtt-bar-wrapper {
+  flex: 1;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rtt-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.rtt-bar-value {
+  flex: 0 0 50px;
+  font-size: 0.75rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Timeout/Error Styling */
+.hop-timeout {
+  color: var(--danger-color);
+  font-style: italic;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   #toolTabs .nav-link {
@@ -279,6 +633,27 @@
   
   .tool-card .card-body {
     padding: 1rem;
+  }
+  
+  .hop-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hop-number {
+    margin-bottom: 0.5rem;
+  }
+  
+  .hop-path {
+    margin-top: 0.5rem;
+    margin-left: 20px;
+    width: 1px;
+    height: 1rem;
+  }
+  
+  .hop-stats {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 

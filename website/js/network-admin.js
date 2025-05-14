@@ -364,6 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupSubnetCalculator();
   setupDnsLookup();
   setupSecurityHeadersChecker();
+  setupPingTraceroute();
 });
 
 /**
@@ -1220,6 +1221,735 @@ function setupSecurityHeadersChecker() {
         
         setTimeout(() => {
           copyHeadersBtn.innerHTML = originalText;
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        showError('Failed to copy results to clipboard.');
+      });
+  }
+
+  /**
+   * Show error message
+   */
+  function showError(message) {
+    errorText.textContent = message;
+    errorDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide error message
+   */
+  function hideError() {
+    errorDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show results container
+   */
+  function showResults() {
+    resultsDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide results container
+   */
+  function hideResults() {
+    resultsDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show loading indicator
+   */
+  function showLoading() {
+    loadingDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide loading indicator
+   */
+  function hideLoading() {
+    loadingDiv.classList.add('d-none');
+  }
+}
+
+/**
+ * Ping/Traceroute Tool functionality
+ * Implements network diagnostic tool with visualization
+ */
+function setupPingTraceroute() {
+  // Get DOM elements
+  const hostTargetInput = document.getElementById('hostTarget');
+  const toolTypeSelect = document.getElementById('toolType');
+  const packetCountInput = document.getElementById('packetCount');
+  const packetSizeInput = document.getElementById('packetSize');
+  const timeoutInput = document.getElementById('timeout');
+  const runBtn = document.getElementById('runNetworkToolBtn');
+  const clearBtn = document.getElementById('clearNetworkToolBtn');
+  const copyResultsBtn = document.getElementById('copyNetworkToolBtn');
+  const resultsDiv = document.getElementById('networkToolResults');
+  const resultOutput = document.getElementById('resultOutput');
+  const resultToolType = document.getElementById('resultToolType');
+  const resultHost = document.getElementById('resultHost');
+  const visualTab = document.getElementById('visualTab');
+  const tracerouteVisualization = document.getElementById('tracerouteVisualization');
+  const errorDiv = document.getElementById('networkToolError');
+  const errorText = document.getElementById('networkToolErrorText');
+  const loadingDiv = document.getElementById('networkToolLoading');
+  const loadingToolType = document.getElementById('loadingToolType');
+  const statsHost = document.getElementById('statsHost');
+  const statsPackets = document.getElementById('statsPackets');
+  const statsSuccess = document.getElementById('statsSuccess');
+  const statsIp = document.getElementById('statsIp');
+  const statsMin = document.getElementById('statsMin');
+  const statsAvg = document.getElementById('statsAvg');
+  const statsMax = document.getElementById('statsMax');
+  const statsStdDev = document.getElementById('statsStdDev');
+
+  // Set up event listeners
+  if (runBtn) {
+    runBtn.addEventListener('click', runNetworkTool);
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', clearNetworkForm);
+  }
+
+  if (copyResultsBtn) {
+    copyResultsBtn.addEventListener('click', copyNetworkResults);
+  }
+
+  // Input validation with Enter key
+  if (hostTargetInput) {
+    hostTargetInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        runNetworkTool();
+      }
+    });
+  }
+  
+  // Show/hide visualization tab based on tool type
+  if (toolTypeSelect) {
+    toolTypeSelect.addEventListener('change', function() {
+      updateToolOptions(this.value);
+    });
+  }
+
+  /**
+   * Update UI based on selected tool type
+   */
+  function updateToolOptions(toolType) {
+    // For ping, we may want to adjust packet counts
+    if (toolType === 'ping') {
+      packetCountInput.max = 20;
+      if (parseInt(packetCountInput.value) > 20) {
+        packetCountInput.value = 20;
+      }
+    } else if (toolType === 'traceroute') {
+      packetCountInput.max = 3;
+      if (parseInt(packetCountInput.value) > 3) {
+        packetCountInput.value = 3;
+      }
+    } else if (toolType === 'mtr') {
+      packetCountInput.max = 10;
+      if (parseInt(packetCountInput.value) > 10) {
+        packetCountInput.value = 10;
+      }
+    }
+  }
+
+  /**
+   * Run the network diagnostic tool
+   */
+  function runNetworkTool() {
+    // Clear previous results and errors
+    hideError();
+    hideResults();
+    showLoading();
+
+    // Get input values
+    const host = hostTargetInput.value.trim();
+    const toolType = toolTypeSelect.value;
+    const packetCount = parseInt(packetCountInput.value);
+    const packetSize = parseInt(packetSizeInput.value);
+    const timeout = parseInt(timeoutInput.value);
+
+    // Update loading message
+    loadingToolType.textContent = toolType;
+
+    // Basic validation
+    if (!host) {
+      hideLoading();
+      showError('Please enter a domain name or IP address.');
+      return;
+    }
+
+    // Validate packet count
+    if (isNaN(packetCount) || packetCount < 1) {
+      hideLoading();
+      showError('Packet count must be at least 1.');
+      return;
+    }
+
+    // Validate packet size
+    if (isNaN(packetSize) || packetSize < 32 || packetSize > 1472) {
+      hideLoading();
+      showError('Packet size must be between 32 and 1472 bytes.');
+      return;
+    }
+
+    // Validate timeout
+    if (isNaN(timeout) || timeout < 1 || timeout > 10) {
+      hideLoading();
+      showError('Timeout must be between 1 and 10 seconds.');
+      return;
+    }
+
+    // Simulate a network request
+    // In a real implementation, this would call the API endpoint
+    simulateNetworkTool(host, toolType, packetCount, packetSize, timeout);
+  }
+
+  /**
+   * Simulate network tool response (for development purposes)
+   * This will be replaced with actual API calls in production
+   */
+  function simulateNetworkTool(host, toolType, packetCount, packetSize, timeout) {
+    // For demonstration purposes, we'll simulate a response
+    // This would normally be a fetch() call to the API
+    
+    setTimeout(() => {
+      let simulatedOutput = '';
+      let successRate = 0;
+      let minLatency = 0;
+      let avgLatency = 0;
+      let maxLatency = 0;
+      let stdDev = 0;
+      
+      // Generate different outputs based on tool type
+      if (toolType === 'ping') {
+        const pingResults = generatePingSimulation(host, packetCount, packetSize);
+        simulatedOutput = pingResults.output;
+        successRate = pingResults.successRate;
+        minLatency = pingResults.minLatency;
+        avgLatency = pingResults.avgLatency;
+        maxLatency = pingResults.maxLatency;
+        stdDev = pingResults.stdDev;
+        
+        // Hide visualization tab for ping
+        visualTab.classList.add('d-none');
+      } 
+      else if (toolType === 'traceroute') {
+        const traceResults = generateTracerouteSimulation(host);
+        simulatedOutput = traceResults.output;
+        successRate = traceResults.successRate;
+        minLatency = traceResults.minLatency;
+        avgLatency = traceResults.avgLatency;
+        maxLatency = traceResults.maxLatency;
+        stdDev = traceResults.stdDev;
+        
+        // Show visualization tab for traceroute
+        visualTab.classList.remove('d-none');
+        
+        // Create visualization
+        createTracerouteVisualization(traceResults.hops);
+      }
+      else if (toolType === 'mtr') {
+        const mtrResults = generateMtrSimulation(host, packetCount);
+        simulatedOutput = mtrResults.output;
+        successRate = mtrResults.successRate;
+        minLatency = mtrResults.minLatency;
+        avgLatency = mtrResults.avgLatency;
+        maxLatency = mtrResults.maxLatency;
+        stdDev = mtrResults.stdDev;
+        
+        // Show visualization tab for mtr
+        visualTab.classList.remove('d-none');
+        
+        // Create visualization
+        createTracerouteVisualization(mtrResults.hops);
+      }
+      
+      // Display results
+      hideLoading();
+      displayNetworkResults(host, toolType.toUpperCase(), simulatedOutput, {
+        successRate: successRate,
+        ip: generateRandomIp(),
+        minLatency: minLatency,
+        avgLatency: avgLatency,
+        maxLatency: maxLatency,
+        stdDev: stdDev,
+        packetCount: packetCount
+      });
+      
+    }, 2000); // Simulate network delay
+  }
+
+  /**
+   * Generate simulated ping results
+   */
+  function generatePingSimulation(host, packetCount, packetSize) {
+    let output = `PING ${host} (${generateRandomIp()}): ${packetSize} data bytes\n`;
+    let successCount = 0;
+    const latencies = [];
+    
+    for (let i = 0; i < packetCount; i++) {
+      // 10% chance of packet loss
+      if (Math.random() > 0.1) {
+        const latency = Math.round(20 + Math.random() * 80);
+        latencies.push(latency);
+        output += `${packetSize} bytes from ${generateRandomIp()}: icmp_seq=${i+1} ttl=64 time=${latency}.${Math.floor(Math.random() * 1000)} ms\n`;
+        successCount++;
+      } else {
+        output += `Request timeout for icmp_seq ${i+1}\n`;
+      }
+    }
+    
+    // Add statistics
+    const successRate = successCount / packetCount * 100;
+    const minLatency = Math.min(...latencies) || 0;
+    const maxLatency = Math.max(...latencies) || 0;
+    const avgLatency = latencies.length ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    
+    // Calculate standard deviation
+    let stdDev = 0;
+    if (latencies.length) {
+      const squareDiffs = latencies.map(value => {
+        const diff = value - avgLatency;
+        return diff * diff;
+      });
+      const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+      stdDev = Math.sqrt(avgSquareDiff);
+    }
+    
+    output += `\n--- ${host} ping statistics ---\n`;
+    output += `${packetCount} packets transmitted, ${successCount} packets received, ${Math.round((packetCount - successCount) / packetCount * 100)}% packet loss\n`;
+    output += `round-trip min/avg/max/stddev = ${minLatency.toFixed(1)}/${avgLatency.toFixed(1)}/${maxLatency.toFixed(1)}/${stdDev.toFixed(1)} ms\n`;
+    
+    return {
+      output: output,
+      successRate: successRate,
+      minLatency: minLatency,
+      avgLatency: avgLatency,
+      maxLatency: maxLatency,
+      stdDev: stdDev
+    };
+  }
+
+  /**
+   * Generate simulated traceroute results
+   */
+  function generateTracerouteSimulation(host) {
+    let output = `traceroute to ${host} (${generateRandomIp()}), 30 hops max, 60 byte packets\n`;
+    const hops = [];
+    const hopCount = Math.floor(5 + Math.random() * 10); // 5-15 hops
+    const latencies = [];
+    
+    for (let i = 1; i <= hopCount; i++) {
+      const latency1 = Math.round(20 + Math.random() * 80);
+      const latency2 = Math.round(20 + Math.random() * 80);
+      const latency3 = Math.round(20 + Math.random() * 80);
+      const avgLatency = (latency1 + latency2 + latency3) / 3;
+      latencies.push(avgLatency);
+      
+      const ip = generateRandomIp();
+      let hostname = '';
+      
+      // Generate realistic hostnames for different hop positions
+      if (i === 1) {
+        hostname = 'local-gateway.net';
+      } else if (i === hopCount) {
+        hostname = host;
+      } else if (i === 2) {
+        hostname = 'isp-edge-router.net';
+      } else if (i < 4) {
+        hostname = `isp-core-${Math.floor(Math.random() * 100)}.net`;
+      } else {
+        const providers = ['level3', 'cogent', 'telia', 'ntt', 'hurricane'];
+        const provider = providers[Math.floor(Math.random() * providers.length)];
+        hostname = `${provider}-transit-${Math.floor(Math.random() * 100)}.net`;
+      }
+      
+      output += `${i}  ${hostname} (${ip})  ${latency1.toFixed(1)} ms  ${latency2.toFixed(1)} ms  ${latency3.toFixed(1)} ms\n`;
+      
+      hops.push({
+        hop: i,
+        hostname: hostname,
+        ip: ip,
+        latency1: latency1,
+        latency2: latency2,
+        latency3: latency3,
+        avgLatency: avgLatency
+      });
+    }
+    
+    // Calculate statistics
+    const minLatency = Math.min(...latencies);
+    const maxLatency = Math.max(...latencies);
+    const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+    
+    // Calculate standard deviation
+    let stdDev = 0;
+    if (latencies.length) {
+      const squareDiffs = latencies.map(value => {
+        const diff = value - avgLatency;
+        return diff * diff;
+      });
+      const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+      stdDev = Math.sqrt(avgSquareDiff);
+    }
+    
+    return {
+      output: output,
+      hops: hops,
+      successRate: 100, // Traceroute typically completes if the final hop is reached
+      minLatency: minLatency,
+      avgLatency: avgLatency,
+      maxLatency: maxLatency,
+      stdDev: stdDev
+    };
+  }
+
+  /**
+   * Generate simulated MTR results
+   */
+  function generateMtrSimulation(host, packetCount) {
+    let output = `Start: ${new Date().toISOString().replace('T', ' ').substring(0, 19)}, Host: ${host}\n`;
+    output += `HOST: ${navigator.userAgent}             Loss%   Snt   Last   Avg  Best  Wrst StDev\n`;
+    
+    const hops = [];
+    const hopCount = Math.floor(5 + Math.random() * 10); // 5-15 hops
+    const latencies = [];
+    
+    for (let i = 1; i <= hopCount; i++) {
+      const loss = Math.random() > 0.9 ? Math.floor(Math.random() * 50) : 0;
+      const sent = packetCount;
+      const last = Math.round(20 + Math.random() * 80);
+      const best = Math.round(last * 0.8);
+      const worst = Math.round(last * 1.2);
+      const avg = Math.round((last + best + worst) / 3);
+      const stdDev = Math.round((worst - best) / 4);
+      
+      latencies.push(avg);
+      
+      const ip = generateRandomIp();
+      let hostname = '';
+      
+      // Generate realistic hostnames
+      if (i === 1) {
+        hostname = 'local-gateway.net';
+      } else if (i === hopCount) {
+        hostname = host;
+      } else if (i === 2) {
+        hostname = 'isp-edge-router.net';
+      } else if (i < 4) {
+        hostname = `isp-core-${Math.floor(Math.random() * 100)}.net`;
+      } else {
+        const providers = ['level3', 'cogent', 'telia', 'ntt', 'hurricane'];
+        const provider = providers[Math.floor(Math.random() * providers.length)];
+        hostname = `${provider}-transit-${Math.floor(Math.random() * 100)}.net`;
+      }
+      
+      output += `${i}. ${hostname} (${ip})  ${loss}%    ${sent}   ${last}   ${avg}   ${best}   ${worst}  ${stdDev}\n`;
+      
+      hops.push({
+        hop: i,
+        hostname: hostname,
+        ip: ip,
+        loss: loss,
+        sent: sent,
+        last: last,
+        avg: avg,
+        best: best,
+        worst: worst,
+        stdDev: stdDev
+      });
+    }
+    
+    // Calculate statistics
+    const minLatency = Math.min(...latencies);
+    const maxLatency = Math.max(...latencies);
+    const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+    
+    // Calculate standard deviation
+    let stdDev = 0;
+    if (latencies.length) {
+      const squareDiffs = latencies.map(value => {
+        const diff = value - avgLatency;
+        return diff * diff;
+      });
+      const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+      stdDev = Math.sqrt(avgSquareDiff);
+    }
+    
+    const successRate = 100 - (hops[hops.length - 1].loss || 0);
+    
+    return {
+      output: output,
+      hops: hops,
+      successRate: successRate,
+      minLatency: minLatency,
+      avgLatency: avgLatency,
+      maxLatency: maxLatency,
+      stdDev: stdDev
+    };
+  }
+
+  /**
+   * Create visualization for traceroute results
+   */
+  function createTracerouteVisualization(hops) {
+    tracerouteVisualization.innerHTML = '';
+    
+    if (!hops || hops.length === 0) {
+      tracerouteVisualization.innerHTML = `
+        <div class="text-center p-5">
+          <i class="fas fa-map-marked-alt fa-3x mb-3" style="opacity: 0.5;"></i>
+          <p>No route information available.</p>
+        </div>`;
+      return;
+    }
+    
+    // Find highest latency for scaling
+    let maxLatency = 0;
+    hops.forEach(hop => {
+      const hopMax = hop.latency1 || hop.latency2 || hop.latency3 || hop.worst || 0;
+      maxLatency = Math.max(maxLatency, hopMax);
+    });
+    
+    // Add 20% buffer to max latency for visualization
+    maxLatency = Math.ceil(maxLatency * 1.2);
+    
+    // Create visualization for each hop
+    hops.forEach((hop, index) => {
+      // Create hop container
+      const hopContainer = document.createElement('div');
+      hopContainer.className = 'hop-container';
+      
+      // Hop number
+      const hopNumber = document.createElement('div');
+      hopNumber.className = 'hop-number';
+      hopNumber.textContent = hop.hop;
+      hopContainer.appendChild(hopNumber);
+      
+      // Create hop node
+      const hopNode = document.createElement('div');
+      hopNode.className = 'hop-node';
+      
+      // Choose appropriate icon
+      let icon = 'fa-network-wired';
+      if (hop.hop === 1) {
+        icon = 'fa-home';
+      } else if (hop.hop === hops.length) {
+        icon = 'fa-server';
+      }
+      
+      // Add icon
+      const nodeIcon = document.createElement('div');
+      nodeIcon.className = 'hop-node-icon';
+      nodeIcon.innerHTML = `<i class="fas ${icon}"></i>`;
+      hopNode.appendChild(nodeIcon);
+      
+      // Add details
+      const hopDetails = document.createElement('div');
+      hopDetails.className = 'hop-details';
+      
+      // Hostname/IP
+      const hostname = document.createElement('div');
+      hostname.className = 'hop-hostname';
+      hostname.textContent = hop.hostname || 'Unknown';
+      hopDetails.appendChild(hostname);
+      
+      const ip = document.createElement('div');
+      ip.className = 'hop-ip';
+      ip.textContent = hop.ip;
+      hopDetails.appendChild(ip);
+      
+      // Stats
+      const hopStats = document.createElement('div');
+      hopStats.className = 'hop-stats';
+      
+      // Add different stats based on tool type
+      if (hop.hasOwnProperty('latency1')) {
+        // Traceroute format
+        const avgLatency = (hop.latency1 + hop.latency2 + hop.latency3) / 3;
+        
+        addStat(hopStats, 'RTT', `${avgLatency.toFixed(1)} ms`, getLatencyClass(avgLatency));
+        
+        // RTT visualization
+        const rttContainer = document.createElement('div');
+        rttContainer.className = 'rtt-bar-container';
+        
+        const barLabel = document.createElement('div');
+        barLabel.className = 'rtt-bar-label';
+        barLabel.textContent = 'RTT';
+        rttContainer.appendChild(barLabel);
+        
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'rtt-bar-wrapper';
+        
+        const bar = document.createElement('div');
+        bar.className = 'rtt-bar';
+        bar.style.width = `${(avgLatency / maxLatency) * 100}%`;
+        barWrapper.appendChild(bar);
+        rttContainer.appendChild(barWrapper);
+        
+        const barValue = document.createElement('div');
+        barValue.className = 'rtt-bar-value';
+        barValue.textContent = `${avgLatency.toFixed(1)} ms`;
+        rttContainer.appendChild(barValue);
+        
+        hopDetails.appendChild(rttContainer);
+      } else if (hop.hasOwnProperty('loss')) {
+        // MTR format
+        addStat(hopStats, 'Loss', `${hop.loss}%`, hop.loss > 10 ? 'latency-bad' : hop.loss > 0 ? 'latency-medium' : 'latency-good');
+        addStat(hopStats, 'Avg', `${hop.avg} ms`, getLatencyClass(hop.avg));
+        addStat(hopStats, 'Best', `${hop.best} ms`, 'latency-good');
+        addStat(hopStats, 'Worst', `${hop.worst} ms`, getLatencyClass(hop.worst));
+        
+        // RTT visualization
+        const rttContainer = document.createElement('div');
+        rttContainer.className = 'rtt-bar-container';
+        
+        const barLabel = document.createElement('div');
+        barLabel.className = 'rtt-bar-label';
+        barLabel.textContent = 'Avg';
+        rttContainer.appendChild(barLabel);
+        
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'rtt-bar-wrapper';
+        
+        const bar = document.createElement('div');
+        bar.className = 'rtt-bar';
+        bar.style.width = `${(hop.avg / maxLatency) * 100}%`;
+        barWrapper.appendChild(bar);
+        rttContainer.appendChild(barWrapper);
+        
+        const barValue = document.createElement('div');
+        barValue.className = 'rtt-bar-value';
+        barValue.textContent = `${hop.avg} ms`;
+        rttContainer.appendChild(barValue);
+        
+        hopDetails.appendChild(rttContainer);
+      }
+      
+      hopNode.appendChild(hopDetails);
+      hopContainer.appendChild(hopNode);
+      
+      // Add path indicator unless it's the last hop
+      if (index < hops.length - 1) {
+        const hopPath = document.createElement('div');
+        hopPath.className = 'hop-path';
+        hopContainer.appendChild(hopPath);
+      }
+      
+      tracerouteVisualization.appendChild(hopContainer);
+    });
+  }
+
+  /**
+   * Add a statistic to the hop stats container
+   */
+  function addStat(container, label, value, className = '') {
+    const stat = document.createElement('div');
+    stat.className = 'hop-stat';
+    
+    const statLabel = document.createElement('div');
+    statLabel.className = 'hop-stat-label';
+    statLabel.textContent = label + ':';
+    stat.appendChild(statLabel);
+    
+    const statValue = document.createElement('div');
+    statValue.className = 'hop-stat-value';
+    if (className) {
+      statValue.classList.add(className);
+    }
+    statValue.textContent = value;
+    stat.appendChild(statValue);
+    
+    container.appendChild(stat);
+  }
+
+  /**
+   * Get a CSS class based on latency value
+   */
+  function getLatencyClass(latency) {
+    if (latency < 50) return 'latency-good';
+    if (latency < 100) return 'latency-medium';
+    return 'latency-bad';
+  }
+
+  /**
+   * Display network tool results
+   */
+  function displayNetworkResults(host, toolType, output, stats) {
+    // Set result host and tool type
+    resultHost.textContent = host;
+    resultToolType.textContent = toolType;
+    
+    // Set raw output
+    resultOutput.textContent = output;
+    
+    // Set statistics
+    statsHost.textContent = host;
+    statsPackets.textContent = stats.packetCount;
+    statsSuccess.textContent = `${stats.successRate.toFixed(1)}%`;
+    statsIp.textContent = stats.ip;
+    statsMin.textContent = `${stats.minLatency.toFixed(1)} ms`;
+    statsAvg.textContent = `${stats.avgLatency.toFixed(1)} ms`;
+    statsMax.textContent = `${stats.maxLatency.toFixed(1)} ms`;
+    statsStdDev.textContent = `${stats.stdDev.toFixed(1)} ms`;
+    
+    // Show results
+    showResults();
+    
+    // Make sure the Raw Output tab is active when showing results
+    const rawTab = document.getElementById('rawResults-tab');
+    if (rawTab) {
+      const tab = new bootstrap.Tab(rawTab);
+      tab.show();
+    }
+  }
+
+  /**
+   * Generate a random IP address
+   */
+  function generateRandomIp() {
+    return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+  }
+
+  /**
+   * Clear the form
+   */
+  function clearNetworkForm() {
+    hostTargetInput.value = '';
+    toolTypeSelect.value = 'ping';
+    packetCountInput.value = '4';
+    packetSizeInput.value = '56';
+    timeoutInput.value = '2';
+    hideResults();
+    hideError();
+    hostTargetInput.focus();
+    
+    // Reset tool options
+    updateToolOptions('ping');
+  }
+
+  /**
+   * Copy network tool results to clipboard
+   */
+  function copyNetworkResults() {
+    let resultsText = `${resultToolType.textContent} Results for ${resultHost.textContent}\n\n`;
+    resultsText += resultOutput.textContent;
+    
+    navigator.clipboard.writeText(resultsText.trim())
+      .then(() => {
+        // Show copied notification
+        const originalText = copyResultsBtn.innerHTML;
+        copyResultsBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        
+        setTimeout(() => {
+          copyResultsBtn.innerHTML = originalText;
         }, 2000);
       })
       .catch(err => {

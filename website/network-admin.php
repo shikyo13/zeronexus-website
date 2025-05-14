@@ -113,9 +113,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Visualize network paths and measure latency between hosts.</p>
-                                <div class="btn btn-outline-primary disabled">
-                                    <i class="fas fa-route me-2"></i>Coming Soon
-                                </div>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pingTracerouteModal">
+                                    <i class="fas fa-route me-2"></i>Use Tool
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -476,9 +476,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Visualize network paths and measure latency between hosts.</p>
-                                <div class="btn btn-outline-primary disabled">
-                                    <i class="fas fa-route me-2"></i>Coming Soon
-                                </div>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pingTracerouteModal">
+                                    <i class="fas fa-route me-2"></i>Use Tool
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1281,6 +1281,232 @@ include 'includes/header.php';
                                 </ul>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ping/Traceroute Modal -->
+<div class="modal fade" id="pingTracerouteModal" tabindex="-1" aria-labelledby="pingTracerouteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pingTracerouteModalLabel">Ping & Traceroute Tool</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i> Test network connectivity and visualize network paths between hosts.
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="tool-input-group">
+                            <label for="hostTarget" class="form-label">Domain or IP Address:</label>
+                            <input type="text" class="form-control" id="hostTarget" placeholder="e.g. example.com or 192.168.1.1">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="tool-input-group">
+                            <label for="toolType" class="form-label">Tool:</label>
+                            <select class="form-select" id="toolType">
+                                <option value="ping" selected>Ping</option>
+                                <option value="traceroute">Traceroute</option>
+                                <option value="mtr">MTR (My Traceroute)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12 mt-3">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="tool-input-group">
+                                    <label for="packetCount" class="form-label">Packet Count:</label>
+                                    <input type="number" class="form-control" id="packetCount" min="1" max="20" value="4">
+                                    <div class="form-text">Number of packets to send (1-20)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tool-input-group">
+                                    <label for="packetSize" class="form-label">Packet Size:</label>
+                                    <input type="number" class="form-control" id="packetSize" min="32" max="1472" value="56">
+                                    <div class="form-text">Size in bytes (32-1472)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tool-input-group">
+                                    <label for="timeout" class="form-label">Timeout:</label>
+                                    <input type="number" class="form-control" id="timeout" min="1" max="10" value="2">
+                                    <div class="form-text">Seconds to wait (1-10)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 text-center mt-3 mb-4">
+                        <button type="button" class="btn btn-primary" id="runNetworkToolBtn">
+                            <i class="fas fa-play me-2"></i>Run Test
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" id="clearNetworkToolBtn">
+                            <i class="fas fa-eraser me-2"></i>Clear
+                        </button>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="tool-output d-none" id="networkToolResults">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <h6 class="mb-0"><span id="resultToolType">Ping</span> Results for <span id="resultHost"></span></h6>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="copyNetworkToolBtn">
+                                        <i class="fas fa-copy me-1"></i>Copy Results
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="tab-content" id="networkResultsTabContent">
+                                <!-- Raw Results Tab -->
+                                <div class="tab-pane fade show active" id="rawResults" role="tabpanel" aria-labelledby="rawResults-tab">
+                                    <div id="resultOutput" class="network-output code-block"></div>
+                                </div>
+                                
+                                <!-- Visual Results Tab (for traceroute) -->
+                                <div class="tab-pane fade" id="visualResults" role="tabpanel" aria-labelledby="visualResults-tab">
+                                    <div id="tracerouteVisualization" class="traceroute-vis"></div>
+                                </div>
+                                
+                                <!-- Stats Tab -->
+                                <div class="tab-pane fade" id="statsResults" role="tabpanel" aria-labelledby="statsResults-tab">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card mb-3">
+                                                <div class="card-header">Summary</div>
+                                                <div class="card-body">
+                                                    <table class="table table-sm result-table">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Host</td>
+                                                                <td id="statsHost"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Packets</td>
+                                                                <td id="statsPackets"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Success Rate</td>
+                                                                <td id="statsSuccess"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>IP Address</td>
+                                                                <td id="statsIp"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">Latency</div>
+                                                <div class="card-body">
+                                                    <table class="table table-sm result-table">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Min</td>
+                                                                <td id="statsMin"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Average</td>
+                                                                <td id="statsAvg"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Max</td>
+                                                                <td id="statsMax"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Std Dev</td>
+                                                                <td id="statsStdDev"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab navigation for results -->
+                            <ul class="nav nav-tabs mt-3" id="networkResultTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="rawResults-tab" data-bs-toggle="tab" data-bs-target="#rawResults" type="button" role="tab" aria-controls="rawResults" aria-selected="true">Raw Output</button>
+                                </li>
+                                <li class="nav-item d-none" id="visualTab" role="presentation">
+                                    <button class="nav-link" id="visualResults-tab" data-bs-toggle="tab" data-bs-target="#visualResults" type="button" role="tab" aria-controls="visualResults" aria-selected="false">Visualization</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="statsResults-tab" data-bs-toggle="tab" data-bs-target="#statsResults" type="button" role="tab" aria-controls="statsResults" aria-selected="false">Statistics</button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div id="networkToolError" class="alert alert-danger d-none mt-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="networkToolErrorText"></span>
+                        </div>
+                        
+                        <div id="networkToolLoading" class="text-center d-none mt-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Running <span id="loadingToolType">ping</span>...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#networkToolHelp" aria-expanded="false" aria-controls="networkToolHelp">
+                            <i class="fas fa-question-circle me-1"></i> Help
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+                <div class="collapse w-100 mt-3" id="networkToolHelp">
+                    <div class="card card-body bg-dark">
+                        <h6>About the Network Tools</h6>
+                        <p class="small">These tools help diagnose network connectivity and trace the route that packets take to reach a destination.</p>
+                        
+                        <h6 class="mt-3">Available Tools</h6>
+                        <div class="row small">
+                            <div class="col-sm-4">
+                                <strong>Ping</strong>
+                                <p>Tests if a host is reachable and measures round-trip time.</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <strong>Traceroute</strong>
+                                <p>Shows the path packets take to reach a network host.</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <strong>MTR</strong>
+                                <p>Combines ping and traceroute to provide detailed statistics.</p>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3">Usage Tips</h6>
+                        <ul class="small">
+                            <li>Enter a domain name (e.g., example.com) or IP address (e.g., 8.8.8.8)</li>
+                            <li>For traceroute, the visualization tab shows a graphical representation of the network path</li>
+                            <li>The statistics tab provides summarized metrics about the connection</li>
+                        </ul>
                     </div>
                 </div>
             </div>
