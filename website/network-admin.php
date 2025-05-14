@@ -71,6 +71,7 @@ include 'includes/header.php';
             <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
                 <h2 class="mb-4">All Tools</h2>
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <!-- DIAGNOSTICS CATEGORY -->
                     <!-- IP Subnet Calculator -->
                     <div class="col">
                         <div class="tool-card">
@@ -103,6 +104,23 @@ include 'includes/header.php';
                         </div>
                     </div>
 
+                    <!-- Ping/Traceroute -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-route fa-2x"></i>
+                                <h3>Ping/Traceroute</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Visualize network paths and measure latency between hosts.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-route me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECURITY CATEGORY -->
                     <!-- Security Headers Checker -->
                     <div class="col">
                         <div class="tool-card">
@@ -118,8 +136,314 @@ include 'includes/header.php';
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Firewall Rule Generator -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-shield-alt fa-2x"></i>
+                                <h3>Firewall Rule Generator</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Generate firewall rules for different platforms like iptables, UFW, and more.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-shield-alt me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Strength Tester -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-key fa-2x"></i>
+                                <h3>Password Strength Tester</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Test password strength and generate secure passwords.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-key me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- More tools from other categories would be listed here -->
+                    <!-- COMMANDS CATEGORY -->                    
+                    <!-- Linux Commands -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fab fa-linux fa-2x"></i>
+                                <h3>Linux Networking Commands</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Essential Linux commands for network diagnostics and configuration.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Windows Commands -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fab fa-windows fa-2x"></i>
+                                <h3>Windows Networking Commands</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Windows CMD and PowerShell commands for network management.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cisco IOS Commands -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-network-wired fa-2x"></i>
+                                <h3>Cisco IOS Commands</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Common Cisco IOS commands for network device configuration.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PowerShell Scripts -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-code fa-2x"></i>
+                                <h3>PowerShell Networking Scripts</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Useful PowerShell scripts for network administration tasks.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-code me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REFERENCES CATEGORY -->
+                    <!-- OSI Model -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-layer-group fa-2x"></i>
+                                <h3>OSI Model Reference</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Interactive guide to the OSI Model layers and protocols.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-layer-group me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Troubleshooting Decision Trees -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-sitemap fa-2x"></i>
+                                <h3>Troubleshooting Decision Trees</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Flowcharts for common network troubleshooting scenarios.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-sitemap me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Common Port Reference -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-plug fa-2x"></i>
+                                <h3>Common Port Reference</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Searchable list of common network ports and their services.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-plug me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- HTTP Status Codes -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-exchange-alt fa-2x"></i>
+                                <h3>HTTP Status Codes</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Complete reference of HTTP status codes and their meanings.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-exchange-alt me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Regex for Log Parsing -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-stream fa-2x"></i>
+                                <h3>Regex for Log Parsing</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Useful regular expressions for parsing common log formats.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-stream me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CALCULATORS CATEGORY -->
+                    <!-- Binary/Hex/Decimal Converter -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-exchange-alt fa-2x"></i>
+                                <h3>Binary/Hex/Decimal Converter</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Convert between binary, hexadecimal, and decimal number systems.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-exchange-alt me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CIDR to Subnet Mask -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-network-wired fa-2x"></i>
+                                <h3>CIDR to Subnet Mask</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Convert between CIDR notation and subnet masks.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-network-wired me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- IPv4 to IPv6 Converter -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-random fa-2x"></i>
+                                <h3>IPv4 to IPv6 Converter</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Convert IPv4 addresses to IPv6 format and calculate IPv6 subnets.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-random me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bandwidth Calculator -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-tachometer-alt fa-2x"></i>
+                                <h3>Bandwidth Calculator</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Calculate download/upload times, throughput, and more.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TEMPLATES CATEGORY -->
+                    <!-- Network Diagram Templates -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-project-diagram fa-2x"></i>
+                                <h3>Network Diagram Templates</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Templates for creating professional network topology diagrams.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- IT Runbook Templates -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-book fa-2x"></i>
+                                <h3>IT Runbook Templates</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Templates for creating comprehensive IT operations runbooks.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Incident Response Forms -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                <h3>Incident Response Forms</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Templates for documenting and responding to security incidents.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Change Management Templates -->
+                    <div class="col">
+                        <div class="tool-card">
+                            <div class="card-header">
+                                <i class="fas fa-clipboard-check fa-2x"></i>
+                                <h3>Change Management Templates</h3>
+                            </div>
+                            <div class="card-body">
+                                <p>Templates for planning and documenting network changes.</p>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -190,9 +514,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Generate firewall rules for different platforms like iptables, UFW, and more.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#firewallRuleModal">
-                                    <i class="fas fa-shield-alt me-2"></i>Use Tool
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-shield-alt me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -228,9 +552,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Essential Linux commands for network diagnostics and configuration.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linuxCommandsModal">
-                                    <i class="fas fa-terminal me-2"></i>View Commands
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -244,9 +568,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Windows CMD and PowerShell commands for network management.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#windowsCommandsModal">
-                                    <i class="fas fa-terminal me-2"></i>View Commands
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -260,9 +584,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Common Cisco IOS commands for network device configuration.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ciscoCommandsModal">
-                                    <i class="fas fa-terminal me-2"></i>View Commands
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-terminal me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -276,9 +600,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Useful PowerShell scripts for network administration tasks.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#powershellScriptsModal">
-                                    <i class="fas fa-code me-2"></i>View Scripts
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-code me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -298,9 +622,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Interactive guide to the OSI Model layers and protocols.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#osiModelModal">
-                                    <i class="fas fa-layer-group me-2"></i>View Guide
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-layer-group me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -314,9 +638,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Flowcharts for common network troubleshooting scenarios.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#troubleshootingModal">
-                                    <i class="fas fa-sitemap me-2"></i>View Guide
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-sitemap me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -330,9 +654,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Searchable list of common network ports and their services.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#portsReferenceModal">
-                                    <i class="fas fa-plug me-2"></i>View Guide
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-plug me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -346,9 +670,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Complete reference of HTTP status codes and their meanings.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#httpStatusModal">
-                                    <i class="fas fa-exchange-alt me-2"></i>View Guide
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-exchange-alt me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -362,9 +686,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Useful regular expressions for parsing common log formats.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#regexReferenceModal">
-                                    <i class="fas fa-stream me-2"></i>View Guide
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-stream me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -400,9 +724,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Convert between binary, hexadecimal, and decimal number systems.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#numberConverterModal">
-                                    <i class="fas fa-exchange-alt me-2"></i>Use Tool
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-exchange-alt me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -416,9 +740,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Convert between CIDR notation and subnet masks.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cidrConverterModal">
-                                    <i class="fas fa-network-wired me-2"></i>Use Tool
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-network-wired me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -432,9 +756,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Convert IPv4 addresses to IPv6 format and calculate IPv6 subnets.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ipv6ConverterModal">
-                                    <i class="fas fa-random me-2"></i>Use Tool
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-random me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -448,9 +772,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Calculate download/upload times, throughput, and more.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bandwidthCalculatorModal">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Use Tool
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -470,9 +794,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Templates for creating professional network topology diagrams.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#networkDiagramModal">
-                                    <i class="fas fa-download me-2"></i>Download Templates
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -486,9 +810,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Templates for creating comprehensive IT operations runbooks.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#runbookTemplateModal">
-                                    <i class="fas fa-download me-2"></i>Download Templates
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -502,9 +826,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Templates for documenting and responding to security incidents.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#incidentResponseModal">
-                                    <i class="fas fa-download me-2"></i>Download Templates
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -518,9 +842,9 @@ include 'includes/header.php';
                             </div>
                             <div class="card-body">
                                 <p>Templates for planning and documenting network changes.</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changeManagementModal">
-                                    <i class="fas fa-download me-2"></i>Download Templates
-                                </button>
+                                <div class="btn btn-outline-primary disabled">
+                                    <i class="fas fa-download me-2"></i>Coming Soon
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -531,6 +855,116 @@ include 'includes/header.php';
 </main>
 
 <!-- Tool Modals (placeholder - will implement actual tool functionality in separate files) -->
+<!-- Security Headers Checker Modal -->
+<div class="modal fade" id="securityHeadersModal" tabindex="-1" aria-labelledby="securityHeadersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="securityHeadersModalLabel">Security Headers Checker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i> Analyze security headers for websites and get recommendations to improve security.
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="tool-input-group">
+                            <label for="websiteUrl" class="form-label">Website URL:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="websiteUrl" placeholder="example.com">
+                            </div>
+                            <div class="form-text">Enter a domain name (e.g., example.com, sub.example.org)</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 text-center mt-3 mb-4">
+                        <button type="button" class="btn btn-primary" id="checkHeadersBtn">
+                            <i class="fas fa-search me-2"></i>Check Headers
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" id="clearHeadersBtn">
+                            <i class="fas fa-eraser me-2"></i>Clear
+                        </button>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="tool-output d-none" id="headerResults">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <h6 class="mb-0">Security Headers for <span id="resultWebsite"></span></h6>
+                                <div>
+                                    <span id="headerScore" class="badge bg-primary me-2">0/100</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="copyHeadersBtn">
+                                        <i class="fas fa-copy me-1"></i>Copy Results
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="headersList" class="mb-4"></div>
+                            
+                            <div id="headersRecommendations" class="mt-4">
+                                <h6 class="border-bottom pb-2 mb-3">Recommendations</h6>
+                                <div id="recommendationsList"></div>
+                            </div>
+                        </div>
+
+                        <div id="headerError" class="alert alert-danger d-none mt-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="headerErrorText"></span>
+                        </div>
+                        
+                        <div id="headerLoading" class="text-center d-none mt-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Checking security headers...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="collapse" data-bs-target="#headersHelp" aria-expanded="false" aria-controls="headersHelp">
+                            <i class="fas fa-question-circle me-1"></i> Help
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+                <div class="collapse w-100 mt-3" id="headersHelp">
+                    <div class="card card-body bg-dark">
+                        <h6>About Security Headers</h6>
+                        <p class="small">Security headers are HTTP response headers that help improve the security of your website by enabling browser security features and preventing common web vulnerabilities.</p>
+                        
+                        <h6 class="mt-3">Common Security Headers</h6>
+                        <div class="row small">
+                            <div class="col-sm-6">
+                                <ul>
+                                    <li><strong>Content-Security-Policy (CSP)</strong>: Controls which resources can be loaded</li>
+                                    <li><strong>Strict-Transport-Security (HSTS)</strong>: Forces HTTPS connections</li>
+                                    <li><strong>X-Content-Type-Options</strong>: Prevents MIME type sniffing</li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-6">
+                                <ul>
+                                    <li><strong>X-Frame-Options</strong>: Prevents clickjacking attacks</li>
+                                    <li><strong>X-XSS-Protection</strong>: Blocks reflected XSS attacks</li>
+                                    <li><strong>Referrer-Policy</strong>: Controls how much referrer info is shared</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- IP Subnet Calculator Modal -->
 <div class="modal fade" id="subnetCalculatorModal" tabindex="-1" aria-labelledby="subnetCalculatorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -747,11 +1181,15 @@ include 'includes/header.php';
                                 <option value="TXT">TXT (Text)</option>
                                 <option value="CNAME">CNAME (Canonical Name)</option>
                                 <option value="SOA">SOA (Start of Authority)</option>
-                                <option value="PTR">PTR (Pointer/Reverse)</option>
+                                <option value="PTR">PTR (Pointer/Reverse) - Requires IP Address</option>
                                 <option value="CAA">CAA (Certification Authority Authorization)</option>
                                 <option value="SRV">SRV (Service)</option>
-                                <option value="ANY">ANY (All Records)</option>
+                                <option value="ANY">ANY (All Common Records)</option>
                             </select>
+                        </div>
+                        <div id="ptrHelp" class="alert alert-info d-none mt-2 mb-2">
+                            <i class="fas fa-info-circle me-2"></i> 
+                            <strong>PTR Lookup:</strong> For reverse DNS lookups, please enter an IP address (not a domain name).
                         </div>
                     </div>
 

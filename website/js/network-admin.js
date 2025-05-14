@@ -187,7 +187,11 @@ function setupSubnetCalculator() {
     const lastHost = intToIpAddress(lastHostInt);
 
     // Create binary representation of subnet mask
-    const binaryMask = createBinaryRepresentation(subnetMask);
+    // Convert each octet to 8-bit binary with spaces between octets
+    const binaryMask = subnetMask
+      .split('.')
+      .map(octet => parseInt(octet, 10).toString(2).padStart(8, '0'))
+      .join(' ');
 
     // Display results
     displayResults({
@@ -352,19 +356,14 @@ function setupSubnetCalculator() {
     return 'Unknown';
   }
 
-  /**
-   * Create binary representation of IP address
-   */
-  function createBinaryRepresentation(ipAddress) {
-    return ipAddress.split('.')
-      .map(octet => parseInt(octet, 10).toString(2).padStart(8, '0'))
-      .join(' ');
-  }
+  // No longer needed - integrated directly into the calculation function
 }
 
-// Call setup function when document is ready
+// Call setup functions when document is ready
 document.addEventListener('DOMContentLoaded', function() {
   setupSubnetCalculator();
+  setupDnsLookup();
+  setupSecurityHeadersChecker();
 });
 
 /**
@@ -409,6 +408,16 @@ function setupDnsLookup() {
     domainInput.addEventListener('keyup', function(e) {
       if (e.key === 'Enter') {
         performDnsLookup();
+      }
+    });
+  }
+  
+  // Show or hide the PTR help text when record type changes
+  if (recordTypeSelect) {
+    recordTypeSelect.addEventListener('change', function() {
+      const ptrHelp = document.getElementById('ptrHelp');
+      if (ptrHelp) {
+        ptrHelp.classList.toggle('d-none', this.value !== 'PTR');
       }
     });
   }
@@ -462,7 +471,10 @@ function setupDnsLookup() {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
+        return response.json().catch(e => {
+          // Handle JSON parsing errors
+          throw new Error('Invalid response format from server. Please try again.');
+        });
       })
       .then(data => {
         hideLoading();
@@ -477,6 +489,7 @@ function setupDnsLookup() {
       .catch(error => {
         hideLoading();
         showError('Failed to perform DNS lookup: ' + error.message);
+        console.error('DNS lookup error:', error);
       });
   }
 
@@ -620,25 +633,146 @@ function setupDnsLookup() {
    * Create a visualization for DNS record relationships
    */
   function createVisualization(data) {
-    // Basic placeholder for visualization
     dnsVisualizationDiv.innerHTML = '';
-
-    // For now, we'll just add a simple placeholder
-    const visualPlaceholder = document.createElement('div');
-    visualPlaceholder.style.height = '100%';
-    visualPlaceholder.style.display = 'flex';
-    visualPlaceholder.style.alignItems = 'center';
-    visualPlaceholder.style.justifyContent = 'center';
-    visualPlaceholder.style.flexDirection = 'column';
-    visualPlaceholder.innerHTML = `
-      <i class="fas fa-project-diagram fa-3x mb-3" style="opacity: 0.5;"></i>
-      <div style="text-align: center;">
-        DNS visualization will be implemented in a future update.<br>
-        Currently showing ${data.records.length} ${data.type} record(s) for ${data.domain}.
-      </div>
+    
+    if (!data.records || data.records.length === 0) {
+      const noRecordsMsg = document.createElement('div');
+      noRecordsMsg.className = 'text-center p-5';
+      noRecordsMsg.innerHTML = `
+        <i class="fas fa-search fa-3x mb-3" style="opacity: 0.5;"></i>
+        <p>No DNS records found for ${data.domain} with type ${data.type}.</p>
+      `;
+      dnsVisualizationDiv.appendChild(noRecordsMsg);
+      return;
+    }
+    
+    // Create container for the visualization
+    const visualContainer = document.createElement('div');
+    visualContainer.className = 'dns-visualization-container';
+    
+    // Create domain node (center)
+    const domainNode = document.createElement('div');
+    domainNode.className = 'dns-node dns-domain-node';
+    domainNode.innerHTML = `
+      <i class="fas fa-globe mb-2"></i>
+      <div class="dns-node-label">${data.domain}</div>
     `;
-
-    dnsVisualizationDiv.appendChild(visualPlaceholder);
+    
+    // Create record groups by type
+    const recordsByType = {};
+    data.records.forEach(record => {
+      if (!recordsByType[record.type]) {
+        recordsByType[record.type] = [];
+      }
+      recordsByType[record.type].push(record);
+    });
+    
+    // Create the record nodes grouped by type
+    const recordGroupsContainer = document.createElement('div');
+    recordGroupsContainer.className = 'dns-record-groups';
+    
+    // Add domain node to the container
+    const domainContainer = document.createElement('div');
+    domainContainer.className = 'dns-domain-container';
+    domainContainer.appendChild(domainNode);
+    visualContainer.appendChild(domainContainer);
+    
+    // Add record groups
+    Object.keys(recordsByType).forEach((type, index) => {
+      const records = recordsByType[type];
+      const typeGroup = document.createElement('div');
+      typeGroup.className = 'dns-type-group';
+      
+      // Type header
+      const typeHeader = document.createElement('div');
+      typeHeader.className = 'dns-type-header';
+      typeHeader.innerHTML = `
+        <span class="dns-record-type ${type.toLowerCase()}">${type}</span>
+        <span class="dns-type-count">${records.length} record(s)</span>
+      `;
+      typeGroup.appendChild(typeHeader);
+      
+      // Record nodes
+      const recordNodes = document.createElement('div');
+      recordNodes.className = 'dns-record-nodes';
+      
+      records.forEach(record => {
+        const recordNode = document.createElement('div');
+        recordNode.className = 'dns-record-node';
+        
+        // Determine what to display based on record type
+        let displayValue = '';
+        switch (record.type) {
+          case 'A':
+          case 'AAAA':
+            displayValue = record.ip || record.ipv6 || 'N/A';
+            recordNode.innerHTML = `
+              <i class="fas fa-server"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          case 'MX':
+            displayValue = `${record.target || 'N/A'} (${record.pri || record.priority || 'N/A'})`;
+            recordNode.innerHTML = `
+              <i class="fas fa-mail-bulk"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          case 'NS':
+            displayValue = record.target || 'N/A';
+            recordNode.innerHTML = `
+              <i class="fas fa-database"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          case 'TXT':
+            displayValue = record.txt || (record.entries ? record.entries[0] : 'N/A');
+            // Truncate if too long
+            if (displayValue && displayValue.length > 30) {
+              displayValue = displayValue.substring(0, 27) + '...';
+            }
+            recordNode.innerHTML = `
+              <i class="fas fa-file-alt"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          case 'CNAME':
+            displayValue = record.target || 'N/A';
+            recordNode.innerHTML = `
+              <i class="fas fa-link"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          case 'PTR':
+            displayValue = record.target || 'N/A';
+            recordNode.innerHTML = `
+              <i class="fas fa-undo"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+            break;
+            
+          default:
+            displayValue = record.host || record.target || 'N/A';
+            recordNode.innerHTML = `
+              <i class="fas fa-cog"></i>
+              <div class="dns-node-value">${displayValue}</div>
+            `;
+        }
+        
+        recordNodes.appendChild(recordNode);
+      });
+      
+      typeGroup.appendChild(recordNodes);
+      recordGroupsContainer.appendChild(typeGroup);
+    });
+    
+    visualContainer.appendChild(recordGroupsContainer);
+    dnsVisualizationDiv.appendChild(visualContainer);
   }
 
   /**
@@ -755,18 +889,387 @@ function setupDnsLookup() {
   }
 }
 
-// Initialize DNS lookup when document is ready
-document.addEventListener('DOMContentLoaded', function() {
-  setupDnsLookup();
-});
+// The DNS lookup is now initialized in the above DOMContentLoaded event
+// along with the subnet calculator
 
 /**
  * Security Headers Checker functionality
- * To be implemented
+ * Analyzes security headers for websites and provides recommendations
  */
-function checkSecurityHeaders() {
-  // Placeholder for security headers checker implementation
-  console.log('Security headers checker will be implemented in a future update');
+function setupSecurityHeadersChecker() {
+  // Get DOM elements
+  const websiteUrlInput = document.getElementById('websiteUrl');
+  const checkHeadersBtn = document.getElementById('checkHeadersBtn');
+  const clearHeadersBtn = document.getElementById('clearHeadersBtn');
+  const copyHeadersBtn = document.getElementById('copyHeadersBtn');
+  const resultsDiv = document.getElementById('headerResults');
+  const headersList = document.getElementById('headersList');
+  const recommendationsList = document.getElementById('recommendationsList');
+  const resultWebsiteSpan = document.getElementById('resultWebsite');
+  const headerScoreBadge = document.getElementById('headerScore');
+  const errorDiv = document.getElementById('headerError');
+  const errorText = document.getElementById('headerErrorText');
+  const loadingDiv = document.getElementById('headerLoading');
+
+  // Key security headers we want to check
+  const securityHeaders = [
+    {
+      name: 'Content-Security-Policy',
+      description: 'Controls which resources can be loaded and executed on your page',
+      importance: 'high',
+      recommendation: 'Implement a strong Content-Security-Policy to prevent XSS attacks by restricting which resources can load.'
+    },
+    {
+      name: 'Strict-Transport-Security',
+      description: 'Forces browsers to use HTTPS for communication with your site',
+      importance: 'high',
+      recommendation: 'Add Strict-Transport-Security header with a long max-age value (e.g., 31536000) to ensure HTTPS usage.'
+    },
+    {
+      name: 'X-Content-Type-Options',
+      description: 'Prevents browsers from MIME-sniffing content types',
+      importance: 'medium',
+      recommendation: 'Add X-Content-Type-Options: nosniff to prevent MIME type sniffing.'
+    },
+    {
+      name: 'X-Frame-Options',
+      description: 'Controls if a page can be embedded in frames, iframes, or objects',
+      importance: 'medium',
+      recommendation: 'Add X-Frame-Options: SAMEORIGIN to protect against clickjacking attacks.'
+    },
+    {
+      name: 'X-XSS-Protection',
+      description: 'Enables browser\'s built-in XSS protection features',
+      importance: 'medium',
+      recommendation: 'Add X-XSS-Protection: 1; mode=block to enable browser XSS protection (note: modern browsers rely more on CSP).'
+    },
+    {
+      name: 'Referrer-Policy',
+      description: 'Controls how much referrer information is included with requests',
+      importance: 'medium',
+      recommendation: 'Add Referrer-Policy with a restrictive value like strict-origin-when-cross-origin to control referrer information.'
+    },
+    {
+      name: 'Permissions-Policy',
+      description: 'Controls which browser features and APIs can be used on the site',
+      importance: 'low',
+      recommendation: 'Consider adding a Permissions-Policy to restrict browser features like geolocation, microphone, and camera access.'
+    },
+    {
+      name: 'Cache-Control',
+      description: 'Defines browser and proxy caching policies',
+      importance: 'low',
+      recommendation: 'Add a Cache-Control header with appropriate values like no-store or private for sensitive pages.'
+    }
+  ];
+
+  // Set up event listeners
+  if (checkHeadersBtn) {
+    checkHeadersBtn.addEventListener('click', checkHeaders);
+  }
+
+  if (clearHeadersBtn) {
+    clearHeadersBtn.addEventListener('click', clearHeadersForm);
+  }
+
+  if (copyHeadersBtn) {
+    copyHeadersBtn.addEventListener('click', copyHeadersResults);
+  }
+
+  // Input validation with Enter key
+  if (websiteUrlInput) {
+    websiteUrlInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        checkHeaders();
+      }
+    });
+  }
+
+  /**
+   * Check security headers for the specified URL
+   */
+  function checkHeaders() {
+    // Clear previous results and errors
+    hideError();
+    hideResults();
+    showLoading();
+
+    // Get URL from input
+    let website = websiteUrlInput.value.trim();
+
+    // Basic validation
+    if (!website) {
+      hideLoading();
+      showError('Please enter a website URL.');
+      return;
+    }
+
+    // Less strict domain validation (allows subdomains, www, etc.)
+    const urlRegex = /^[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}$/;
+    
+    // Remove any protocol if the user included it
+    if (website.startsWith('http://') || website.startsWith('https://')) {
+      const url = new URL(website);
+      website = url.hostname;
+    }
+    
+    if (!urlRegex.test(website)) {
+      hideLoading();
+      showError('Please enter a valid domain name (e.g., example.com, www.example.org).');
+      return;
+    }
+
+    // Create API URL
+    const apiUrl = `/api/security-headers.php?url=${encodeURIComponent(website)}`;
+
+    // Make API request
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json().catch(e => {
+          throw new Error('Invalid response format from server. Please try again.');
+        });
+      })
+      .then(data => {
+        hideLoading();
+
+        if (data.error) {
+          showError(data.message || 'An error occurred while checking headers.');
+          return;
+        }
+
+        displayHeaderResults(data, website);
+      })
+      .catch(error => {
+        hideLoading();
+        showError('Failed to check security headers: ' + error.message);
+        console.error('Security headers check error:', error);
+      });
+  }
+
+  /**
+   * Display security headers results
+   */
+  function displayHeaderResults(data, website) {
+    // Clear previous results
+    headersList.innerHTML = '';
+    recommendationsList.innerHTML = '';
+    
+    // Display the website
+    resultWebsiteSpan.textContent = website;
+    
+    // Process headers
+    let totalScore = 0;
+    let maxScore = 0;
+    const missingHeaders = [];
+    
+    // Create header items
+    securityHeaders.forEach(header => {
+      // Calculate weight based on importance
+      let weight = 1;
+      if (header.importance === 'high') weight = 3;
+      else if (header.importance === 'medium') weight = 2;
+      
+      maxScore += weight;
+      
+      // Create header item
+      const headerItem = document.createElement('div');
+      const headerValue = data.headers[header.name.toLowerCase()] || null;
+      
+      if (headerValue) {
+        // Header is present
+        headerItem.className = 'header-item present';
+        totalScore += weight;
+        
+        // Basic content analysis for common headers
+        let warningMessage = null;
+        if (header.name === 'Content-Security-Policy' && headerValue.includes('unsafe-inline')) {
+          headerItem.className = 'header-item warning';
+          warningMessage = 'Warning: unsafe-inline reduces the security of your CSP.';
+          totalScore -= weight / 2; // Partial point deduction
+        } else if (header.name === 'Strict-Transport-Security') {
+          const maxAgeMatch = headerValue.match(/max-age=(\d+)/i);
+          if (maxAgeMatch && parseInt(maxAgeMatch[1]) < 31536000) {
+            headerItem.className = 'header-item warning';
+            warningMessage = 'Warning: max-age is less than the recommended value of 31536000 (1 year).';
+            totalScore -= weight / 3; // Partial point deduction
+          }
+        }
+        
+        headerItem.innerHTML = `
+          <div class="header-name">
+            ${header.name}
+            <span class="header-status present">${warningMessage ? 'Warning' : 'Present'}</span>
+          </div>
+          <div class="header-value">${headerValue}</div>
+          <div class="header-description">
+            ${header.description}
+            ${warningMessage ? '<br><strong>' + warningMessage + '</strong>' : ''}
+          </div>
+        `;
+      } else {
+        // Header is missing
+        headerItem.className = 'header-item missing';
+        missingHeaders.push(header);
+        
+        headerItem.innerHTML = `
+          <div class="header-name">
+            ${header.name}
+            <span class="header-status missing">Missing</span>
+          </div>
+          <div class="header-description">${header.description}</div>
+        `;
+      }
+      
+      headersList.appendChild(headerItem);
+    });
+    
+    // Calculate final score (0-100 scale)
+    const finalScore = Math.round((totalScore / maxScore) * 100);
+    
+    // Update score badge
+    headerScoreBadge.textContent = `${finalScore}/100`;
+    
+    // Update score color based on value
+    if (finalScore >= 80) {
+      headerScoreBadge.className = 'badge bg-success me-2';
+    } else if (finalScore >= 50) {
+      headerScoreBadge.className = 'badge bg-warning text-dark me-2';
+    } else {
+      headerScoreBadge.className = 'badge bg-danger me-2';
+    }
+    
+    // Log the score and headers for debugging
+    console.log(`Security Score: ${finalScore}/100`);
+    console.log('Security Headers:', data.headers);
+    
+    // Add recommendations
+    if (missingHeaders.length > 0) {
+      missingHeaders.forEach(header => {
+        const recommendationItem = document.createElement('div');
+        recommendationItem.className = 'recommendation-item';
+        recommendationItem.innerHTML = `
+          <div class="recommendation-title">Add ${header.name}</div>
+          <div class="recommendation-text">${header.recommendation}</div>
+        `;
+        recommendationsList.appendChild(recommendationItem);
+      });
+    } else {
+      recommendationsList.innerHTML = '<div class="p-3 text-center">Great job! All important security headers are implemented.</div>';
+    }
+    
+    // Show results
+    showResults();
+  }
+
+  /**
+   * Clear the form
+   */
+  function clearHeadersForm() {
+    websiteUrlInput.value = '';
+    hideResults();
+    hideError();
+    websiteUrlInput.focus();
+  }
+
+  /**
+   * Copy headers results to clipboard
+   */
+  function copyHeadersResults() {
+    let resultsText = `Security Headers Report for ${resultWebsiteSpan.textContent}\n`;
+    resultsText += `Score: ${headerScoreBadge.textContent}\n\n`;
+    
+    // Headers
+    const headerItems = headersList.querySelectorAll('.header-item');
+    headerItems.forEach(item => {
+      const headerName = item.querySelector('.header-name').textContent.trim();
+      const headerStatus = item.querySelector('.header-status').textContent.trim();
+      
+      resultsText += `${headerName}: ${headerStatus}\n`;
+      
+      const headerValue = item.querySelector('.header-value');
+      if (headerValue) {
+        resultsText += `Value: ${headerValue.textContent.trim()}\n`;
+      }
+      
+      const headerDesc = item.querySelector('.header-description').textContent.trim();
+      resultsText += `${headerDesc}\n\n`;
+    });
+    
+    // Recommendations
+    resultsText += 'Recommendations:\n';
+    const recommendations = recommendationsList.querySelectorAll('.recommendation-item');
+    
+    if (recommendations.length > 0) {
+      recommendations.forEach(rec => {
+        const title = rec.querySelector('.recommendation-title').textContent.trim();
+        const text = rec.querySelector('.recommendation-text').textContent.trim();
+        resultsText += `- ${title}: ${text}\n`;
+      });
+    } else {
+      resultsText += 'Great job! All important security headers are implemented.\n';
+    }
+    
+    navigator.clipboard.writeText(resultsText.trim())
+      .then(() => {
+        // Show copied notification
+        const originalText = copyHeadersBtn.innerHTML;
+        copyHeadersBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        
+        setTimeout(() => {
+          copyHeadersBtn.innerHTML = originalText;
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+        showError('Failed to copy results to clipboard.');
+      });
+  }
+
+  /**
+   * Show error message
+   */
+  function showError(message) {
+    errorText.textContent = message;
+    errorDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide error message
+   */
+  function hideError() {
+    errorDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show results container
+   */
+  function showResults() {
+    resultsDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide results container
+   */
+  function hideResults() {
+    resultsDiv.classList.add('d-none');
+  }
+
+  /**
+   * Show loading indicator
+   */
+  function showLoading() {
+    loadingDiv.classList.remove('d-none');
+  }
+
+  /**
+   * Hide loading indicator
+   */
+  function hideLoading() {
+    loadingDiv.classList.add('d-none');
+  }
 }
 
 /**
