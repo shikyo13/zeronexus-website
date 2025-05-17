@@ -149,8 +149,7 @@ $page_title = "Creative Showcase - Adam Hunt";
 $page_description = "Explore Adam Hunt's creative projects including digital art, web games, and more.";
 $page_css = "/css/showcase.css";
 $page_js = "/js/showcase.js";
-$header_title = "ZeroNexus";
-$hide_social_icons = true;
+$header_title = "Creative Showcase";
 
 // Include header
 include 'includes/header.php';

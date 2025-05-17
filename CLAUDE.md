@@ -7,10 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This repository contains a personal website called ZeroNexus, which serves as a digital portfolio for Adam Hunt. The site includes:
 
 - A main landing page with social links and Bluesky feed integration
-- A security news aggregator page
+- A security news aggregator page 
 - A creative showcase for artwork and games
 - Simple API endpoints for security-related information
 - A CVE dashboard for searching and displaying vulnerability information
+- Network Admin Tools for IT professionals
 
 ## Architecture
 
@@ -30,20 +31,46 @@ The website uses a simple architecture:
    - Simple PHP endpoints for security news feeds and CVE lookups
    - No database - uses file-based caching and proxies to external services
    - Rate limiting implementation through temporary files
+   - **Important**: The feeds API at `feeds.zeronexus.net` is a separate service not included in this repository
+   - In development, the local feeds.php proxies to the production feeds API to get real article data
 
-## Development Setup
+## Development Commands
 
-### Development Workflow
+### Local Development
 
-The development workflow is:
+**Initial Setup:**
+```bash
+# First time setup (requires Docker Desktop)
+chmod +x scripts/setup-dev.sh
+./scripts/setup-dev.sh
+```
 
-1. Develop and test code on the MacBook
-2. Push completed changes to the production Ubuntu VM via SSH
-3. Restart containers on the VM to apply changes
+**Regular Commands:**
+```bash
+# Start the local development environment
+docker-compose -f docker-compose.dev.yml up -d
 
-There is no local development environment with containers - code is edited locally and then deployed directly to production.
+# Access the site at http://localhost:8082
 
-### Production Environment Commands
+# View logs for local development
+docker-compose -f docker-compose.dev.yml logs -f
+
+# Stop the local environment
+docker-compose -f docker-compose.dev.yml down
+
+# View PHP error logs
+tail -f logs/php/error.log
+
+# Enter PHP container
+docker-compose -f docker-compose.dev.yml exec php sh
+
+# Restart PHP container after making PHP changes
+docker-compose -f docker-compose.dev.yml restart php
+```
+
+**Note:** The development environment uses `nginx/conf.d/dev.conf` instead of `default.conf` for relaxed security settings suitable for local testing. See `docs/LOCAL_DEVELOPMENT.md` for complete documentation.
+
+### Production Commands
 
 These commands are executed on the production VM after SSH connection:
 
@@ -65,7 +92,41 @@ docker-compose up -d --build
 
 # Stop all containers
 docker-compose down
+
+# Deploy code updates to production
+ssh user@vm-ip "cd /path/to/site && docker-compose restart"
 ```
+
+### Git Workflow
+
+```bash
+# Create a new feature branch
+git checkout -b feature-name
+
+# Check status of working files
+git status
+
+# Add modified files
+git add file1 file2
+
+# Commit changes
+git commit -m "Description of changes"
+
+# Switch back to main branch
+git checkout main
+
+# Merge feature branch
+git merge feature-name
+```
+
+## Testing and Validation
+
+The project uses manual testing with no formal testing framework:
+
+1. Test API endpoints directly in the browser or using curl/Postman
+2. Validate JavaScript and CSS using browser dev tools
+3. Check responsive design across different screen sizes
+4. Validate PHP by checking error logs: `docker-compose exec php cat /var/log/php-fpm/error.log`
 
 ## Project Structure
 
@@ -81,6 +142,11 @@ docker-compose down
   - `js/` - JavaScript files
   - `includes/` - Reusable PHP components (header.php, footer.php)
   - `img/` - Website images organized by category
+- `docs/` - Project documentation
+  - `SITE_DOCUMENTATION.md` - Comprehensive site documentation
+  - `NETWORK_ADMIN_TOOLS.md` - Network Admin Tools documentation
+  - `HANDOVER.md` - Handover documentation for development sessions
+  - `SESSION_2025_05_13.md` - Notes from previous development session
 
 ## Key Files
 
@@ -96,9 +162,7 @@ docker-compose down
 - `website/api/article-image.php` - Image extraction API for articles
 - `website/api/mitre-cve.php` - MITRE CVE information API
 - `website/api/year-search.php` - CVE year search implementation
-- `docs/SITE_DOCUMENTATION.md` - Comprehensive site documentation
-- `docs/NETWORK_ADMIN_TOOLS.md` - Network Admin Tools documentation
-- `docs/HANDOVER.md` - Handover documentation for development sessions
+- `website/api/network-tools.php` - Network diagnostic tools API
 
 ## API Endpoints
 
@@ -124,7 +188,14 @@ The website provides several API endpoints:
    - Optional parameters: `id` for specific CVE lookup
    - Example: `/api/cisa-kev.php` or `/api/cisa-kev.php?id=CVE-2023-12345`
 
-5. **Article Image Extraction** (`/api/article-image.php`)
+5. **Network Tools** (`/api/network-tools.php`)
+   - Executes network diagnostic tools (ping, traceroute, mtr)
+   - Required parameters: `host` (domain name or IP address)
+   - Optional parameters: `tool` (ping, traceroute, mtr), `packetCount`, `packetSize`, `timeout`
+   - Includes rate limiting and security measures
+   - Example: `/api/network-tools.php?host=example.com&tool=ping&packetCount=4`
+
+6. **Article Image Extraction** (`/api/article-image.php`)
    - Extracts featured images from article URLs
    - Required parameters: `url`
    - Optional parameters: `source` for site-specific extraction
@@ -139,6 +210,25 @@ The website implements a strict Content Security Policy, particularly for Bluesk
 3. Inline scripts use the appropriate CSP policies
 
 ## Common Tasks
+
+### Network Admin Tools
+
+The Network Admin Tools page provides several IT and networking utilities:
+
+1. **Diagnostic Tools**
+   - IP Subnet Calculator - Calculate subnet information from CIDR notation
+   - DNS Lookup - Query and visualize DNS records
+   - Ping/Traceroute/MTR - Network diagnostic tools with visualization
+
+2. **Security Tools**
+   - Security Headers Checker - Analyze website security headers
+   - Security Headers Generator - Create custom security headers for web servers
+
+3. **Usage**
+   - Tools can be directly linked using URL hash fragments
+   - Example: `network-admin.php#ping-traceroute?host=example.com&tool=mtr&autorun=true`
+   - Tool results can be visualized and exported
+   - API endpoints are rate-limited to prevent abuse
 
 ### Adding New Artwork
 
@@ -171,6 +261,14 @@ The website uses Bootstrap 5.3 with custom CSS. Most style rules are in:
 - `website/css/cve-dashboard.css` - CVE dashboard styles
 - `website/css/network-admin.css` - Network Admin Tools styles
 
+## Current Development Focus
+
+According to the latest handover document (`docs/HANDOVER.md`), the following tasks are high priority:
+
+1. Complete the Security Headers Checker tool
+2. Implement Firewall Rule Generator 
+3. Create interactive Command Cheat Sheets
+
 ## Cache Implementation
 
 The API endpoints implement file-based caching:
@@ -186,6 +284,8 @@ To debug issues:
 - PHP error logs are available in the container: `docker-compose exec php cat /var/log/php-fpm/error.log`
 - Use the development environment with extended debugging: `docker-compose -f docker-compose.dev.yml up -d`
 - The dev environment enables PHP error display and increases memory limits
+- For JavaScript debugging, use the browser's developer tools console
+- PHP error reporting can be enabled by adding `ini_set('display_errors', 1);` to specific files during development
 
 ## Deployment
 

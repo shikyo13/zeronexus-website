@@ -1,0 +1,67 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+          
+      - name: Deploy to production server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.HOST }} "cd ${{ secrets.DEPLOY_PATH }} && \
+          git pull origin main && \
+          docker-compose down && \
+          docker-compose up -d && \
+          echo Deployment completed at $(date)"
+          
+      - name: Send email notification on success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: ✅ ZeroNexus Website Deployed Successfully
+          body: |
+            The website was successfully deployed to production.
+            
+            Deployed by: ${{ github.actor }}
+            Commit message: ${{ github.event.head_commit.message }}
+            Time: ${{ steps.date.outputs.date }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: ZeroNexus Deployment <${{ secrets.MAIL_USERNAME }}>
+          
+      - name: Send email notification on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: ❌ ZeroNexus Website Deployment Failed
+          body: |
+            There was an error deploying the website to production.
+            
+            Deployed by: ${{ github.actor }}
+            Commit message: ${{ github.event.head_commit.message }}
+            Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: ZeroNexus Deployment <${{ secrets.MAIL_USERNAME }}>

@@ -21,7 +21,8 @@ header('X-XSS-Protection: 1; mode=block');
 $allowedOrigins = [
     'https://zeronexus.net',
     'https://www.zeronexus.net',
-    'http://localhost:8081' // For local development
+    'http://localhost:8081', // For local development
+    'http://localhost:8082'  // For alternative local development
 ];
 
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
@@ -102,6 +103,38 @@ if ($source !== null && !in_array($source, $allowedSources)) {
 
 // Calculate offset for pagination
 $offset = ($page - 1) * $limit;
+
+// In development mode, proxy to production feeds API
+$isDevelopment = isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development';
+if ($isDevelopment) {
+    // Proxy to production API
+    $productionUrl = 'https://feeds.zeronexus.net/api/feeds';
+    $queryParams = [];
+    if ($page !== 1) $queryParams[] = 'page=' . $page;
+    if ($limit !== 30) $queryParams[] = 'limit=' . $limit;
+    if ($source) $queryParams[] = 'source=' . $source;
+    
+    if (!empty($queryParams)) {
+        $productionUrl .= '?' . implode('&', $queryParams);
+    }
+    
+    // Fetch from production
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $productionUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'ZeroNexus Development Proxy');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200 && $response) {
+        echo $response;
+        exit;
+    }
+}
 
 // Sample data (in a real implementation, this would come from a database or RSS feed parsing)
 $articles = getMockArticles();

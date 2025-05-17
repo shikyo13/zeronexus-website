@@ -19,7 +19,7 @@
     <script src="/js/common.js" defer></script>
     
     <?php if (isset($page_js)): ?>
-      <script src="<?php echo $page_js; ?>" defer></script>
+      <script src="<?php echo $page_js; ?>" <?php echo isset($page_js_type) ? 'type="' . $page_js_type . '"' : ''; ?> defer></script>
     <?php endif; ?>
     
     <?php if (isset($extra_scripts)): echo $extra_scripts; endif; ?>

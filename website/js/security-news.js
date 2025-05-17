@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
       securityFeed.style.display = 'none';
       errorMessage.style.display = 'none';
 
-      const response = await fetch('https://feeds.zeronexus.net/api/feeds');
+      const response = await fetch('/api/feeds.php');
 
       // Parse and log response for debugging
       allArticles = await response.json();

@@ -59,7 +59,11 @@ The website is deployed on a Ubuntu VM with code updates done manually via SSH. 
 
 ### Local Development
 
-There is no local Docker-based development environment. Code is edited locally and then pushed directly to the production VM for testing and deployment.
+A Docker-based development environment is now available:
+- Run on `http://localhost:8082` using `docker-compose -f docker-compose.dev.yml up -d`
+- **Important**: PHP changes require container restart (`docker-compose -f docker-compose.dev.yml restart php`)
+- The feeds API (`feeds.zeronexus.net`) is external - local feeds.php proxies to it in development
+- See `docs/LOCAL_DEVELOPMENT.md` and `docs/DEV_QUICK_REFERENCE.md` for details
 
 ### Code Organization
 

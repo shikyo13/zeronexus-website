@@ -8,6 +8,9 @@
  * - url: The website URL to check
  */
 
+// Add timestamp for debugging
+error_log("Security Headers API called at: " . date('Y-m-d H:i:s'));
+
 // Set security headers
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
@@ -25,18 +28,25 @@ $allowedOrigins = [
 
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
 
-// Check if origin is allowed or is a subdomain of zeronexus.net
-$isAllowed = in_array($origin, $allowedOrigins);
-if (!$isAllowed && preg_match('/^https?:\/\/.*\.zeronexus\.net(:[0-9]+)?$/', $origin)) {
-    $isAllowed = true;
-}
+// Temporarily allow all origins for testing
+header("Access-Control-Allow-Origin: *");
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, CF-Connecting-IP, CF-IPCountry, CF-Ray, CF-Visitor, X-Forwarded-For, X-Forwarded-Proto');
+header('Vary: Origin');
 
-if ($isAllowed) {
-    header("Access-Control-Allow-Origin: $origin");
-    header('Access-Control-Allow-Methods: GET, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, CF-Connecting-IP, CF-IPCountry, CF-Ray, CF-Visitor, X-Forwarded-For, X-Forwarded-Proto');
-    header('Vary: Origin');
-}
+// Original CORS logic - temporarily disabled for testing
+// Check if origin is allowed or is a subdomain of zeronexus.net
+// $isAllowed = in_array($origin, $allowedOrigins);
+// if (!$isAllowed && preg_match('/^https?:\/\/.*\.zeronexus\.net(:[0-9]+)?$/', $origin)) {
+//     $isAllowed = true;
+// }
+// 
+// if ($isAllowed) {
+//     header("Access-Control-Allow-Origin: $origin");
+//     header('Access-Control-Allow-Methods: GET, OPTIONS');
+//     header('Access-Control-Allow-Headers: Content-Type, CF-Connecting-IP, CF-IPCountry, CF-Ray, CF-Visitor, X-Forwarded-For, X-Forwarded-Proto');
+//     header('Vary: Origin');
+// }
 
 // Exit on OPTIONS request (preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -81,8 +91,8 @@ function checkRateLimit() {
     file_put_contents($rateLimitFile, json_encode($data));
 }
 
-// Apply rate limiting
-checkRateLimit();
+// Temporarily disable rate limiting for troubleshooting
+// checkRateLimit();
 
 // Get parameters
 $url = isset($_GET['url']) ? trim($_GET['url']) : '';
@@ -104,12 +114,13 @@ $cacheKey = md5("headers_{$url}");
 $cacheFile = $cacheDir . $cacheKey . '.json';
 $cacheLifetime = 3600; // 1 hour cache
 
+// Temporarily disable cache for troubleshooting
 // Check if we have a fresh cache
-if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
-    header('X-Cache: HIT');
-    echo file_get_contents($cacheFile);
-    exit;
-}
+// if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
+//     header('X-Cache: HIT');
+//     echo file_get_contents($cacheFile);
+//     exit;
+// }
 
 // Prepare URL for fetching
 if (!preg_match('/^https?:\/\//i', $url)) {
@@ -117,8 +128,13 @@ if (!preg_match('/^https?:\/\//i', $url)) {
     $url = 'https://' . $url;
 }
 
-// Log for debugging
-error_log("Fetching headers for URL: " . $url);
+// Enhanced logging for debugging
+error_log("=========================================");
+error_log("Security Headers API: Fetching headers for URL: " . $url);
+error_log("Client IP: " . $_SERVER['REMOTE_ADDR']);
+error_log("User Agent: " . $_SERVER['HTTP_USER_AGENT']);
+error_log("Temp directory: " . sys_get_temp_dir());
+error_log("Is SSL: " . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'Yes' : 'No'));
 
 // Security headers to check for (normalized to lowercase)
 $securityHeaders = [
@@ -163,9 +179,10 @@ $context = stream_context_create([
     ]
 ]);
 
-// Disable error output to ensure we return only JSON
+// Enable error logging but disable display
 ini_set('display_errors', 0);
-error_reporting(0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
 
 // Wrap in try/catch for extra safety
 try {
@@ -227,8 +244,9 @@ try {
         }
     }
     
+    // Temporarily disable caching for troubleshooting
     // Cache the successful result
-    @file_put_contents($cacheFile, json_encode($response));
+    // @file_put_contents($cacheFile, json_encode($response));
     
     // Return the response
     header('X-Cache: MISS');

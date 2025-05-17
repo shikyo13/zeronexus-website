@@ -21,7 +21,8 @@ header('X-XSS-Protection: 1; mode=block');
 $allowedOrigins = [
     'https://zeronexus.net',
     'https://www.zeronexus.net',
-    'http://localhost:8081' // For local development
+    'http://localhost:8081', // For local development (old port)
+    'http://localhost:8082' // For local development (new port)
 ];
 
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
@@ -90,49 +91,79 @@ if (!$isAllowedDomain) {
 
 // Caching logic
 $cacheDir = sys_get_temp_dir() . '/zeronexus_image_cache/';
-if (!is_dir($cacheDir)) {
-    mkdir($cacheDir, 0755, true);
-}
+try {
+    if (!is_dir($cacheDir)) {
+        mkdir($cacheDir, 0755, true);
+    }
 
-$cacheKey = md5($url);
-$cacheFile = $cacheDir . $cacheKey . '.json';
-$cacheLifetime = 3600 * 24; // 24 hours
+    $cacheKey = md5($url);
+    $cacheFile = $cacheDir . $cacheKey . '.json';
+    $cacheLifetime = 3600 * 24; // 24 hours
 
-// Check cache
-if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
-    $cachedData = json_decode(file_get_contents($cacheFile), true);
-    
-    // Return cached result
-    header('X-Cache: HIT');
-    echo json_encode($cachedData);
-    exit;
+    // Check cache
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
+        $cachedData = json_decode(file_get_contents($cacheFile), true);
+
+        // Return cached result
+        header('X-Cache: HIT');
+        echo json_encode($cachedData);
+        exit;
+    }
+} catch (Exception $e) {
+    // If caching fails, continue without it
+    error_log('Caching error in article-image.php: ' . $e->getMessage());
 }
 
 // Function to fetch and extract image URL
 function extractImageUrl($url, $source) {
-    // Initialize cURL
-    $ch = curl_init();
-    
-    // Set cURL options
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-    
-    // Execute cURL session
-    $html = curl_exec($ch);
-    
-    // Check for errors
-    if (curl_errno($ch)) {
+    try {
+        // Initialize cURL
+        $ch = curl_init();
+
+        if (!$ch) {
+            return null;
+        }
+
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For development only
+        
+        // Add more debugging in development
+        if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_VERBOSE, true);
+        }
+
+        // Execute cURL session
+        $html = curl_exec($ch);
+
+        // Check for errors
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {
+                error_log("CURL Error for $url: " . $error);
+            }
+            curl_close($ch);
+            return null;
+        }
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        return null;
-    }
-    
-    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    if ($statusCode !== 200) {
+
+        if ($statusCode !== 200) {
+            if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {
+                error_log("HTTP Status $statusCode for $url");
+            }
+            return null;
+        }
+    } catch (Exception $e) {
+        if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {
+            error_log("Exception in article-image.php: " . $e->getMessage());
+        }
         return null;
     }
     
@@ -141,6 +172,13 @@ function extractImageUrl($url, $source) {
         // Extract meta og:image for BleepingComputer
         if (preg_match('/<meta\s+property="og:image"\s+content="([^"]+)"/i', $html, $matches)) {
             return $matches[1];
+        }
+        
+        // Debug in development - log when no image found
+        if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {
+            error_log("No og:image found for $url");
+            // Log first 500 chars of HTML to see what we're getting
+            error_log("HTML snippet: " . substr($html, 0, 500));
         }
         
         // Fallback to article featured image
@@ -201,8 +239,15 @@ $response = [
     'timestamp' => time()
 ];
 
-// Cache the result
-file_put_contents($cacheFile, json_encode($response));
+// Try to cache the result
+try {
+    if (isset($cacheFile)) {
+        file_put_contents($cacheFile, json_encode($response));
+    }
+} catch (Exception $e) {
+    // If caching fails, log the error but continue
+    error_log('Cache writing error in article-image.php: ' . $e->getMessage());
+}
 
 // Send response
 header('X-Cache: MISS');

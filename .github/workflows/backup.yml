@@ -1,0 +1,72 @@
+name: Backup Production
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly backup at midnight on Sunday
+  workflow_dispatch:     # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+          
+      - name: Create backup on production server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.HOST }} "cd ${{ secrets.DEPLOY_PATH }} && \
+          mkdir -p backups && \
+          tar -czf backups/zeronexus-backup-${{ steps.date.outputs.date }}.tar.gz \
+          --exclude='./logs' \
+          --exclude='./backups' \
+          --exclude='./node_modules' \
+          --exclude='./.git' \
+          ./"
+          
+      - name: Download backup from server
+        run: |
+          mkdir -p backups
+          scp ${{ secrets.SSH_USER }}@${{ secrets.HOST }}:${{ secrets.DEPLOY_PATH }}/backups/zeronexus-backup-${{ steps.date.outputs.date }}.tar.gz ./backups/
+          
+      - name: Upload backup to GitHub artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: zeronexus-backup-${{ steps.date.outputs.date }}
+          path: ./backups/zeronexus-backup-${{ steps.date.outputs.date }}.tar.gz
+          retention-days: 30
+          
+      - name: Notify about backup completion
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: 🔄 ZeroNexus Website Backup Completed
+          body: |
+            A backup of the ZeroNexus website has been completed successfully.
+            
+            Date: ${{ steps.date.outputs.date }}
+            Backup file: zeronexus-backup-${{ steps.date.outputs.date }}.tar.gz
+            
+            The backup is available as a GitHub artifact for 30 days:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: ZeroNexus Backup <${{ secrets.MAIL_USERNAME }}>
+          
+      - name: Clean up old backups on server (keep last 5)
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.HOST }} "cd ${{ secrets.DEPLOY_PATH }}/backups && \
+          ls -t *.tar.gz | tail -n +6 | xargs -r rm"
