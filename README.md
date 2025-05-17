@@ -47,6 +47,7 @@ zeronexus-website/
 
 - [Local Development Guide](docs/LOCAL_DEVELOPMENT.md)
 - [Quick Reference](docs/DEV_QUICK_REFERENCE.md)
+- [Git Workflow](docs/GIT_WORKFLOW.md)
 - [Site Documentation](docs/SITE_DOCUMENTATION.md)
 - [Network Admin Tools](docs/NETWORK_ADMIN_TOOLS.md)
 - [Development Handover](docs/HANDOVER.md)
