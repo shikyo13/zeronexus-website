@@ -12,7 +12,7 @@ This guide explains how to set up and use the ZeroNexus local development enviro
 
 1. **Clone the repository** (if not already done):
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/shikyo13/zeronexus-website.git
    cd zeronexus-website
    ```
 
@@ -374,10 +374,17 @@ After testing in the local environment:
    git commit -m "Description of changes"
    ```
 
-2. Push to remote (if using git):
+2. Push to GitHub:
    ```bash
-   git push origin branch-name
+   git push origin feature/your-feature-name
    ```
+
+3. Create a pull request:
+   - Go to https://github.com/shikyo13/zeronexus-website/pulls
+   - Click "New pull request"
+   - Create PR from your feature branch to `develop`
+   - After review, merge to `develop`
+   - When ready for production, create PR from `develop` to `main`
 
 3. Deploy to production VM:
    ```bash

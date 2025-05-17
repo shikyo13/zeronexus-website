@@ -1,5 +1,7 @@
 # Git Workflow and Branch Strategy
 
+**Repository**: https://github.com/shikyo13/zeronexus-website
+
 ## Branch Structure
 
 This project follows a simplified Git Flow branching model:
@@ -56,10 +58,15 @@ git push -u origin feature/my-feature
 ### Creating Pull Request
 
 1. Push feature branch to remote
-2. Create PR from feature branch to `develop`
-3. Request review if needed
-4. Merge after approval
-5. Delete feature branch
+2. Go to https://github.com/shikyo13/zeronexus-website/pulls
+3. Click "New pull request"
+4. Select your feature branch → develop
+5. Fill in PR description
+6. Request review if needed
+7. Merge after approval
+8. Delete feature branch
+
+**Quick link**: `gh pr create` (if using GitHub CLI)
 
 ### Releasing to Production
 
@@ -165,7 +172,7 @@ git reset --hard HEAD~1
 
 For repository maintainers:
 
-1. Go to Settings → Branches
+1. Go to https://github.com/shikyo13/zeronexus-website/settings/branches
 2. Add rule for `main` branch:
    - Require pull request reviews
    - Dismiss stale PR approvals

@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Repository**: https://github.com/shikyo13/zeronexus-website
+**Live Site**: https://zeronexus.net
+
 ## Project Overview
 
 This repository contains a personal website called ZeroNexus, which serves as a digital portfolio for Adam Hunt. The site includes:

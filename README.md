@@ -1,8 +1,22 @@
 # ZeroNexus Website
 
+[![GitHub](https://img.shields.io/github/stars/shikyo13/zeronexus-website?style=social)](https://github.com/shikyo13/zeronexus-website)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-brightgreen)](https://docs.docker.com/)
+
 Personal portfolio and security tools website for Adam Hunt.
 
+**Repository**: https://github.com/shikyo13/zeronexus-website
+**Live Site**: https://zeronexus.net
+
 ## Quick Start
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/shikyo13/zeronexus-website.git
+cd zeronexus-website
+```
 
 ### Development Environment
 
