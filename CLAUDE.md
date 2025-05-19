@@ -67,7 +67,7 @@ tail -f logs/php/error.log
 # Enter PHP container
 docker-compose -f docker-compose.dev.yml exec php sh
 
-# Restart PHP container after making PHP changes
+# Restart PHP container after making PHP changes (required!)
 docker-compose -f docker-compose.dev.yml restart php
 ```
 
@@ -102,8 +102,15 @@ ssh user@vm-ip "cd /path/to/site && docker-compose restart"
 
 ### Git Workflow
 
+**Current Branch Structure:**
+- `main` - Production branch
+- `develop` - Active development branch
+- `network-admin-tools` - Feature branch for Network Admin Tools page
+
 ```bash
-# Create a new feature branch
+# Create a new feature branch from develop
+git checkout develop
+git pull origin develop
 git checkout -b feature-name
 
 # Check status of working files
@@ -115,11 +122,11 @@ git add file1 file2
 # Commit changes
 git commit -m "Description of changes"
 
-# Switch back to main branch
-git checkout main
+# Push feature branch
+git push origin feature-name
 
-# Merge feature branch
-git merge feature-name
+# Create pull request to develop branch
+# (Use GitHub UI or gh CLI)
 ```
 
 ## Testing and Validation
@@ -130,6 +137,9 @@ The project uses manual testing with no formal testing framework:
 2. Validate JavaScript and CSS using browser dev tools
 3. Check responsive design across different screen sizes
 4. Validate PHP by checking error logs: `docker-compose exec php cat /var/log/php-fpm/error.log`
+5. Lint and typecheck commands (if provided by user): 
+   - Ask user for specific commands if not in documentation
+   - Suggest adding them to CLAUDE.md for future reference
 
 ## Project Structure
 
@@ -138,6 +148,7 @@ The project uses manual testing with no formal testing framework:
 - `nginx/` - Nginx configuration files
   - `nginx.conf` - Global Nginx settings
   - `conf.d/default.conf` - Website-specific server configuration with CSP settings
+  - `conf.d/dev.conf` - Development configuration with relaxed security
 - `website/` - Main website content
   - `api/` - Backend PHP API endpoints
   - `artwork/` - Images and artwork for the showcase
@@ -145,11 +156,14 @@ The project uses manual testing with no formal testing framework:
   - `js/` - JavaScript files
   - `includes/` - Reusable PHP components (header.php, footer.php)
   - `img/` - Website images organized by category
+  - `components/` - Network Admin Tools components structure
 - `docs/` - Project documentation
   - `SITE_DOCUMENTATION.md` - Comprehensive site documentation
   - `NETWORK_ADMIN_TOOLS.md` - Network Admin Tools documentation
   - `HANDOVER.md` - Handover documentation for development sessions
-  - `SESSION_2025_05_13.md` - Notes from previous development session
+  - `GIT_WORKFLOW.md` - Git branching strategy guide
+  - `DEV_QUICK_REFERENCE.md` - Quick development commands
+  - `LOCAL_DEVELOPMENT.md` - Detailed local setup guide
 
 ## Key Files
 
@@ -166,6 +180,8 @@ The project uses manual testing with no formal testing framework:
 - `website/api/mitre-cve.php` - MITRE CVE information API
 - `website/api/year-search.php` - CVE year search implementation
 - `website/api/network-tools.php` - Network diagnostic tools API
+- `website/api/dns-lookup.php` - DNS query functionality
+- `website/api/security-headers.php` - Security headers analysis API
 
 ## API Endpoints
 
@@ -203,6 +219,18 @@ The website provides several API endpoints:
    - Required parameters: `url`
    - Optional parameters: `source` for site-specific extraction
    - Example: `/api/article-image.php?url=https://example.com/article&source=bleepingcomputer`
+
+7. **DNS Lookup** (`/api/dns-lookup.php`)
+   - Performs DNS queries for domain records
+   - Required parameters: `host` (domain name)
+   - Optional parameters: `type` (A, AAAA, MX, TXT, NS, CNAME, etc.)
+   - Example: `/api/dns-lookup.php?host=example.com&type=A`
+
+8. **Security Headers Check** (`/api/security-headers.php`)
+   - Analyzes HTTP security headers for websites
+   - Required parameters: `url` (website URL)
+   - Returns analysis of security headers and recommendations
+   - Example: `/api/security-headers.php?url=https://example.com`
 
 ## Content Security Policy (CSP)
 
@@ -290,6 +318,19 @@ To debug issues:
 - For JavaScript debugging, use the browser's developer tools console
 - PHP error reporting can be enabled by adding `ini_set('display_errors', 1);` to specific files during development
 
+### Quick Debugging Commands:
+```bash
+# View PHP error log (development)
+tail -f logs/php/error.log
+
+# Test API endpoints
+curl http://localhost:8082/api/feeds.php
+curl "http://localhost:8082/api/article-image.php?url=ENCODED_URL"
+
+# Container logs
+docker-compose -f docker-compose.dev.yml logs -f
+```
+
 ## Deployment
 
 The site is deployed manually to production:
@@ -301,3 +342,14 @@ The site is deployed manually to production:
 5. Cloudflare Tunnel runs on the Windows host to provide secure access:
    - The local environment listens for HTTP requests
    - Cloudflare handles SSL redirects and certificates
+
+## Development Best Practices
+
+1. **Always restart PHP container after PHP changes**
+2. Use the development environment for testing before production deployment
+3. Check error logs frequently during development
+4. Test API endpoints with curl or browser before integration
+5. Validate JavaScript changes with browser dev tools
+6. Keep CORS headers updated when adding new JavaScript functionality
+7. Document any new API endpoints in this file
+8. Follow the Git workflow for feature development
