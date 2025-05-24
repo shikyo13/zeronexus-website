@@ -1,254 +1,218 @@
 <?php
 /**
- * DNS Lookup API
+ * DNS Lookup API (Refactored)
  * 
- * Performs DNS lookups for different record types
+ * Performs DNS queries and returns structured results
+ * Using modular utilities for better code organization
  * 
  * Parameters:
- * - domain: The domain name to lookup
- * - type: DNS record type (A, AAAA, MX, TXT, NS, SOA, CNAME, PTR)
+ * - host: Domain name to look up
+ * - type: Record type (A, AAAA, MX, TXT, NS, CNAME, SOA, PTR, CAA, ANY)
  */
 
-// Set security headers
-header('Content-Type: application/json');
-header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-header('X-XSS-Protection: 1; mode=block');
+// Load shared utilities
+require_once __DIR__ . '/lib/autoload.php';
 
-// Enable CORS for specific origins, with Cloudflare support
-$allowedOrigins = [
-    'https://zeronexus.net',
-    'https://www.zeronexus.net',
-    'http://localhost:8081', // For local development
-    'http://localhost:8082'  // For alternative local development
-];
+// Initialize utilities
+$config = Config::getInstance();
+$response = new Response();
+$cache = new Cache('dns-lookup');
 
-$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+// Handle CORS
+CORS::simple(false);
 
-// Check if origin is allowed or is a subdomain of zeronexus.net
-$isAllowed = in_array($origin, $allowedOrigins);
-if (!$isAllowed && preg_match('/^https?:\/\/.*\.zeronexus\.net(:[0-9]+)?$/', $origin)) {
-    $isAllowed = true;
-}
+// Apply rate limiting (60 requests per minute for DNS lookups)
+RateLimit::simple('dns-lookup');
 
-if ($isAllowed) {
-    header("Access-Control-Allow-Origin: $origin");
-    header('Access-Control-Allow-Methods: GET, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, CF-Connecting-IP, CF-IPCountry, CF-Ray, CF-Visitor, X-Forwarded-For, X-Forwarded-Proto');
-    header('Vary: Origin');
-}
+// Validate input
+$validator = new Validator();
+$validator->required('host', 'Host parameter is required');
 
-// Exit on OPTIONS request (preflight)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
-
-// Rate limiting based on IP with Cloudflare support
-function checkRateLimit() {
-    // Get the real client IP using Cloudflare's headers if available
-    $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
-    $rateLimitFile = sys_get_temp_dir() . '/zeronexus_dns_lookup_rate_' . md5($ip);
-    $currentTime = time();
+// Validate host is either domain or IP
+$host = $validator->get('host');
+if ($host) {
+    // Remove protocol if present
+    $host = preg_replace('#^https?://#', '', $host);
+    $host = trim($host, '/');
     
-    // Check if file exists and read it
-    if (file_exists($rateLimitFile)) {
-        $data = json_decode(file_get_contents($rateLimitFile), true);
-        
-        // Reset counter if more than 1 minute has passed
-        if ($currentTime - $data['timestamp'] > 60) {
-            $data = [
-                'count' => 1,
-                'timestamp' => $currentTime
-            ];
-        } else {
-            $data['count']++;
-            
-            // If more than 20 requests in a minute, rate limit
-            if ($data['count'] > 20) {
-                http_response_code(429);
-                echo json_encode(['error' => true, 'message' => 'Too many requests. Please try again later.']);
-                exit;
-            }
-        }
-    } else {
-        $data = [
-            'count' => 1,
-            'timestamp' => $currentTime
-        ];
-    }
-    
-    // Write updated data
-    file_put_contents($rateLimitFile, json_encode($data));
-}
-
-// Apply rate limiting
-checkRateLimit();
-
-// Get parameters
-$domain = isset($_GET['domain']) ? trim($_GET['domain']) : '';
-$type = isset($_GET['type']) ? strtoupper(trim($_GET['type'])) : 'A';
-
-// Validate domain
-if (empty($domain)) {
-    http_response_code(400);
-    echo json_encode(['error' => true, 'message' => 'Domain parameter is required']);
-    exit;
-}
-
-// Validate domain or IP format
-$isDomain = preg_match('/^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}$/', $domain);
-$isIPv4 = filter_var($domain, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
-$isIPv6 = filter_var($domain, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
-
-// For PTR records, the domain should be an IP address
-if ($type === 'PTR' && !$isIPv4 && !$isIPv6) {
-    http_response_code(400);
-    echo json_encode(['error' => true, 'message' => 'For PTR lookups, please provide a valid IP address']);
-    exit;
-}
-
-// For records other than PTR, we need a domain
-if ($type !== 'PTR' && !$isDomain) {
-    http_response_code(400);
-    echo json_encode(['error' => true, 'message' => 'Please enter a valid domain name (e.g., example.com)']);
-    exit;
-}
-
-// Allowed record types
-$allowedTypes = ['A', 'AAAA', 'MX', 'TXT', 'NS', 'SOA', 'CNAME', 'PTR', 'CAA', 'SRV', 'DNSKEY', 'DS', 'RRSIG', 'NAPTR', 'ANY'];
-
-if (!in_array($type, $allowedTypes)) {
-    http_response_code(400);
-    echo json_encode(['error' => true, 'message' => 'Invalid DNS record type']);
-    exit;
-}
-
-// Check cache
-$cacheDir = sys_get_temp_dir() . '/zeronexus_dns_cache/';
-if (!is_dir($cacheDir)) {
-    mkdir($cacheDir, 0755, true);
-}
-
-$cacheKey = md5("dns_{$domain}_{$type}");
-$cacheFile = $cacheDir . $cacheKey . '.json';
-$cacheLifetime = 3600; // 1 hour cache
-
-// Check if we have a fresh cache
-if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
-    header('X-Cache: HIT');
-    echo file_get_contents($cacheFile);
-    exit;
-}
-
-// Prepare response
-$response = [
-    'domain' => $domain,
-    'type' => $type,
-    'records' => [],
-    'timestamp' => time()
-];
-
-// If this is a PTR lookup, prepare the reverse lookup domain
-if ($type === 'PTR') {
-    if ($isIPv4) {
-        // IPv4 - Reverse the octets and append in-addr.arpa
-        $reversed = implode('.', array_reverse(explode('.', $domain))) . '.in-addr.arpa';
-    } else {
-        // IPv6 - More complex transformation
-        $ipv6 = inet_pton($domain);
-        $reversed = '';
-        for ($i = strlen($ipv6) - 1; $i >= 0; $i--) {
-            $reversed .= sprintf('%02x.%02x.', ord($ipv6[$i]) & 0xf, ord($ipv6[$i]) >> 4);
-        }
-        $reversed .= 'ip6.arpa';
-    }
-    
-    $lookupDomain = $reversed;
-} else {
-    $lookupDomain = $domain;
-}
-
-// Map the UI record types to DNS_* constants
-// Check that constants exist before using them (PHP may not have all DNS constants defined)
-$dnsTypeConstants = [];
-
-if (defined('DNS_A')) $dnsTypeConstants['A'] = DNS_A;
-if (defined('DNS_AAAA')) $dnsTypeConstants['AAAA'] = DNS_AAAA;
-if (defined('DNS_MX')) $dnsTypeConstants['MX'] = DNS_MX;
-if (defined('DNS_TXT')) $dnsTypeConstants['TXT'] = DNS_TXT;
-if (defined('DNS_NS')) $dnsTypeConstants['NS'] = DNS_NS;
-if (defined('DNS_SOA')) $dnsTypeConstants['SOA'] = DNS_SOA;
-if (defined('DNS_CNAME')) $dnsTypeConstants['CNAME'] = DNS_CNAME;
-if (defined('DNS_PTR')) $dnsTypeConstants['PTR'] = DNS_PTR;
-if (defined('DNS_CAA')) $dnsTypeConstants['CAA'] = DNS_CAA;
-if (defined('DNS_SRV')) $dnsTypeConstants['SRV'] = DNS_SRV;
-if (defined('DNS_DNSKEY')) $dnsTypeConstants['DNSKEY'] = DNS_DNSKEY;
-if (defined('DNS_DS')) $dnsTypeConstants['DS'] = DNS_DS;
-if (defined('DNS_RRSIG')) $dnsTypeConstants['RRSIG'] = DNS_RRSIG;
-if (defined('DNS_NAPTR')) $dnsTypeConstants['NAPTR'] = DNS_NAPTR;
-if (defined('DNS_ALL')) $dnsTypeConstants['ANY'] = DNS_ALL;
-else if (defined('DNS_ANY')) $dnsTypeConstants['ANY'] = DNS_ANY;
-
-// Special handling for ANY type to fetch multiple record types
-if ($type === 'ANY') {
-    // We'll manually query multiple record types
-    $useManualLookup = true;
-    $dnsTypeConstant = 0; // Placeholder, not used for ANY in our implementation
-} else {
-    $useManualLookup = false;
-    // Use the specific type constant or fall back to 0 (DNS_A) + fallback error handling
-    if (isset($dnsTypeConstants[$type])) {
-        $dnsTypeConstant = $dnsTypeConstants[$type];
-    } else {
-        // If the requested type isn't available, use DNS_A as fallback
-        $dnsTypeConstant = isset($dnsTypeConstants['A']) ? $dnsTypeConstants['A'] : 0;
+    // Check if it's an IP or domain
+    if (!filter_var($host, FILTER_VALIDATE_IP)) {
+        $validator->domain('host', 'Host must be a valid domain name or IP address');
     }
 }
 
-// Disable error output to ensure we return only JSON
-ini_set('display_errors', 0);
-error_reporting(0);
+// Validate record type
+$validTypes = ['A', 'AAAA', 'MX', 'TXT', 'NS', 'CNAME', 'SOA', 'PTR', 'CAA', 'ANY'];
+$validator->in('type', $validTypes, 'Invalid DNS record type');
 
-// Wrap in try/catch for extra safety
-try {
+if ($validator->fails()) {
+    $response->validationError($validator->errors());
+}
+
+$host = $host ?: $validator->get('host');
+$type = strtoupper($validator->get('type', 'A'));
+
+// Try to get from cache
+$cacheKey = 'dns_' . md5($host . '_' . $type);
+$cacheTTL = 300; // 5 minutes cache for DNS
+
+$result = $cache->remember($cacheKey, function() use ($host, $type, $config) {
     $records = [];
+    $error = null;
     
-    // For 'ANY', manually query the most common record types
-    if ($useManualLookup && $type === 'ANY') {
-        $commonTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA'];
-        foreach ($commonTypes as $recordType) {
-            if (isset($dnsTypeConstants[$recordType])) {
-                $typeRecords = @dns_get_record($lookupDomain, $dnsTypeConstants[$recordType]);
-                if ($typeRecords && is_array($typeRecords)) {
-                    $records = array_merge($records, $typeRecords);
+    try {
+        // Map record types to PHP constants
+        $typeMap = [
+            'A' => DNS_A,
+            'AAAA' => DNS_AAAA,
+            'MX' => DNS_MX,
+            'TXT' => DNS_TXT,
+            'NS' => DNS_NS,
+            'CNAME' => DNS_CNAME,
+            'SOA' => DNS_SOA,
+            'PTR' => DNS_PTR,
+            'CAA' => DNS_CAA,
+            'ANY' => DNS_ANY
+        ];
+        
+        $dnsType = $typeMap[$type] ?? DNS_A;
+        
+        // Perform DNS lookup
+        if ($type === 'ANY') {
+            // For ANY, we'll query multiple types
+            $allRecords = [];
+            foreach (['A', 'AAAA', 'MX', 'TXT', 'NS', 'CNAME', 'SOA'] as $singleType) {
+                $singleDnsType = $typeMap[$singleType];
+                $result = @dns_get_record($host, $singleDnsType);
+                if ($result) {
+                    $allRecords = array_merge($allRecords, $result);
+                }
+            }
+            $rawRecords = $allRecords;
+        } else {
+            $rawRecords = @dns_get_record($host, $dnsType);
+        }
+        
+        if ($rawRecords === false) {
+            throw new Exception("DNS lookup failed for $host");
+        }
+        
+        // Format records based on type
+        foreach ($rawRecords as $record) {
+            $formattedRecord = [
+                'type' => $record['type'],
+                'ttl' => $record['ttl'] ?? null
+            ];
+            
+            switch ($record['type']) {
+                case 'A':
+                    $formattedRecord['ip'] = $record['ip'];
+                    break;
+                    
+                case 'AAAA':
+                    $formattedRecord['ipv6'] = $record['ipv6'];
+                    break;
+                    
+                case 'MX':
+                    $formattedRecord['priority'] = $record['pri'];
+                    $formattedRecord['target'] = $record['target'];
+                    break;
+                    
+                case 'TXT':
+                    $formattedRecord['txt'] = $record['txt'];
+                    break;
+                    
+                case 'NS':
+                    $formattedRecord['target'] = $record['target'];
+                    break;
+                    
+                case 'CNAME':
+                    $formattedRecord['target'] = $record['target'];
+                    break;
+                    
+                case 'SOA':
+                    $formattedRecord['mname'] = $record['mname'];
+                    $formattedRecord['rname'] = $record['rname'];
+                    $formattedRecord['serial'] = $record['serial'];
+                    $formattedRecord['refresh'] = $record['refresh'];
+                    $formattedRecord['retry'] = $record['retry'];
+                    $formattedRecord['expire'] = $record['expire'];
+                    $formattedRecord['minimum'] = $record['minimum-ttl'];
+                    break;
+                    
+                case 'PTR':
+                    $formattedRecord['target'] = $record['target'];
+                    break;
+                    
+                case 'CAA':
+                    $formattedRecord['flags'] = $record['flags'];
+                    $formattedRecord['tag'] = $record['tag'];
+                    $formattedRecord['value'] = $record['value'];
+                    break;
+            }
+            
+            $records[] = $formattedRecord;
+        }
+        
+        // Sort records by type and then by specific fields
+        usort($records, function($a, $b) {
+            if ($a['type'] !== $b['type']) {
+                return strcmp($a['type'], $b['type']);
+            }
+            
+            // Sort MX by priority
+            if ($a['type'] === 'MX') {
+                return $a['priority'] - $b['priority'];
+            }
+            
+            return 0;
+        });
+        
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
+    
+    // Additional info
+    $additionalInfo = [];
+    
+    // Try to get authoritative nameservers
+    try {
+        $nsRecords = @dns_get_record($host, DNS_NS);
+        if ($nsRecords) {
+            $additionalInfo['nameservers'] = array_map(function($r) {
+                return $r['target'];
+            }, $nsRecords);
+        }
+    } catch (Exception $e) {
+        // Ignore errors for additional info
+    }
+    
+    // Get reverse DNS for A records
+    if ($type === 'A' || $type === 'ANY') {
+        foreach ($records as &$record) {
+            if ($record['type'] === 'A' && isset($record['ip'])) {
+                $reverse = @gethostbyaddr($record['ip']);
+                if ($reverse && $reverse !== $record['ip']) {
+                    $record['reverse'] = $reverse;
                 }
             }
         }
-    } else {
-        // Perform standard DNS lookup - suppress warnings with @
-        $records = @dns_get_record($lookupDomain, $dnsTypeConstant);
     }
     
-    if ($records === false || count($records) === 0) {
-        // No records found, but not an error
-        $response['records'] = [];
-    } else {
-        $response['records'] = $records;
-    }
-    
-    // Cache the successful result
-    @file_put_contents($cacheFile, json_encode($response));
-    
-    // Return the response
-    header('X-Cache: MISS');
-    echo json_encode($response);
-} catch (Exception $e) {
-    // Provide a clean JSON error response
-    http_response_code(500);
-    echo json_encode(['error' => true, 'message' => 'DNS lookup failed: ' . $e->getMessage()]);
-} catch (Error $e) {
-    // Catch PHP 7+ errors as well
-    http_response_code(500);
-    echo json_encode(['error' => true, 'message' => 'Server error during DNS lookup: ' . $e->getMessage()]);
+    return [
+        'host' => $host,
+        'type' => $type,
+        'records' => $records,
+        'record_count' => count($records),
+        'query_time' => date('Y-m-d H:i:s'),
+        'additional_info' => $additionalInfo,
+        'error' => $error
+    ];
+}, $cacheTTL);
+
+// Send response
+if ($result['error']) {
+    $response->error($result['error'], 400);
+} else {
+    $response->success($result);
 }

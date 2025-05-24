@@ -13,7 +13,7 @@ spl_autoload_register(function ($class) {
 });
 
 // Optional: Load all classes immediately for better performance
-$classes = ['Config', 'CORS', 'RateLimit', 'Response', 'Cache', 'Validator'];
+$classes = ['Config', 'CORS', 'RateLimit', 'Response', 'Cache', 'Validator', 'HttpClient'];
 foreach ($classes as $class) {
     $file = __DIR__ . '/' . $class . '.php';
     if (file_exists($file)) {
