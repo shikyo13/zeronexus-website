@@ -39,11 +39,11 @@ The website uses a simple architecture:
 
 ## Development Commands
 
-### Local Development
+### Local Development (MacBook Pro)
 
 **Initial Setup:**
 ```bash
-# First time setup (requires Docker Desktop)
+# First time setup (requires Docker Desktop for Mac)
 chmod +x scripts/setup-dev.sh
 ./scripts/setup-dev.sh
 ```
@@ -342,6 +342,21 @@ The site is deployed manually to production:
 5. Cloudflare Tunnel runs on the Windows host to provide secure access:
    - The local environment listens for HTTP requests
    - Cloudflare handles SSL redirects and certificates
+
+### Infrastructure Details
+
+**Development Environment:**
+- Runs on MacBook Pro (local development)
+- Docker Desktop for Mac manages containers
+- Direct access via http://localhost:8082
+
+**Production Environment:**
+- **Host Server**: Windows 11 home server
+- **VM**: Ubuntu 22.04 LTS running in Oracle VirtualBox
+- **Networking**: VM uses bridged adapter to Windows host
+- **Docker**: Runs inside the Ubuntu VM on port 8081
+- **Public Access**: Cloudflare Tunnel runs on Windows 11 host, exposing the VM's services
+- **SSL/HTTPS**: Handled by Cloudflare, not the local Docker setup
 
 ## Development Best Practices
 
