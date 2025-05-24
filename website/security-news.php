@@ -1,15 +1,14 @@
 <?php
+require_once 'includes/page-setup.php';
+
 // Page variables
-$page_title = "Security News - ZeroNexus";
-$page_description = "Latest cybersecurity news aggregated from trusted sources including BleepingComputer, Krebs on Security, and The Hacker News.";
-$page_css = "/css/security-news.css";
-$page_js = "/js/security-news.js";
-$header_title = "Security News";
-
-// No need to hide social icons with unified navigation
-
-// Extra resources for this page
+$page_title = 'Security News - ZeroNexus';
+$page_description = 'Latest cybersecurity news aggregated from trusted sources including BleepingComputer, Krebs on Security, and The Hacker News.';
+$page_css = '/css/security-news.css';
+$page_js = '/js/security-news-refactored.js';
+$header_title = 'Security News';
 $extra_head = '<link rel="preconnect" href="https://feeds.zeronexus.net" crossorigin />';
+$extra_scripts = '<script src="/js/utils.js"></script>';
 
 // Include header
 include 'includes/header.php';
@@ -60,7 +59,4 @@ include 'includes/header.php';
   </div>
 </main>
 
-<?php 
-// Include footer
-include 'includes/footer.php';
-?>
+<?php include 'includes/footer.php'; ?>
