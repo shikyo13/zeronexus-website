@@ -54,9 +54,9 @@ $packetCount = (int)$validator->get('packetCount', 4);
 $packetSize = (int)$validator->get('packetSize', 56);
 $timeout = (int)$validator->get('timeout', 2);
 
-// Currently only ping is supported
+// Validate tool selection
 if ($tool !== 'ping') {
-    $response->error("Currently only 'ping' is supported. Traceroute and MTR will be added soon.", 400);
+    $response->error("Invalid tool. Only 'ping' is currently supported.", 400);
 }
 
 // Set execution time limit

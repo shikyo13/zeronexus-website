@@ -54,8 +54,6 @@ function setupPingTraceroute() {
    * Run a network test through the API
    */
   function runNetworkTest(host, tool) {
-    // Always force tool to be 'ping'
-    tool = 'ping';
     
     // Show loading indicator
     if (loadingDiv) loadingDiv.classList.remove('d-none');
@@ -87,10 +85,19 @@ function setupPingTraceroute() {
             
             // Check for errors in JSON response
             if (!response.ok) {
-              if (!jsonData.output && jsonData.error) {
-                jsonData.output = `ERROR: ${jsonData.error}`;
+              // Handle error response format
+              if (jsonData.error) {
+                throw new Error(jsonData.error);
+              }
+              if (!jsonData.output && jsonData.message) {
+                jsonData.output = `ERROR: ${jsonData.message}`;
               }
               return jsonData;
+            }
+            
+            // Check for success: false in response
+            if (jsonData.success === false) {
+              throw new Error(jsonData.error || jsonData.message || 'Request failed');
             }
             
             return jsonData;
@@ -100,7 +107,14 @@ function setupPingTraceroute() {
           }
         });
       })
-      .then(data => {
+      .then(response => {
+        console.log('Full API response:', response);
+        
+        // Extract the actual data from the response
+        const data = response.data || response;
+        console.log('Extracted data:', data);
+        console.log('Output field:', data.output);
+        
         // Hide loading indicator
         if (loadingDiv) loadingDiv.classList.add('d-none');
         
@@ -114,6 +128,7 @@ function setupPingTraceroute() {
         // Add output
         if (resultOutput) {
           resultOutput.textContent = data.output || 'No results returned';
+          console.log('Set output text to:', data.output || 'No results returned');
           
           // Check for errors in output
           if (data.output && data.output.includes('ERROR:')) {
@@ -131,9 +146,9 @@ function setupPingTraceroute() {
           }
         }
         
-        // Update stats tab
+        // Update stats tab with both output and stats if available
         if (data.output) {
-          updateNetworkStats(data.output, tool, host);
+          updateNetworkStats(data.output, tool, host, data.stats);
         }
       })
       .catch(error => {
@@ -166,8 +181,12 @@ function setupPingTraceroute() {
   
   /**
    * Update network stats based on ping output
+   * @param {string} output - The raw output from the ping command
+   * @param {string} tool - The tool used (ping)
+   * @param {string} host - The host that was pinged
+   * @param {object} parsedStats - Pre-parsed statistics from the API (optional)
    */
-  function updateNetworkStats(output, tool, host) {
+  function updateNetworkStats(output, tool, host, parsedStats) {
     // Get stats elements
     const statsHost = document.getElementById('statsHost');
     const statsPackets = document.getElementById('statsPackets');
@@ -206,32 +225,59 @@ function setupPingTraceroute() {
       hostIP = ipMatch[1];
     }
     
-    // Look for statistics line
-    const statsMatch = output.match(/(\d+) packets transmitted, (\d+) (?:packets )?received, ([\d.]+)% packet loss/);
-    if (statsMatch) {
-      packetCount = parseInt(statsMatch[1]);
-      const packetsReceived = parseInt(statsMatch[2]);
-      packetLoss = parseFloat(statsMatch[3]);
-      
-      // Calculate success rate
-      const successRate = 100 - packetLoss;
-      
-      // Look for round-trip stats
-      const rtMatch = output.match(/min\/avg\/max(?:\/(?:mdev|stddev))? = ([\d.]+)\/([\d.]+)\/([\d.]+)(?:\/([\d.]+))? ms/);
-      if (rtMatch) {
-        minLatency = parseFloat(rtMatch[1]);
-        avgLatency = parseFloat(rtMatch[2]);
-        maxLatency = parseFloat(rtMatch[3]);
-        stdDev = rtMatch[4] ? parseFloat(rtMatch[4]) : 0;
+    // Use pre-parsed stats if available
+    if (parsedStats) {
+      if (parsedStats.packets_transmitted) {
+        packetCount = parsedStats.packets_transmitted;
+        if (statsPackets) statsPackets.textContent = packetCount.toString();
       }
       
-      // Update stats display
-      if (statsPackets) statsPackets.textContent = packetCount.toString();
-      if (statsSuccess) statsSuccess.textContent = successRate.toFixed(1) + '%';
-      if (statsMin) statsMin.textContent = minLatency + ' ms';
-      if (statsAvg) statsAvg.textContent = avgLatency + ' ms';
-      if (statsMax) statsMax.textContent = maxLatency + ' ms';
-      if (statsStdDev) statsStdDev.textContent = stdDev + ' ms';
+      if (parsedStats.packet_loss !== undefined) {
+        packetLoss = parsedStats.packet_loss;
+        const successRate = 100 - packetLoss;
+        if (statsSuccess) statsSuccess.textContent = successRate.toFixed(1) + '%';
+      }
+      
+      if (parsedStats.rtt_min !== undefined) {
+        if (statsMin) statsMin.textContent = parsedStats.rtt_min + ' ms';
+      }
+      if (parsedStats.rtt_avg !== undefined) {
+        if (statsAvg) statsAvg.textContent = parsedStats.rtt_avg + ' ms';
+      }
+      if (parsedStats.rtt_max !== undefined) {
+        if (statsMax) statsMax.textContent = parsedStats.rtt_max + ' ms';
+      }
+      if (parsedStats.rtt_stddev !== undefined) {
+        if (statsStdDev) statsStdDev.textContent = parsedStats.rtt_stddev + ' ms';
+      }
+    } else {
+      // Fall back to parsing from output
+      const statsMatch = output.match(/(\d+) packets transmitted, (\d+) (?:packets )?received, ([\d.]+)% packet loss/);
+      if (statsMatch) {
+        packetCount = parseInt(statsMatch[1]);
+        const packetsReceived = parseInt(statsMatch[2]);
+        packetLoss = parseFloat(statsMatch[3]);
+        
+        // Calculate success rate
+        const successRate = 100 - packetLoss;
+        
+        // Look for round-trip stats (handle both formats)
+        const rtMatch = output.match(/round-trip min\/avg\/max(?:\/(?:mdev|stddev))? = ([\d.]+)\/([\d.]+)\/([\d.]+)(?:\/([\d.]+))?(?:\s*ms)?/);
+        if (rtMatch) {
+          minLatency = parseFloat(rtMatch[1]);
+          avgLatency = parseFloat(rtMatch[2]);
+          maxLatency = parseFloat(rtMatch[3]);
+          stdDev = rtMatch[4] ? parseFloat(rtMatch[4]) : 0;
+        }
+        
+        // Update stats display
+        if (statsPackets) statsPackets.textContent = packetCount.toString();
+        if (statsSuccess) statsSuccess.textContent = successRate.toFixed(1) + '%';
+        if (statsMin) statsMin.textContent = minLatency + ' ms';
+        if (statsAvg) statsAvg.textContent = avgLatency + ' ms';
+        if (statsMax) statsMax.textContent = maxLatency + ' ms';
+        if (statsStdDev) statsStdDev.textContent = stdDev + ' ms';
+      }
     }
     
     // Update IP if available
@@ -281,7 +327,7 @@ function setupPingTraceroute() {
     });
   }
   
-  // Always force tool to be ping
+  // Tool is always ping
   if (toolTypeSelect) {
     toolTypeSelect.value = 'ping';
   }
@@ -310,9 +356,12 @@ function setupPingTraceroute() {
       // Reset display
       resetNetworkToolDisplay();
       
+      // Get selected tool
+      const tool = toolTypeSelect ? toolTypeSelect.value : 'ping';
+      
       // Run the test
       setTimeout(() => {
-        runNetworkTest(host, 'ping');
+        runNetworkTest(host, tool);
       }, 50);
     });
   }

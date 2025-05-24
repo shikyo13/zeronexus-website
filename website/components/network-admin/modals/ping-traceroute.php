@@ -14,19 +14,19 @@
                         </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <div class="tool-input-group">
                             <label for="hostTarget" class="form-label">Domain or IP Address:</label>
                             <input type="text" class="form-control" id="hostTarget" placeholder="e.g. example.com or 192.168.1.1">
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <input type="hidden" id="toolType" value="ping">
                         <div class="tool-input-group">
-                            <input type="hidden" id="toolType" value="ping">
-                            <label for="packetCount" class="form-label">Packet Count:</label>
+                            <label for="packetCount" class="form-label"><span id="packetCountLabel">Packet Count:</span></label>
                             <input type="number" class="form-control" id="packetCount" min="1" max="20" value="4" style="background-color: #FFFFFF !important; background: #FFFFFF !important;">
-                            <div class="form-text">Number of packets to send (1-20)</div>
+                            <div class="form-text" id="packetCountHelp">Number of packets (1-20)</div>
                         </div>
                     </div>
                     
@@ -70,7 +70,17 @@
                                 </div>
                             </div>
 
-                            <div class="tab-content" id="networkResultsTabContent">
+                            <!-- Tab navigation for results -->
+                            <ul class="nav nav-tabs" id="networkResultTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="rawResults-tab" data-bs-toggle="tab" data-bs-target="#rawResults" type="button" role="tab" aria-controls="rawResults" aria-selected="true">Raw Output</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="statsResults-tab" data-bs-toggle="tab" data-bs-target="#statsResults" type="button" role="tab" aria-controls="statsResults" aria-selected="false">Statistics</button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content mt-3" id="networkResultsTabContent">
                                 <!-- Raw Results Tab -->
                                 <div class="tab-pane fade show active" id="rawResults" role="tabpanel" aria-labelledby="rawResults-tab">
                                     <div id="resultOutput" class="network-output code-block"></div>
@@ -138,17 +148,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Tab navigation for results -->
-                            <ul class="nav nav-tabs mt-3" id="networkResultTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="rawResults-tab" data-bs-toggle="tab" data-bs-target="#rawResults" type="button" role="tab" aria-controls="rawResults" aria-selected="true">Raw Output</button>
-                                </li>
-                                <!-- Visualization tab removed as it only applies to traceroute/MTR -->
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="statsResults-tab" data-bs-toggle="tab" data-bs-target="#statsResults" type="button" role="tab" aria-controls="statsResults" aria-selected="false">Statistics</button>
-                                </li>
-                            </ul>
                         </div>
 
                         <div id="networkToolError" class="alert alert-danger d-none mt-3" role="alert">

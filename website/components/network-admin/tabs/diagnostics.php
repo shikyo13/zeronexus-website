@@ -32,17 +32,17 @@
         </div>
     </div>
 
-    <!-- Ping/Traceroute -->
+    <!-- Ping -->
     <div class="col">
         <div class="tool-card">
             <div class="card-header">
-                <i class="fas fa-route fa-2x"></i>
-                <h3>Ping/Traceroute</h3>
+                <i class="fas fa-network-wired fa-2x"></i>
+                <h3>Ping</h3>
             </div>
             <div class="card-body">
-                <p>Visualize network paths and measure latency between hosts.</p>
+                <p>Test network connectivity and measure latency to remote hosts.</p>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pingTracerouteModal">
-                    <i class="fas fa-route me-2"></i>Use Tool
+                    <i class="fas fa-network-wired me-2"></i>Use Tool
                 </button>
             </div>
         </div>
