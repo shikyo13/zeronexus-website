@@ -1,336 +1,151 @@
 <?php
 /**
- * Network Tools API
+ * Network Tools API (Refactored)
+ * 
  * Executes network diagnostics tools and returns results
+ * Using modular utilities for better code organization
+ * 
+ * Parameters:
+ * - host: Domain name or IP address to test
+ * - tool: Tool to use (ping, traceroute, mtr) - currently only ping supported
+ * - packetCount: Number of packets (default: 4)
+ * - packetSize: Size of packets in bytes (default: 56)
+ * - timeout: Timeout per packet in seconds (default: 2)
  */
 
-// Set headers for JSON API first thing
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST');
-header('Access-Control-Allow-Headers: Content-Type');
+// Load shared utilities
+require_once __DIR__ . '/lib/autoload.php';
 
-// Ensure proper JSON responses even on errors
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Disable HTML error output
-ini_set('display_startup_errors', 0);
+// Initialize utilities
+$config = Config::getInstance();
+$response = new Response();
 
-// Register shutdown function to catch fatal errors
-register_shutdown_function(function() {
-    $error = error_get_last();
-    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        http_response_code(500);
-        echo json_encode([
-            'error' => 'Fatal server error: ' . $error['message'],
-            'file' => basename($error['file']),
-            'line' => $error['line'],
-            'output' => 'Server error occurred. Please try again later.'
-        ]);
-        exit;
-    }
-});
+// Handle CORS - this is a public utility tool, so allow all origins
+CORS::simple(true); // true = allow all origins for public utility
 
-// Debug mode
-$debug = true;
+// Apply rate limiting (10 requests per minute for network tools)
+RateLimit::simple('network-tools');
 
-// Custom error handler to ensure JSON response
-function handleError($errno, $errstr, $errfile, $errline) {
-    // Only handle errors that aren't caught by @ error suppression
-    if (!(error_reporting() & $errno)) {
-        return false;
-    }
-    
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Server error: ' . $errstr,
-        'file' => basename($errfile),
-        'line' => $errline,
-        'type' => 'php_error',
-        'output' => 'Server error occurred. Please contact administrator.'
-    ]);
-    exit;
+// Validate input
+$validator = new Validator();
+$validator->required('host', 'Host parameter is required')
+          ->length('host', 1, 255, 'Host must be between 1 and 255 characters');
+
+// Validate host is either domain or IP
+$host = $validator->get('host');
+if ($host && !filter_var($host, FILTER_VALIDATE_IP)) {
+    $validator->domain('host', 'Host must be a valid domain name or IP address');
 }
 
-// Set custom error handler
-set_error_handler('handleError');
+// Validate other parameters
+$validator->in('tool', ['ping', 'traceroute', 'mtr'], 'Invalid tool specified')
+          ->integer('packetCount', 1, 10, 'Packet count must be between 1 and 10')
+          ->integer('packetSize', 8, 1472, 'Packet size must be between 8 and 1472')
+          ->integer('timeout', 1, 10, 'Timeout must be between 1 and 10 seconds');
 
-// Handle unexpected exceptions
+if ($validator->fails()) {
+    $response->validationError($validator->errors());
+}
+
+// Get parameters with defaults
+$host = $validator->get('host');
+$tool = $validator->get('tool', 'ping');
+$packetCount = (int)$validator->get('packetCount', 4);
+$packetSize = (int)$validator->get('packetSize', 56);
+$timeout = (int)$validator->get('timeout', 2);
+
+// Currently only ping is supported
+if ($tool !== 'ping') {
+    $response->error("Currently only 'ping' is supported. Traceroute and MTR will be added soon.", 400);
+}
+
+// Set execution time limit
+set_time_limit(60);
+
+// Detect OS
+$isMacOS = PHP_OS === 'Darwin';
+
+// Find ping command path
+$pingPath = '';
+$possiblePaths = ['/bin/ping', '/usr/bin/ping', '/sbin/ping'];
+foreach ($possiblePaths as $path) {
+    if (file_exists($path) && is_executable($path)) {
+        $pingPath = $path;
+        break;
+    }
+}
+
+if (empty($pingPath)) {
+    // Try using 'which' command
+    $pingPath = trim(shell_exec('which ping 2>/dev/null'));
+}
+
+if (empty($pingPath)) {
+    $response->error('Ping command not found on server', 500);
+}
+
+// Prepare command
+// Note: Input is sanitized using escapeshellarg for security
+$safeHost = escapeshellarg($host);
+$command = "{$pingPath} -c {$packetCount} -s {$packetSize} -W {$timeout} {$safeHost} 2>&1";
+
+// Execute command
+$output = '';
+$return_var = 0;
+
 try {
-    // Import rate limiting functionality
-    try {
-        require_once 'rate-limit.php';
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Server configuration error']);
-        exit;
+    // Execute the command
+    exec($command, $outputLines, $return_var);
+    $output = implode("\n", $outputLines);
+    
+    if ($return_var !== 0 && empty($output)) {
+        throw new Exception('Command execution failed');
     }
-
-    // Temporarily disabled rate limiting for debugging
-    // try {
-    //     // We're using checkRateLimit from rate-limit.php, which throws an exception if rate limit is exceeded
-    //     checkRateLimit('network_tools', 10);
-    // } catch (Exception $e) {
-    //     http_response_code(429);
-    //     echo json_encode(['error' => 'Rate limit exceeded. Please try again later.']);
-    //     exit;
-    // }
-
-    // Log request for debugging
-    error_log("Network tools API request: " . json_encode($_GET));
-
-    // Function to sanitize and validate input
-    function sanitizeInput($input) {
-        return escapeshellarg(trim($input));
-    }
-
-    // Validate parameters
-    if (!isset($_GET['host']) || empty($_GET['host'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Missing host parameter']);
-        exit;
-    }
-
-    // Set a time limit for script execution
-    set_time_limit(60); // 60 seconds max execution time
-
-    // Get and sanitize parameters
-    $host = sanitizeInput($_GET['host']);
-    $tool = isset($_GET['tool']) ? $_GET['tool'] : 'ping';
-    $packetCount = isset($_GET['packetCount']) ? intval($_GET['packetCount']) : 4;
-    $packetSize = isset($_GET['packetSize']) ? intval($_GET['packetSize']) : 56;
-    $timeout = isset($_GET['timeout']) ? intval($_GET['timeout']) : 2;
-
-    // Force tool to be ping for now
-    $tool = 'ping';
-
-    // Validate parameters
-    if (!in_array($tool, ['ping', 'traceroute', 'mtr'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Invalid tool specified. Allowed: ping, traceroute, mtr']);
-        exit;
-    }
-
-    // Check if we can run the tools with multiple methods
-    function findExecutable($command) {
-        // Try using which command
-        $path = trim(@shell_exec("which $command 2>/dev/null"));
-        if (!empty($path) && file_exists($path) && is_executable($path)) {
-            return $path;
-        }
-        
-        // Try using command -v (more portable)
-        $path = trim(@shell_exec("command -v $command 2>/dev/null"));
-        if (!empty($path) && file_exists($path) && is_executable($path)) {
-            return $path;
-        }
-        
-        // Define common locations to check for each command
-        $commonPaths = [
-            "ping" => ["/bin/ping", "/usr/bin/ping", "/sbin/ping", "/usr/sbin/ping"],
-            "traceroute" => ["/usr/sbin/traceroute", "/usr/bin/traceroute", "/sbin/traceroute", "/bin/traceroute"],
-            "mtr" => ["/usr/sbin/mtr", "/usr/bin/mtr", "/sbin/mtr", "/bin/mtr", "/usr/local/bin/mtr"]
-        ];
-        
-        // Check common paths
-        if (isset($commonPaths[$command])) {
-            foreach ($commonPaths[$command] as $commonPath) {
-                if (file_exists($commonPath) && is_executable($commonPath)) {
-                    return $commonPath;
-                }
-            }
-        }
-        
-        // Not found
-        return '';
-    }
-
-    // Find tools using our helper function
-    $pingPath = findExecutable('ping');
-    $traceroutePath = findExecutable('traceroute');
-    $mtrPath = findExecutable('mtr');
-
-    // Debug: Add to response
-    $toolsAvailable = [
-        'ping' => !empty($pingPath),
-        'traceroute' => !empty($traceroutePath),
-        'mtr' => !empty($mtrPath),
-        'ping_path' => $pingPath,
-        'traceroute_path' => $traceroutePath,
-        'mtr_path' => $mtrPath,
-        'php_user' => function_exists('posix_getpwuid') && function_exists('posix_geteuid') ? 
-                      (posix_getpwuid(posix_geteuid())['name'] ?? 'unknown') : 'unknown',
-        'server_os' => PHP_OS
-    ];
-
-    // Log tool detection results
-    error_log("Tool detection: " . json_encode($toolsAvailable));
-
-    // Limit parameters to reasonable values
-    $packetCount = max(1, min(20, $packetCount));
-    $packetSize = max(32, min(1472, $packetSize));
-    $timeout = max(1, min(10, $timeout));
-
-    // Special handling for macOS
-    $isMacOS = PHP_OS === 'Darwin';
-
-    // Build commands based on tool and platform
-    $command = '';
-    $skipExecution = false;
-    $output = '';
-
-    if ($tool === 'ping') {
-        if (empty($pingPath)) {
-            $output = "ERROR: Ping command not found. This tool requires the ping command to be installed on the server.";
-            $skipExecution = true;
-        } else {
-            if ($isMacOS) {
-                // macOS ping commands
-                $command = "{$pingPath} -c {$packetCount} -s {$packetSize} -W {$timeout} {$host} 2>&1";
-            } else {
-                // Linux ping command
-                $command = "{$pingPath} -c {$packetCount} -s {$packetSize} -W {$timeout} {$host} 2>&1";
-            }
-        }
-    } else if ($tool === 'traceroute') {
-        // Only ping is supported for now
-        $output = "ERROR: Traceroute is not currently supported. Please use ping.";
-        $skipExecution = true;
-    } else if ($tool === 'mtr') {
-        // Only ping is supported for now
-        $output = "ERROR: MTR is not currently supported. Please use ping.";
-        $skipExecution = true;
-    }
-
-    // Log the command we're about to execute
-    error_log("About to execute: $command");
-
-    // Add debug information
-    if ($debug) {
-        $debugInfo = [
-            'command' => $command,
-            'host' => $host,
-            'tool' => $tool
-        ];
-    }
-
-    // Skip command execution if we're using sample data or don't have tools
-    if (!isset($skipExecution) || $skipExecution !== true) {
-        // Try different methods to execute the command
-        $output = '';
-        $return_var = 0;
-        
-        // Add execution method to debug info
-        $executionMethod = 'none';
-        
-        try {
-            // Method 1: Use exec (basic but reliable)
-            $execOutput = [];
-            @exec($command, $execOutput, $return_var);
-            
-            if ($return_var !== 127) { // Not a "command not found" error
-                $output = implode("\n", $execOutput);
-                $executionMethod = 'exec';
-                error_log("exec method returned code: $return_var");
-            } else {
-                error_log("exec failed with 'command not found' error");
-                
-                // Method 2: Try shell_exec
-                $shellOutput = @shell_exec($command);
-                
-                if ($shellOutput !== null) {
-                    $output = $shellOutput;
-                    $executionMethod = 'shell_exec';
-                    error_log("shell_exec method succeeded");
-                } else {
-                    error_log("shell_exec failed");
-                    
-                    // Method 3: Try proc_open
-                    $descriptorspec = [
-                        1 => ['pipe', 'w'], // stdout
-                        2 => ['pipe', 'w']  // stderr
-                    ];
-                    
-                    $process = @proc_open($command, $descriptorspec, $pipes);
-                    
-                    if (is_resource($process)) {
-                        $executionMethod = 'proc_open';
-                        error_log("proc_open succeeded");
-                        
-                        // Read from pipes
-                        $stdout = stream_get_contents($pipes[1]);
-                        $stderr = stream_get_contents($pipes[2]);
-                        
-                        // Close pipes and process
-                        fclose($pipes[1]);
-                        fclose($pipes[2]);
-                        $return_var = proc_close($process);
-                        
-                        error_log("proc_open returned: $return_var");
-                        
-                        // Use stdout or stderr based on return code
-                        if (!empty($stdout)) {
-                            $output = $stdout;
-                        } else if (!empty($stderr)) {
-                            $output = $stderr;
-                        } else {
-                            $output = "ERROR: Command execution failed.";
-                        }
-                    } else {
-                        // All methods failed
-                        error_log("All command execution methods failed");
-                        $output = "ERROR: Could not execute command. The server might not have permissions to run this command.";
-                        
-                        // Provide more diagnostic information
-                        $output .= "\nPlease ensure the required network tools are installed on the server.";
-                        if ($tool === 'traceroute') {
-                            $output .= "\nInstall traceroute with: sudo apt-get install traceroute (Debian/Ubuntu) or sudo yum install traceroute (CentOS/RHEL)";
-                        } else if ($tool === 'mtr') {
-                            $output .= "\nInstall MTR with: sudo apt-get install mtr-tiny (Debian/Ubuntu) or sudo yum install mtr (CentOS/RHEL)";
-                        }
-                    }
-                }
-            }
-        } catch (Exception $innerException) {
-            error_log("Exception during command execution: " . $innerException->getMessage());
-            $output = "ERROR: Exception during command execution: " . $innerException->getMessage();
-            $executionMethod = 'exception';
-        }
-    }
-
-    // Check if the output contains any data
-    if (empty($output) && !isset($skipExecution)) {
-        $output = "ERROR: Command execution returned no output. The tool may not be installed or might not have the required permissions.";
-        error_log("No output from command execution: $command");
-    }
-
-    // Return the results
-    $response = [
-        'tool' => $tool,
-        'host' => $_GET['host'], // Return the original host for display
-        'output' => $output
-    ];
-
-    // Add debug info if enabled
-    if ($debug) {
-        $response['debug'] = $debugInfo ?? [];
-        $response['raw_command'] = $command ?? '';
-        $response['return_code'] = $return_var ?? 0;
-        $response['tools_available'] = $toolsAvailable;
-        $response['execution_method'] = $executionMethod ?? 'none';
-    }
-
-    // Send response
-    echo json_encode($response);
-
 } catch (Exception $e) {
-    // Catch any unexpected exceptions and return a proper JSON error
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Unexpected error: ' . $e->getMessage(),
-        'type' => 'exception',
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine(),
-        'output' => 'An unexpected error occurred. Please try again later.'
+    $response->error('Failed to execute network diagnostic command', 500, [
+        'message' => $config->isDebug() ? $e->getMessage() : 'Execution failed'
     ]);
-    exit;
 }
+
+// Parse the output
+$stats = [];
+if (preg_match('/(\d+) packets transmitted, (\d+) (packets )?received/', $output, $matches)) {
+    $stats['packets_transmitted'] = intval($matches[1]);
+    $stats['packets_received'] = intval($matches[2]);
+    $stats['packet_loss'] = round((1 - ($matches[2] / $matches[1])) * 100, 2);
+}
+
+if (preg_match('/min\/avg\/max\/stddev = ([\d.]+)\/([\d.]+)\/([\d.]+)\/([\d.]+)/', $output, $matches)) {
+    $stats['rtt_min'] = floatval($matches[1]);
+    $stats['rtt_avg'] = floatval($matches[2]);
+    $stats['rtt_max'] = floatval($matches[3]);
+    $stats['rtt_stddev'] = floatval($matches[4]);
+}
+
+// Prepare response
+$result = [
+    'tool' => $tool,
+    'host' => $host,
+    'parameters' => [
+        'packet_count' => $packetCount,
+        'packet_size' => $packetSize,
+        'timeout' => $timeout
+    ],
+    'output' => $output,
+    'stats' => $stats,
+    'success' => $return_var === 0,
+    'timestamp' => time()
+];
+
+// Add debug info if in debug mode
+if ($config->isDebug()) {
+    $result['debug'] = [
+        'command' => $command,
+        'return_code' => $return_var,
+        'os' => PHP_OS,
+        'ping_path' => $pingPath
+    ];
+}
+
+// Send response
+$response->success($result);

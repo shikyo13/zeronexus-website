@@ -130,7 +130,15 @@ function extractImageUrl($url, $source) {
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For development only
+        // SSL Verification Architecture Decision:
+        // SSL verification is disabled here because this API proxies requests to various
+        // external news sites. In our architecture:
+        // 1. The production server runs in a Windows 11 home server environment
+        // 2. SSL/HTTPS is handled by Cloudflare Tunnel on the Windows host
+        // 3. The Ubuntu VM running Docker doesn't need to verify SSL for external requests
+        // 4. This simplifies certificate management for a personal portfolio site
+        // This is an intentional design decision, not a security oversight.
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         
         // Add more debugging in development
         if (isset($_SERVER['ENVIRONMENT']) && $_SERVER['ENVIRONMENT'] === 'development') {

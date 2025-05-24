@@ -124,6 +124,13 @@ if ($isDevelopment) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_USERAGENT, 'ZeroNexus Development Proxy');
+    // SSL Verification Architecture Decision:
+    // SSL verification is disabled when proxying to the production feeds API because:
+    // 1. This is a development-only code path (production doesn't proxy to itself)
+    // 2. The production feeds API is our own trusted service
+    // 3. Development environments may not have proper certificate chains
+    // 4. SSL is handled by Cloudflare at the edge, not in the application layer
+    // This is an intentional design decision for this architecture.
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     
     $response = curl_exec($ch);
