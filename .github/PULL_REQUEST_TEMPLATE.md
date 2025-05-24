@@ -1,33 +1,33 @@
 ## Description
+<!-- Briefly describe the changes in this PR -->
 
-Please include a summary of the changes and which issue is fixed. Please also include relevant motivation and context.
-
-Fixes # (issue)
-
-## Type of change
-
-Please delete options that are not relevant.
-
+## Type of Change
+<!-- Mark the relevant option with an "x" -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+- [ ] Documentation update
+- [ ] Performance improvement
+- [ ] Code refactoring
 
-## How Has This Been Tested?
+## Testing
+<!-- Describe the tests you ran to verify your changes -->
+- [ ] Tested locally with docker-compose
+- [ ] Verified no PHP errors in logs
+- [ ] Checked responsive design
+- [ ] Tested API endpoints (if applicable)
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce.
-
-- [ ] Local development environment (localhost:8082)
-- [ ] Production-like testing
-- [ ] Unit tests
-- [ ] Manual testing
-
-## Checklist:
-
+## Checklist
 - [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
+- [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have tested PHP changes by restarting the container
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] My changes generate no new warnings or errors
+- [ ] I have tested my changes in the development environment
+- [ ] I have checked that my changes don't break existing functionality
+
+## Screenshots (if applicable)
+<!-- Add screenshots to help explain your changes -->
+
+## Additional Notes
+<!-- Any additional information that reviewers should know -->
