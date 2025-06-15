@@ -44,6 +44,16 @@ export default function setupPasswordStrength() {
   
   // Initialize UI elements
   initializeUI();
+  
+  // Debug checkbox elements
+  setTimeout(() => {
+    console.log('=== Password Tool Debug ===');
+    const checkboxes = ['includeUppercase', 'includeLowercase', 'includeNumbers', 'includeSymbols', 'advancedAnalysis'];
+    checkboxes.forEach(id => {
+      const element = document.getElementById(id);
+      console.log(`${id}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
+    });
+  }, 1000);
 }
 
 /**
@@ -85,8 +95,26 @@ function setupPasswordTester() {
   // Advanced analysis toggle
   if (advancedCheckbox) {
     advancedCheckbox.addEventListener('change', () => {
+      console.log('Advanced analysis toggled:', advancedCheckbox.checked);
       if (passwordInput && passwordInput.value) {
         analyzePassword(passwordInput.value);
+      }
+      
+      // Show feedback that advanced analysis is enabled/disabled
+      const feedbackEl = document.getElementById('passwordFeedback');
+      if (feedbackEl && advancedCheckbox.checked) {
+        const existingAdvancedNote = feedbackEl.querySelector('.advanced-analysis-note');
+        if (!existingAdvancedNote) {
+          const note = document.createElement('div');
+          note.className = 'alert alert-info mt-2 advanced-analysis-note';
+          note.innerHTML = '<i class="fas fa-brain me-2"></i>Advanced pattern detection enabled - More thorough analysis active';
+          feedbackEl.appendChild(note);
+        }
+      } else if (feedbackEl) {
+        const existingAdvancedNote = feedbackEl.querySelector('.advanced-analysis-note');
+        if (existingAdvancedNote) {
+          existingAdvancedNote.remove();
+        }
       }
     });
   } else {
