@@ -175,10 +175,13 @@ function createCommandCard(command) {
         </div>
       </div>
       <div class="card-body">
-        <p class="card-text small text-muted mb-2">${command.description}</p>
-        <div class="syntax-section mb-3">
+        <div class="syntax-section mb-2">
           <strong class="small">Syntax:</strong>
           <code class="d-block mt-1 text-success">${command.syntax}</code>
+        </div>
+        <div class="description-section mb-3">
+          <p class="card-text mb-2">${command.description}</p>
+          ${command.detailedDescription ? `<p class="text-muted small">${command.detailedDescription}</p>` : ''}
         </div>
         
         ${command.commonOptions.length > 0 ? `
@@ -189,7 +192,8 @@ function createCommandCard(command) {
           <div class="collapse mt-2" id="${cardId}-options">
             ${command.commonOptions.map(opt => `
               <div class="small border-start border-info ps-2 mb-1">
-                <code class="text-warning">${opt.flag}</code> - ${opt.description}
+                <code class="text-warning">${opt.flag}</code>
+                <span class="ms-2">${opt.description}</span>
               </div>
             `).join('')}
           </div>

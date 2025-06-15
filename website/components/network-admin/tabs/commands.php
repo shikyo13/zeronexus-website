@@ -9,7 +9,7 @@
             </div>
             <div class="card-body">
                 <p>Comprehensive reference for essential Linux commands with examples, categorized by functionality and difficulty level.</p>
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linuxCommandsModal">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linuxCommandsModal">
                     <i class="fas fa-terminal me-2"></i>Open Commands Reference
                 </button>
             </div>

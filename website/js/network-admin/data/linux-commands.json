@@ -4,6 +4,7 @@
       "name": "ls",
       "category": "file-operations",
       "description": "List directory contents",
+      "detailedDescription": "The ls command displays information about files and directories. Without options, it shows filenames in the current directory. Use various options to control the output format, sorting, and what information is displayed. Essential for navigating and understanding file system structure.",
       "syntax": "ls [OPTIONS] [FILE...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -39,6 +40,7 @@
       "name": "cd",
       "category": "directory-navigation",
       "description": "Change current directory",
+      "detailedDescription": "Changes the current working directory to the specified path. If no directory is specified, changes to the user's home directory. Supports relative paths (from current location) and absolute paths (from root). Use '..' to go up one level, '~' for home directory, and '-' to return to the previous directory.",
       "syntax": "cd [DIRECTORY]",
       "difficulty": "beginner",
       "commonOptions": [],
@@ -67,6 +69,7 @@
       "name": "pwd",
       "category": "directory-navigation",
       "description": "Print working directory (current location)",
+      "detailedDescription": "Displays the absolute path of the current working directory. Useful for confirming your location in the filesystem, especially when working with relative paths or complex directory structures. Essential for scripting and navigation.",
       "syntax": "pwd",
       "difficulty": "beginner",
       "commonOptions": [],
@@ -83,6 +86,7 @@
       "name": "mkdir",
       "category": "file-operations",
       "description": "Create directories",
+      "detailedDescription": "Creates one or more directories. Can create multiple directories at once and nested directory structures with the -p option. Essential for organizing files and setting up project structures. Use -m to set specific permissions during creation.",
       "syntax": "mkdir [OPTIONS] DIRECTORY...",
       "difficulty": "beginner",
       "commonOptions": [
@@ -111,6 +115,7 @@
       "name": "rmdir",
       "category": "file-operations",
       "description": "Remove empty directories",
+      "detailedDescription": "Removes empty directories only. Will fail if the directory contains any files or subdirectories. Safer than 'rm -r' as it prevents accidental deletion of non-empty directories. Use -p to remove parent directories that become empty after the operation.",
       "syntax": "rmdir [OPTIONS] DIRECTORY...",
       "difficulty": "beginner",
       "commonOptions": [
@@ -134,6 +139,7 @@
       "name": "cp",
       "category": "file-operations",
       "description": "Copy files or directories",
+      "detailedDescription": "Creates copies of files and directories. Can copy single files, multiple files, or entire directory trees. Preserves or modifies file attributes based on options used. Essential for backup operations, file duplication, and data migration. Use -r for recursive directory copying.",
       "syntax": "cp [OPTIONS] SOURCE DESTINATION",
       "difficulty": "beginner",
       "commonOptions": [
@@ -164,6 +170,7 @@
       "name": "mv",
       "category": "file-operations",
       "description": "Move or rename files and directories",
+      "detailedDescription": "Moves files and directories from one location to another, or renames them if source and destination are in the same directory. Unlike cp, this removes the original file. Can move multiple files to a directory. Essential for file organization and renaming operations.",
       "syntax": "mv [OPTIONS] SOURCE DESTINATION",
       "difficulty": "beginner",
       "commonOptions": [
@@ -192,6 +199,7 @@
       "name": "rm",
       "category": "file-operations",
       "description": "Remove files and directories",
+      "detailedDescription": "Permanently deletes files and directories. Be extremely careful as deleted files cannot be easily recovered. Use -i for interactive confirmation before each deletion. The -r option enables recursive deletion of directories and their contents. One of the most dangerous commands when used carelessly.",
       "syntax": "rm [OPTIONS] FILE...",
       "difficulty": "beginner",
       "commonOptions": [
@@ -221,6 +229,7 @@
       "name": "find",
       "category": "search",
       "description": "Search for files and directories",
+      "detailedDescription": "A versatile command for locating files and directories based on various criteria such as name, size, modification time, permissions, and more. Can execute actions on found items. More powerful than simple wildcards, it can search entire directory trees and perform complex filtering. Essential for system administration and file management.",
       "syntax": "find [PATH] [OPTIONS] [EXPRESSION]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -255,6 +264,7 @@
       "name": "grep",
       "category": "text-processing",
       "description": "Search text patterns in files",
+      "detailedDescription": "A powerful pattern-matching tool that searches for text patterns using regular expressions. Can search within files, command output, or input streams. Essential for log analysis, code searching, and text processing. Supports advanced features like case-insensitive matching, line numbering, and context display.",
       "syntax": "grep [OPTIONS] PATTERN [FILE...]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -290,6 +300,7 @@
       "name": "cat",
       "category": "text-processing",
       "description": "Display file contents",
+      "detailedDescription": "Displays the entire contents of files to standard output. Can concatenate multiple files and display them sequentially. Often used to quickly view small files, combine files, or redirect content to other commands. Use with caution on large files as it will display everything at once.",
       "syntax": "cat [OPTIONS] [FILE...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -318,6 +329,7 @@
       "name": "less",
       "category": "text-processing",
       "description": "View file contents page by page",
+      "detailedDescription": "A pager program that displays file contents one screen at a time, allowing forward and backward navigation. More advanced than 'more' with features like search, line numbering, and pattern highlighting. Essential for viewing large files, log files, and command output. Supports keyboard navigation and search functionality.",
       "syntax": "less [OPTIONS] [FILE...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -346,6 +358,7 @@
       "name": "head",
       "category": "text-processing",
       "description": "Display first lines of a file",
+      "detailedDescription": "Shows the first part of files, by default the first 10 lines. Useful for quickly previewing file contents, examining file headers, or sampling data. Can specify custom line counts or byte counts. Often used in combination with other commands in pipelines to process file beginnings.",
       "syntax": "head [OPTIONS] [FILE...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -373,6 +386,7 @@
       "name": "tail",
       "category": "text-processing",
       "description": "Display last lines of a file",
+      "detailedDescription": "Shows the last part of files, by default the last 10 lines. Essential for monitoring log files, especially with the -f option which follows file changes in real-time. Commonly used for troubleshooting, system monitoring, and tracking application output. The -F option is useful for files that get rotated.",
       "syntax": "tail [OPTIONS] [FILE...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -401,6 +415,7 @@
       "name": "ps",
       "category": "process-management",
       "description": "Display running processes",
+      "detailedDescription": "Shows information about currently running processes including process IDs, CPU usage, memory consumption, and command names. Essential for system monitoring, troubleshooting, and process management. Different option combinations provide varying levels of detail and filtering capabilities.",
       "syntax": "ps [OPTIONS]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -430,6 +445,7 @@
       "name": "top",
       "category": "monitoring",
       "description": "Display and update sorted information about running processes",
+      "detailedDescription": "Provides a real-time, dynamic view of running processes sorted by CPU usage. Shows system resource utilization including CPU, memory, and swap usage. Interactive interface allows sorting by different criteria, killing processes, and changing display options. Essential for system performance monitoring and troubleshooting.",
       "syntax": "top [OPTIONS]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -454,6 +470,7 @@
       "name": "kill",
       "category": "process-management",
       "description": "Terminate processes by PID",
+      "detailedDescription": "Sends signals to processes, most commonly to terminate them. Different signals provide varying levels of force, from gentle termination requests (SIGTERM) to immediate forced termination (SIGKILL). Essential for stopping unresponsive processes, managing system resources, and controlling application behavior. Use with caution as it can affect system stability.",
       "syntax": "kill [SIGNAL] PID...",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -482,6 +499,7 @@
       "name": "df",
       "category": "system-info",
       "description": "Display filesystem disk space usage",
+      "detailedDescription": "Shows disk space usage for all mounted filesystems or specific ones. Displays total space, used space, available space, and usage percentage. Essential for monitoring disk capacity, identifying full filesystems, and planning storage needs. Use -h for human-readable output in KB, MB, GB units.",
       "syntax": "df [OPTIONS] [FILESYSTEM...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -506,6 +524,7 @@
       "name": "du",
       "category": "system-info",
       "description": "Display directory space usage",
+      "detailedDescription": "Calculates and displays disk space used by directories and files. Shows space consumption for each subdirectory, helping identify large files and directories consuming disk space. Essential for disk cleanup, capacity planning, and finding space-consuming items. Use with sort to find largest directories.",
       "syntax": "du [OPTIONS] [DIRECTORY...]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -535,6 +554,7 @@
       "name": "free",
       "category": "system-info",
       "description": "Display memory usage information",
+      "detailedDescription": "Shows system memory usage including total, used, free, shared, buffer/cache, and available memory. Also displays swap space information. Essential for monitoring system performance, diagnosing memory issues, and understanding resource utilization. Available memory is often more useful than free memory for capacity planning.",
       "syntax": "free [OPTIONS]",
       "difficulty": "beginner",
       "commonOptions": [
@@ -560,6 +580,7 @@
       "name": "chmod",
       "category": "permissions",
       "description": "Change file permissions",
+      "detailedDescription": "Modifies file and directory permissions using numeric (octal) or symbolic notation. Controls read, write, and execute permissions for owner, group, and others. Essential for security, access control, and proper file system management. Understanding permission models is crucial for system administration and security.",
       "syntax": "chmod [OPTIONS] MODE FILE...",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -587,6 +608,7 @@
       "name": "chown",
       "category": "permissions",
       "description": "Change file ownership",
+      "detailedDescription": "Changes the owner and/or group ownership of files and directories. Critical for access control, security, and proper file management in multi-user systems. Often used when transferring files between users or setting up service accounts. Requires appropriate privileges to change ownership.",
       "syntax": "chown [OPTIONS] OWNER[:GROUP] FILE...",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -610,6 +632,7 @@
       "name": "tar",
       "category": "archiving",
       "description": "Archive files and directories",
+      "detailedDescription": "Creates, extracts, and manipulates archive files (tarballs). Combines multiple files and directories into a single archive file, optionally with compression. Essential for backups, file distribution, and system administration. Supports various compression algorithms like gzip, bzip2, and xz for space efficiency.",
       "syntax": "tar [OPTIONS] [ARCHIVE] [FILE...]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -640,6 +663,7 @@
       "name": "wget",
       "category": "networking",
       "description": "Download files from the web",
+      "detailedDescription": "A non-interactive network downloader that retrieves files from web servers using HTTP, HTTPS, and FTP protocols. Supports resuming interrupted downloads, recursive downloading, and various authentication methods. Essential for downloading files in scripts, automated deployments, and system administration tasks.",
       "syntax": "wget [OPTIONS] URL...",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -669,6 +693,7 @@
       "name": "curl",
       "category": "networking",
       "description": "Transfer data from or to servers",
+      "detailedDescription": "A versatile command-line tool for transferring data to/from servers using various protocols including HTTP, HTTPS, FTP, SFTP, and more. Supports complex operations like POST requests, authentication, cookies, and headers. Essential for API testing, web scraping, and automated data transfer in scripts and applications.",
       "syntax": "curl [OPTIONS] URL...",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -698,6 +723,7 @@
       "name": "ssh",
       "category": "networking",
       "description": "Secure Shell - remote login and command execution",
+      "detailedDescription": "Provides secure encrypted communication between local and remote systems. Enables remote command execution, file transfers, and tunneling. Uses public-key cryptography for authentication and encryption for data protection. Essential for secure remote system administration, automated deployments, and secure communication channels.",
       "syntax": "ssh [OPTIONS] [USER@]HOST [COMMAND]",
       "difficulty": "intermediate",
       "commonOptions": [
@@ -727,6 +753,7 @@
       "name": "scp",
       "category": "networking",
       "description": "Secure copy files over SSH",
+      "detailedDescription": "Securely transfers files and directories between local and remote systems using SSH protocol. Maintains file permissions and timestamps during transfer. Provides encrypted file transfer with authentication. Essential for secure file distribution, backups, and deployment processes in networked environments.",
       "syntax": "scp [OPTIONS] SOURCE DESTINATION",
       "difficulty": "intermediate",
       "commonOptions": [
