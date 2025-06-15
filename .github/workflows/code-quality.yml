@@ -57,28 +57,4 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Extract and Validate HTML
-        run: |
-          # Extract HTML from PHP files for validation
-          for file in website/*.php; do
-            echo "Validating: $file"
-            # Use PHP CLI to render the file (skip includes to avoid errors)
-            docker run --rm \
-              -v $PWD:/work \
-              -w /work \
-              php:8.2-cli \
-              php -r "
-                error_reporting(0);
-                define('SKIP_INCLUDES', true);
-                ob_start();
-                include '$file';
-                \$html = ob_get_clean();
-                file_put_contents('${file}.html', \$html);
-              " || true
-          done
-          
-          # Validate extracted HTML files
-          docker run --rm \
-            -v $PWD:/work \
-            -w /work \
-            validator/validator:latest \
-            website/*.php.html || true
+        run: .github/scripts/validate-html.sh
