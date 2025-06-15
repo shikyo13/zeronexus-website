@@ -45,16 +45,35 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 });
 
 try {
-    // Import rate limiting and deduplication
+    // Import dependencies
     require_once 'rate-limit.php';
     require_once 'request-dedup.php';
+    require_once 'audit-log.php';
     
-    // Apply rate limiting
+    // Apply rate limiting with tiered limits
+    $rateLimitKey = 'global_network_tools';
+    $rateLimitPerHour = 20; // Default for anonymous users
+    
+    // Check if user has authentication token (future enhancement)
+    $authToken = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
+    if ($authToken && strpos($authToken, 'Bearer ') === 0) {
+        $token = substr($authToken, 7);
+        // In future, validate token and increase limits for authenticated users
+        // For now, just note that authentication is supported
+        $rateLimitPerHour = 50; // Higher limit for authenticated users
+        $rateLimitKey .= '_auth_' . substr(md5($token), 0, 8);
+    }
+    
     try {
-        checkRateLimit('global_network_tools', 20); // 20 requests per hour
+        checkRateLimit($rateLimitKey, $rateLimitPerHour);
     } catch (Exception $e) {
         http_response_code(429);
-        echo json_encode(['error' => 'Rate limit exceeded. Please try again later.']);
+        $retryAfter = 3600; // 1 hour
+        header('Retry-After: ' . $retryAfter);
+        echo json_encode([
+            'error' => 'Rate limit exceeded. Please try again later.',
+            'retry_after' => $retryAfter
+        ]);
         exit;
     }
     
@@ -290,42 +309,93 @@ try {
         exit;
     }
     
-    // Validate host (basic SSRF protection)
+    // Enhanced input validation and SSRF protection
+    
+    // Validate host format
+    if (!preg_match('/^[a-zA-Z0-9\.\-:]+$/', $host)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid host format']);
+        exit;
+    }
+    
+    // Check host length
+    if (strlen($host) > 255) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Host name too long']);
+        exit;
+    }
+    
+    // SSRF Protection - Block private and reserved IP ranges
     $privateIPs = [
-        '10.0.0.0/8',
-        '172.16.0.0/12',
-        '192.168.0.0/16',
-        '127.0.0.0/8',
-        '169.254.0.0/16',
-        'fc00::/7',
-        'fe80::/10'
+        '0.0.0.0/8',        // Current network
+        '10.0.0.0/8',       // Private network
+        '100.64.0.0/10',    // Shared address space
+        '127.0.0.0/8',      // Loopback
+        '169.254.0.0/16',   // Link local
+        '172.16.0.0/12',    // Private network
+        '192.0.0.0/24',     // IETF protocol assignments
+        '192.0.2.0/24',     // Documentation
+        '192.168.0.0/16',   // Private network
+        '198.18.0.0/15',    // Network benchmark tests
+        '198.51.100.0/24',  // Documentation
+        '203.0.113.0/24',   // Documentation
+        '224.0.0.0/4',      // Multicast
+        '240.0.0.0/4',      // Reserved
+        '255.255.255.255/32' // Broadcast
     ];
     
     // Check if host is an IP
-    if (filter_var($host, FILTER_VALIDATE_IP)) {
+    if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $hostLong = ip2long($host);
+        
         foreach ($privateIPs as $range) {
-            if (strpos($range, ':') !== false) {
-                // IPv6 range check
-                continue; // Skip IPv6 for now
-            } else {
-                // IPv4 range check
-                list($subnet, $bits) = explode('/', $range);
-                $subnet = ip2long($subnet);
-                $mask = -1 << (32 - $bits);
-                $subnet &= $mask;
-                
-                if ((ip2long($host) & $mask) == $subnet) {
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Invalid host: private IP addresses are not allowed']);
-                    exit;
-                }
+            list($subnet, $bits) = explode('/', $range);
+            $subnet = ip2long($subnet);
+            $mask = -1 << (32 - $bits);
+            $subnet &= $mask;
+            
+            if (($hostLong & $mask) == $subnet) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid host: private or reserved IP addresses are not allowed']);
+                exit;
+            }
+        }
+    } elseif (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        // Block common IPv6 private ranges
+        $privateIPv6Prefixes = ['fc', 'fd', 'fe80', '::1', '::'];
+        $hostLower = strtolower($host);
+        
+        foreach ($privateIPv6Prefixes as $prefix) {
+            if (strpos($hostLower, $prefix) === 0) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Invalid host: private IPv6 addresses are not allowed']);
+                exit;
             }
         }
     }
     
-    // Initialize cache and deduplicator
+    // Additional hostname validation
+    if (!filter_var($host, FILTER_VALIDATE_IP)) {
+        // Validate as hostname
+        if (!filter_var('http://' . $host, FILTER_VALIDATE_URL)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid hostname format']);
+            exit;
+        }
+        
+        // Block localhost and similar
+        $blockedHosts = ['localhost', 'localhost.localdomain', '127.0.0.1', '::1'];
+        if (in_array(strtolower($host), $blockedHosts)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid host: localhost is not allowed']);
+            exit;
+        }
+    }
+    
+    // Initialize cache, deduplicator, and audit logger
     $cache = new ResultCache();
     $dedup = new RequestDeduplicator();
+    $auditLogger = new AuditLogger();
     
     // Generate cache key including all relevant parameters
     $cacheKeyData = [
@@ -339,6 +409,15 @@ try {
     // Check cache first
     $cachedResult = $cache->get($cacheKey);
     if ($cachedResult !== null) {
+        // Log cache hit
+        $auditLogger->logRequest([
+            'tool' => $tool,
+            'host' => $host,
+            'locations' => $locations,
+            'authenticated' => !empty($authToken),
+            'cache_hit' => true
+        ]);
+        
         echo json_encode([
             'cached' => true,
             'data' => $cachedResult
@@ -442,6 +521,16 @@ try {
         // Release lock
         $dedup->releaseLock($cacheKey);
         
+        // Log successful request
+        $auditLogger->logRequest([
+            'tool' => $tool,
+            'host' => $host,
+            'locations' => $locations,
+            'authenticated' => !empty($authToken),
+            'cache_hit' => false,
+            'measurement_id' => $measurementId
+        ]);
+        
         // Return results
         echo json_encode([
             'cached' => false,
@@ -455,6 +544,18 @@ try {
         // Release lock on error
         if (isset($dedup) && isset($cacheKey)) {
             $dedup->releaseLock($cacheKey);
+        }
+        
+        // Log error
+        if (isset($auditLogger)) {
+            $auditLogger->logRequest([
+                'tool' => $tool ?? 'unknown',
+                'host' => $host ?? 'unknown',
+                'locations' => $locations ?? [],
+                'authenticated' => !empty($authToken),
+                'cache_hit' => false,
+                'error' => $e->getMessage()
+            ]);
         }
         
         http_response_code(500);
