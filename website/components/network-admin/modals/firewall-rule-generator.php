@@ -115,8 +115,27 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Destination Port</label>
-                                    <input type="text" class="form-control bg-dark text-light border-secondary" 
-                                           id="destPort" placeholder="443, 80,443 or 1-1024">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" 
+                                               id="destPort" placeholder="443, 80,443 or 1-1024">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end bg-dark">
+                                            <li><a class="dropdown-item text-light" href="#" data-port="22">SSH (22)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="80">HTTP (80)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="443">HTTPS (443)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="3389">RDP (3389)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="3306">MySQL (3306)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="5432">PostgreSQL (5432)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="25">SMTP (25)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="53">DNS (53)</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="80,443">Web (80,443)</a></li>
+                                            <li><a class="dropdown-item text-light" href="#" data-port="25,587,993,995">Mail (25,587,993,995)</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>

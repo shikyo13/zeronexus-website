@@ -272,6 +272,20 @@
   color: #0dcaf0;
 }
 
+#firewallRuleGeneratorModal .dropdown-menu {
+  background-color: #212529;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+#firewallRuleGeneratorModal .dropdown-item:hover {
+  background-color: rgba(13, 202, 240, 0.2);
+  color: #fff;
+}
+
+#firewallRuleGeneratorModal .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Security Headers Help Modal Styling */
 #headerHelpModal .accordion-button {
   background-color: rgba(13, 110, 253, 0.1);

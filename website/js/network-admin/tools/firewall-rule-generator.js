@@ -67,6 +67,17 @@ class FirewallRuleGenerator {
         document.getElementById('newRuleBtn').addEventListener('click', () => this.newRule());
         document.getElementById('helpBtn').addEventListener('click', () => this.showHelp());
 
+        // Port dropdown handlers
+        const portDropdownItems = document.querySelectorAll('#firewallRuleGeneratorModal .dropdown-item[data-port]');
+        portDropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const port = e.target.getAttribute('data-port');
+                document.getElementById('destPort').value = port;
+                this.updateRuleData();
+            });
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (this.modal && this.modal.classList.contains('show')) {
@@ -218,6 +229,15 @@ class FirewallRuleGenerator {
         
         if (this.ruleData.destination.type === 'network' && !this.isValidCIDR(this.ruleData.destination.value)) {
             return { valid: false, message: 'Invalid destination network CIDR format' };
+        }
+        
+        // Validate zone names
+        if (this.ruleData.source.type === 'zone' && !this.isValidZone(this.ruleData.source.value)) {
+            return { valid: false, message: 'Invalid source zone name' };
+        }
+        
+        if (this.ruleData.destination.type === 'zone' && !this.isValidZone(this.ruleData.destination.value)) {
+            return { valid: false, message: 'Invalid destination zone name' };
         }
 
         // Validate ports
@@ -721,6 +741,12 @@ class FirewallRuleGenerator {
     isValidCIDR(cidr) {
         const cidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:3[0-2]|[1-2]?[0-9])$/;
         return cidrRegex.test(cidr);
+    }
+    
+    isValidZone(zone) {
+        // Basic validation for zone names (alphanumeric, dash, underscore)
+        const zoneRegex = /^[a-zA-Z0-9_-]+$/;
+        return zoneRegex.test(zone);
     }
 
     isValidPort(port) {
