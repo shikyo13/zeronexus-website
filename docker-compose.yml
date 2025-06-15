@@ -13,14 +13,6 @@ services:
     depends_on:
       - php
     
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
     
     restart: always
     
@@ -46,14 +38,6 @@ services:
       - ./website:/usr/share/nginx/html:ro
       - ./website/api/data:/usr/share/nginx/html/api/data:rw
     
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
     
     restart: always
     
