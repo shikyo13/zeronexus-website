@@ -18,6 +18,7 @@ import setupSecurityHeadersChecker from './network-admin/tools/security-headers.
 import setupSecurityHeadersGenerator from './network-admin/tools/security-headers-generator.js';
 import setupPasswordStrength from './network-admin/tools/password-strength.js';
 import setupFirewallRuleGenerator from './network-admin/tools/firewall-rule-generator.js';
+import setupLinuxCommands from './network-admin/tools/linux-commands.js';
 
 // Initialize tools when DOM is loaded
 window.addEventListener('DOMContentLoaded', function() {
@@ -52,5 +53,12 @@ window.addEventListener('DOMContentLoaded', function() {
     console.log('Successfully initialized Firewall Rule Generator');
   } catch (e) {
     console.error('Failed to initialize Firewall Rule Generator:', e);
+  }
+  try {
+    console.log('Initializing Linux Commands Reference...');
+    setupLinuxCommands();
+    console.log('Successfully initialized Linux Commands Reference');
+  } catch (e) {
+    console.error('Failed to initialize Linux Commands Reference:', e);
   }
 });
