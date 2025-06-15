@@ -14,6 +14,13 @@ $page_js_type = "module"; // Using ES modules for JavaScript
 $header_title = "IT Admin Tools";
 $header_subtitle = "Essential utilities for IT professionals";
 
+// Add Prism.js for syntax highlighting
+$extra_scripts = '
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+';
+
 // Define component paths
 $components_path = __DIR__;
 $tabs_path = $components_path . '/tabs/';

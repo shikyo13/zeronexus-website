@@ -47,13 +47,21 @@ class FirewallRuleGenerator {
             this.handleTypeChange('dest', e.target.value);
         });
 
-        // Form inputs
+        // Form inputs with real-time validation
         const inputs = ['ruleName', 'ruleAction', 'ruleProtocol', 'sourceValue', 'sourcePort', 
                        'destValue', 'destPort', 'ruleInterface', 'ruleDirection', 'ruleComment'];
         inputs.forEach(id => {
             const element = document.getElementById(id);
             if (element) {
-                element.addEventListener('input', () => this.updateRuleData());
+                element.addEventListener('input', () => {
+                    this.updateRuleData();
+                    this.validateField(id);
+                });
+                
+                // Add blur event for final validation
+                element.addEventListener('blur', () => {
+                    this.validateField(id);
+                });
             }
         });
 
@@ -751,6 +759,45 @@ class FirewallRuleGenerator {
                 }
             },
             {
+                name: 'DNS Server',
+                description: 'Allow DNS queries',
+                platforms: ['all'],
+                rule: {
+                    name: 'Allow DNS Queries',
+                    action: 'allow',
+                    protocol: 'udp',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '53' },
+                    comment: 'Allow DNS UDP queries'
+                }
+            },
+            {
+                name: 'FTP Server',
+                description: 'Allow FTP connections',
+                platforms: ['all'],
+                rule: {
+                    name: 'Allow FTP Traffic',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '20,21' },
+                    comment: 'Allow FTP control and data'
+                }
+            },
+            {
+                name: 'RDP Access',
+                description: 'Allow Remote Desktop',
+                platforms: ['all'],
+                rule: {
+                    name: 'Allow RDP',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    source: { type: 'network', value: '192.168.1.0/24' },
+                    destination: { type: 'any', port: '3389' },
+                    comment: 'Allow RDP from internal network'
+                }
+            },
+            {
                 name: 'Block All',
                 description: 'Deny all traffic (default deny)',
                 platforms: ['all'],
@@ -820,6 +867,73 @@ class FirewallRuleGenerator {
         }
         
         return port.toLowerCase() === 'any';
+    }
+    
+    // Real-time field validation
+    validateField(fieldId) {
+        const element = document.getElementById(fieldId);
+        if (!element) return;
+        
+        let isValid = true;
+        let errorMsg = '';
+        
+        switch (fieldId) {
+            case 'sourceValue':
+                if (this.ruleData.source.type === 'ip' && element.value) {
+                    isValid = this.isValidIP(element.value);
+                    errorMsg = 'Invalid IP address format';
+                } else if (this.ruleData.source.type === 'network' && element.value) {
+                    isValid = this.isValidCIDR(element.value);
+                    errorMsg = 'Invalid CIDR format (e.g., 192.168.1.0/24)';
+                } else if (this.ruleData.source.type === 'zone' && element.value) {
+                    isValid = this.isValidZone(element.value);
+                    errorMsg = 'Invalid zone name';
+                }
+                break;
+                
+            case 'destValue':
+                if (this.ruleData.destination.type === 'ip' && element.value) {
+                    isValid = this.isValidIP(element.value);
+                    errorMsg = 'Invalid IP address format';
+                } else if (this.ruleData.destination.type === 'network' && element.value) {
+                    isValid = this.isValidCIDR(element.value);
+                    errorMsg = 'Invalid CIDR format (e.g., 10.0.0.0/8)';
+                } else if (this.ruleData.destination.type === 'zone' && element.value) {
+                    isValid = this.isValidZone(element.value);
+                    errorMsg = 'Invalid zone name';
+                }
+                break;
+                
+            case 'sourcePort':
+            case 'destPort':
+                if (element.value && element.value !== 'any') {
+                    isValid = this.isValidPort(element.value);
+                    errorMsg = 'Invalid port format (e.g., 80, 80-443, or 80,443)';
+                }
+                break;
+        }
+        
+        // Update UI based on validation
+        if (!isValid && element.value) {
+            element.classList.add('is-invalid');
+            // Create or update error message
+            let feedback = element.nextElementSibling;
+            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                element.parentNode.insertBefore(feedback, element.nextSibling);
+            }
+            feedback.textContent = errorMsg;
+        } else {
+            element.classList.remove('is-invalid');
+            // Remove error message if exists
+            const feedback = element.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.remove();
+            }
+        }
+        
+        return isValid;
     }
 
     // UI helpers
