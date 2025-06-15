@@ -13,7 +13,7 @@
     <?php if (isset($page_css)): ?>
       <link rel="preload" href="<?php echo $page_css; ?>" as="style" />
     <?php endif; ?>
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" />
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style" crossorigin="anonymous" />
     <link rel="preload" href="/js/common.js" as="script" />
     
     <!-- Theme color with system preferences -->
@@ -70,6 +70,34 @@
         <?php endif; ?>
       </h1>
 
+      <!-- Main navigation bar - always visible -->
+      <nav class="site-nav d-flex flex-wrap justify-content-center gap-3 mb-4" aria-label="Main site navigation">
+        <a href="/" <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'class="active"' : ''; ?> title="Home">
+          <i class="fa-solid fa-home fa-2x fa-fw" aria-hidden="true"></i>
+          <span class="nav-label">Home</span>
+        </a>
+
+        <a href="/showcase.php" <?php echo basename($_SERVER['PHP_SELF']) == 'showcase.php' ? 'class="active"' : ''; ?> title="Creative Showcase">
+          <i class="fa-solid fa-palette fa-2x fa-fw" aria-hidden="true"></i>
+          <span class="nav-label">Showcase</span>
+        </a>
+
+        <a href="/security-news.php" <?php echo basename($_SERVER['PHP_SELF']) == 'security-news.php' ? 'class="active"' : ''; ?> title="Security News">
+          <i class="fa-solid fa-shield-halved fa-2x fa-fw" aria-hidden="true"></i>
+          <span class="nav-label">Security News</span>
+        </a>
+
+        <a href="/cve-dashboard.php" <?php echo basename($_SERVER['PHP_SELF']) == 'cve-dashboard.php' ? 'class="active"' : ''; ?> title="CVE Dashboard">
+          <i class="fa-solid fa-bug fa-2x fa-fw" aria-hidden="true"></i>
+          <span class="nav-label">CVE Dashboard</span>
+        </a>
+
+        <a href="/network-admin.php" <?php echo basename($_SERVER['PHP_SELF']) == 'network-admin.php' ? 'class="active"' : ''; ?> title="IT Admin Tools">
+          <i class="fa-solid fa-screwdriver-wrench fa-2x fa-fw" aria-hidden="true"></i>
+          <span class="nav-label">Admin Tools</span>
+        </a>
+      </nav>
+
       <?php if (!isset($hide_social_icons) || !$hide_social_icons): ?>
       <!-- Social media navigation -->
       <nav class="social-icons d-flex flex-wrap justify-content-center gap-3" aria-label="Social media links">
@@ -113,24 +141,7 @@
           <span class="visually-hidden">Steam Profile</span>
         </a>
         
-        <a
-          href="/showcase.php"
-          title="View my creative projects"
-          aria-label="Explore my games, art, and projects"
-        >
-          <i class="fa-solid fa-palette fa-2x fa-fw" aria-hidden="true"></i>
-          <span class="visually-hidden">Creative Showcase</span>
-        </a>
-        
-        <a
-          href="/security-news.php"
-          title="Security News"
-          aria-label="View Security News Feed"
-        >
-          <i class="fa-solid fa-shield-halved fa-2x fa-fw" aria-hidden="true"></i>
-          <span class="visually-hidden">Security News</span>
-        </a>
-        
+
         <a
           href="https://theitguykc.com"
           target="_blank"

@@ -1,0 +1,1421 @@
+/* 
+ * Network Admin Tools CSS
+ * Styling for the Network Admin Tools page
+ */
+
+/* Utility classes */
+.text-light-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Tool Search Styling */
+.tool-search-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+#toolSearch {
+  transition: all 0.3s ease;
+}
+
+#toolSearch:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  border-color: var(--primary-color);
+}
+
+.tool-card.hidden-by-search {
+  display: none;
+}
+
+.search-highlight {
+  background-color: rgba(255, 193, 7, 0.3);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.no-results-message {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 2rem;
+  display: none;
+}
+
+.no-results-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.no-results-message h4 {
+  margin-bottom: 1rem;
+}
+
+.no-results-message p {
+  color: var(--text-muted);
+}
+
+.search-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.search-count.visible {
+  opacity: 1;
+}
+
+/* Security Headers Generator specific styles */
+#securityHeadersGeneratorModal .card {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: visible;
+  box-shadow: none !important;
+  background-color: #212529 !important;
+  transform: none !important;
+}
+
+#securityHeadersGeneratorModal .card:hover {
+  transform: none;
+}
+
+/* Make card headers more visible */
+#securityHeadersGeneratorModal .card-header {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* Complete overhaul of form check switch styling */
+#securityHeadersGeneratorModal .form-switch {
+  display: flex;
+  align-items: center;
+  padding-left: 0;
+}
+
+/* Custom toggle switch styling */
+#securityHeadersGeneratorModal .form-switch .form-check-input {
+  /* Reset all inherited styles */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  position: relative !important;
+  
+  /* Base dimensions */
+  width: 3em !important;
+  height: 1.5em !important;
+  margin: 0 0.5em 0 0 !important;
+  cursor: pointer !important;
+  
+  /* Off state styling */
+  background-color: #6c757d !important;
+  border-radius: 1em !important;
+  border: none !important;
+  transition: background-color 0.3s !important;
+  outline: none !important;
+}
+
+/* Toggle switch handle (uses pseudo-element) */
+#securityHeadersGeneratorModal .form-switch .form-check-input::before {
+  content: '' !important;
+  position: absolute !important;
+  width: 1.1em !important;
+  height: 1.1em !important;
+  border-radius: 50% !important;
+  top: 0.2em !important;
+  left: 0.2em !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3) !important;
+  transition: left 0.3s !important;
+}
+
+/* Checked state */
+#securityHeadersGeneratorModal .form-switch .form-check-input:checked {
+  background-color: #0d6efd !important;
+}
+
+/* Move handle when checked */
+#securityHeadersGeneratorModal .form-switch .form-check-input:checked::before {
+  left: 1.7em !important; /* Adjusted based on the width */
+}
+
+/* Focus state */
+#securityHeadersGeneratorModal .form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Hover effect */
+#securityHeadersGeneratorModal .form-switch .form-check-input:hover {
+  opacity: 0.8 !important;
+}
+
+/* Label styling */
+#securityHeadersGeneratorModal .form-switch .form-check-label {
+  margin-left: 0 !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Card body styling */
+#securityHeadersGeneratorModal .card-body {
+  background-color: #212529 !important;
+  padding: 1rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Fix for form controls background */
+#securityHeadersGeneratorModal .form-control,
+#securityHeadersGeneratorModal .form-select {
+  background-color: #FFFFFF !important;
+  color: #212529 !important;
+  border: 1px solid #ced4da !important;
+}
+
+/* Fix for server type buttons */
+#securityHeadersGeneratorModal .btn-group .btn-outline-primary {
+  border-color: #0d6efd !important;
+  color: #0d6efd !important;
+}
+
+#securityHeadersGeneratorModal .btn-group .btn-check:checked + .btn-outline-primary {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+}
+
+/* Better labels */
+#securityHeadersGeneratorModal .form-label {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 0.5rem;
+}
+
+/* Help button styling */
+#securityHeadersGeneratorModal .modal-footer .btn-outline-info {
+  color: #0dcaf0 !important;
+  border-color: #0dcaf0 !important;
+}
+
+#securityHeadersGeneratorModal .modal-footer .btn-outline-info:hover {
+  background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+/* Make small text more visible */
+#securityHeadersGeneratorModal small.text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Fix form check styling */
+#securityHeadersGeneratorModal .form-check-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-left: 0.25rem;
+  user-select: none;
+}
+
+/* Fix paragraphs and other text */
+#securityHeadersGeneratorModal p {
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin-bottom: 1rem;
+}
+
+/* Fix the generated headers output pre block */ 
+#securityHeadersGeneratorModal #generatedHeadersOutput {
+  background-color: #121416 !important;
+  color: #f8f9fa !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Security Headers Help Modal Styling */
+#headerHelpModal .accordion-button {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #f8f9fa;
+  font-weight: 600;
+  border-radius: 0;
+  padding: 1rem 1.25rem;
+}
+
+#headerHelpModal .accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: #fff;
+}
+
+#headerHelpModal .accordion-button:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  border-color: rgba(13, 110, 253, 0.5);
+}
+
+#headerHelpModal .accordion-button::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+#headerHelpModal .accordion-item {
+  background-color: #303030;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+#headerHelpModal code {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  color: #e83e8c;
+}
+
+#headerHelpModal .accordion-body {
+  background-color: #262626;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1.25rem;
+}
+
+/* Ensure focus states are visible for better accessibility */
+#securityHeadersGeneratorModal input:focus,
+#securityHeadersGeneratorModal select:focus,
+#securityHeadersGeneratorModal button:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  border-color: #0d6efd;
+}
+
+/* Card color styles */
+#securityHeadersGeneratorModal .card-primary {
+  border-left: 4px solid rgba(13, 110, 253, 0.7) !important;
+}
+
+#securityHeadersGeneratorModal .card-info {
+  border-left: 4px solid rgba(13, 202, 240, 0.7) !important;
+}
+
+#securityHeadersGeneratorModal .card-secondary {
+  border-left: 4px solid rgba(173, 181, 189, 0.7) !important;
+}
+
+/* Add indicator bars for different importance levels */
+#securityHeadersGeneratorModal .card .badge.bg-primary {
+  background-color: rgba(13, 110, 253, 0.7) !important;
+}
+
+#securityHeadersGeneratorModal .card .badge.bg-info {
+  background-color: rgba(13, 202, 240, 0.7) !important;
+}
+
+#securityHeadersGeneratorModal .card .badge.bg-secondary {
+  background-color: rgba(173, 181, 189, 0.7) !important;
+}
+
+/* Add colored borders and effects */
+#securityHeadersGeneratorModal .card {
+  border-left-width: 4px !important;
+  box-shadow: none !important;
+}
+
+#securityHeadersGeneratorModal .card-body {
+  border-radius: 0 0 5px 0;
+}
+
+#securityHeadersGeneratorModal .card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background-color: #212529 !important;
+}
+
+/* Add colored borders for different header types */
+#securityHeadersGeneratorModal .badge.bg-primary {
+  background-color: rgba(13, 110, 253, 0.9) !important;
+}
+
+#securityHeadersGeneratorModal .badge.bg-info {
+  background-color: rgba(13, 202, 240, 0.9) !important;
+}
+
+#securityHeadersGeneratorModal .badge.bg-secondary {
+  background-color: rgba(173, 181, 189, 0.9) !important;
+}
+
+/* Instead of relying on :has, let's add custom classes to the cards in HTML */
+#securityHeadersGeneratorModal .card-primary .card-body {
+  border-top: 2px solid rgba(13, 110, 253, 0.5);
+  background-color: #212529 !important;
+}
+
+#securityHeadersGeneratorModal .card-info .card-body {
+  border-top: 2px solid rgba(13, 202, 240, 0.5);
+  background-color: #212529 !important;
+}
+
+#securityHeadersGeneratorModal .card-secondary .card-body {
+  border-top: 2px solid rgba(173, 181, 189, 0.5);
+  background-color: #212529 !important;
+}
+
+#securityHeadersGeneratorModal .card-body {
+  padding: 1rem;
+  background-color: #212529 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#securityHeadersGeneratorModal .form-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Custom styling for the form inputs */
+/* Form check inputs for checkboxes and radios */
+.form-check-input:checked,
+#securityHeadersGeneratorModal .form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+#securityHeadersGeneratorModal .form-select {
+  background-color: #FFFFFF !important;
+  color: #212529;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+#securityHeadersGeneratorModal .form-select:focus,
+#securityHeadersGeneratorModal .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  background-color: #FFFFFF !important;
+}
+
+#securityHeadersGeneratorModal .form-check-input:focus,
+.form-check-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Tab navigation styling */
+#toolTabs {
+  border-bottom: 1px solid var(--border-color);
+}
+
+#toolTabs .nav-link {
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 0.75rem 1rem;
+  margin-right: 0.5rem;
+  transition: all var(--transition-speed) ease;
+}
+
+#toolTabs .nav-link:hover {
+  color: var(--text-color);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom-color: rgba(13, 110, 253, 0.5);
+}
+
+#toolTabs .nav-link.active {
+  color: var(--link-color);
+  background-color: transparent;
+  border-bottom-color: var(--link-color);
+}
+
+/* Tool cards styling */
+.tool-card {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tool-card .card-header {
+  padding: 1.5rem;
+  text-align: center;
+  background-color: rgba(30, 41, 59, 0.5);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tool-card .card-header i {
+  margin-bottom: 1rem;
+  color: var(--link-color);
+}
+
+.tool-card .card-header h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+  font-weight: 600;
+}
+
+.tool-card .card-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-card .card-body p {
+  flex: 1;
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+}
+
+.tool-card .btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+/* Modal customization */
+.modal-content {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+/* Override Bootstrap and base CSS dark mode variables */
+:root {
+  --bs-form-control-bg: #FFFFFF !important;
+  --bs-form-select-bg: #FFFFFF !important;
+  --bs-input-bg: #FFFFFF !important;
+  --bs-secondary-bg: transparent !important;
+  --bs-form-control-bg-image: none !important;
+}
+
+/* Custom properties override specifically for forms */
+#pingTracerouteModal .form-control,
+#pingTracerouteModal .form-select,
+#dnsLookupModal .form-control,
+#dnsLookupModal .form-select,
+#subnetCalculatorModal .form-control,
+#subnetCalculatorModal .form-select,
+#securityHeadersModal .form-control,
+#securityHeadersModal .form-select,
+#securityHeadersGeneratorModal .form-control,
+#securityHeadersGeneratorModal .form-select {
+  --bg-color: #FFFFFF !important;
+  --card-bg: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+}
+
+/* Force all form elements to have white backgrounds */
+.form-select, select,
+.form-control, input,
+textarea, 
+select.form-select,
+input.form-control,
+#toolType,
+#packetCount,
+#packetSize,
+#timeout,
+#recordType,
+#domainName,
+#hostTarget,
+.form-control[type="text"],
+.form-control[type="number"],
+.form-control[type="email"],
+.form-control[type="password"],
+.form-control[type="search"],
+.form-control[type="url"] {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  color: #212529 !important;
+  border-color: #ced4da !important;
+  background-image: none !important;
+}
+
+/* Extra overrides for Bootstrap select background images */
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 16px 12px !important;
+}
+
+/* Handle pseudo elements */
+.form-select::after,
+.form-select:after {
+  display: none !important;
+}
+
+/* Direct targeting of problem fields - all states */
+#toolType, 
+#packetCount, 
+#packetSize, 
+#timeout,
+#recordType,
+#toolType:focus,
+#packetCount:focus,
+#packetSize:focus,
+#timeout:focus,
+#recordType:focus,
+#toolType:active,
+#packetCount:active,
+#packetSize:active,
+#timeout:active,
+#recordType:active,
+#toolType:hover,
+#packetCount:hover,
+#packetSize:hover,
+#timeout:hover,
+#recordType:hover {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #212529 !important;
+}
+
+/* Input focus and active states */
+.form-control:focus,
+.form-control:active,
+.form-select:focus,
+.form-select:active,
+input:focus,
+input:active,
+select:focus,
+select:active,
+textarea:focus,
+textarea:active {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #212529 !important;
+}
+
+/* Override any Bootstrap styling for when user is typing/focusing */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover, 
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active,
+.form-select:-webkit-autofill,
+.form-select:-webkit-autofill:hover,
+.form-select:-webkit-autofill:focus,
+.form-select:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #212529 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  background-color: #FFFFFF !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-title {
+  color: var(--text-color);
+}
+
+/* Tool specific styles */
+.tool-input-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Input field focus states */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--link-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  background-color: #FFFFFF !important;
+}
+
+.tool-input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+/* Global form control styling for all tools */
+.form-control,
+.form-select,
+.modal-content .form-control,
+.modal-content .form-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-color);
+  color: #212529;
+}
+
+.tool-input-group .form-control,
+.tool-input-group .form-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-color);
+  color: #212529;
+}
+
+/* Tool-specific focus states */
+.tool-input-group .form-control:focus,
+.tool-input-group .form-select:focus {
+  border-color: var(--link-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  background-color: #FFFFFF !important;
+}
+
+.tool-output {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+/* Specific fixes for DNS Lookup tool */
+#dnsLookupModal .tool-output {
+  background-color: transparent !important;
+}
+
+#dnsLookupModal table,
+#dnsLookupModal tbody,
+#dnsLookupModal tr,
+#dnsLookupModal th,
+#dnsLookupModal td {
+  background-color: transparent !important;
+}
+
+/* Subnet Calculator Styles */
+.result-group {
+  margin-bottom: 0.5rem;
+}
+
+.result-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.result-value {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+}
+
+#resultBinaryMask {
+  word-break: break-all;
+  letter-spacing: 0.05rem;
+}
+
+.alert-info {
+  background-color: rgba(13, 202, 240, 0.1);
+  border-color: rgba(13, 202, 240, 0.2);
+  color: var(--text-color);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.2);
+  color: var(--text-color);
+}
+
+/* DNS Lookup Tool Styles */
+.dns-records {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background-color: transparent;
+  border-radius: 0.25rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+}
+
+/* Dark mode card style for tool output - can be reused across tools */
+.dark-card {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #f0f0f0;
+  border: 1px solid #3a3a3a;
+}
+
+/* Card-based record display */
+.dns-record-card {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #f0f0f0;
+  border: 1px solid #3a3a3a;
+}
+
+.dns-record-card:last-child {
+  margin-bottom: 0;
+}
+
+.dns-record-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.dns-record-card-type {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+  background-color: rgba(13, 110, 253, 0.2);
+}
+
+.dns-record-card-ttl {
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+.dns-record-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dns-record-card-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dns-record-card-label {
+  color: #b0b0b0;
+  font-weight: 500;
+  flex: 0 0 120px;
+}
+
+.dns-record-card-value {
+  flex: 1;
+  text-align: right;
+  word-break: break-word;
+}
+
+.dns-record-item {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dns-record-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dns-record-type {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background-color: rgba(13, 110, 253, 0.2);
+  color: var(--text-color);
+  border-radius: 0.25rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.dns-record-content {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  grid-gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.dns-property {
+  font-weight: bold;
+  color: var(--text-muted);
+}
+
+.dns-value {
+  word-break: break-word;
+}
+
+.dns-visualization {
+  min-height: 300px;
+  max-height: 400px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  overflow: auto;
+  position: relative;
+}
+
+/* DNS Visualization Components */
+.dns-vis-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.dns-records-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 1.5rem;
+  gap: 1.5rem;
+}
+
+.dns-node-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.node-type-label {
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dns-domain-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.dns-node {
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.dns-domain-node {
+  background-color: rgba(13, 110, 253, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(13, 110, 253, 0.3);
+  min-width: 150px;
+}
+
+.dns-domain-node i {
+  font-size: 1.5rem;
+  color: var(--link-color);
+}
+
+.dns-node-label {
+  font-weight: bold;
+  word-break: break-word;
+}
+
+.dns-record-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dns-type-group {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.dns-type-header {
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dns-type-count {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.dns-record-nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.dns-record-node {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.node-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.node-name {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.node-value {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.node-ttl, .record-priority {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.dns-record-node:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dns-record-node i {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.dns-node-value {
+  font-size: 0.9rem;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Security Headers Checker Styles */
+.header-item {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.header-item.present {
+  background-color: rgba(25, 135, 84, 0.1);
+  border-color: rgba(25, 135, 84, 0.2);
+}
+
+.header-item.missing {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.2);
+}
+
+.header-item.warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.2);
+}
+
+.header-item.security-related {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-color: rgba(13, 110, 253, 0.2);
+}
+
+.header-item .header-name {
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.header-item .header-status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.header-status.present {
+  background-color: rgba(25, 135, 84, 0.2);
+  color: #198754;
+}
+
+.header-status.missing {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.header-status.warning {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.header-status.security {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: #0d6efd;
+}
+
+.header-item .header-value {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.header-item .header-description {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.recommendation-item {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.recommendation-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.recommendation-item .recommendation-title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.recommendation-item .recommendation-text {
+  font-size: 0.9rem;
+}
+
+/* Special record type styles */
+.dns-record-type.a {
+  background-color: rgba(25, 135, 84, 0.2);
+}
+
+.dns-record-type.aaaa {
+  background-color: rgba(25, 135, 84, 0.3);
+}
+
+/* DNS Lookup results table styling - restored to original style */
+.dns-records table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+  background-color: transparent !important;
+}
+
+.dns-records table th {
+  font-weight: bold;
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* Reset Bootstrap's table-striped styling to match original */
+.modal-content .table,
+.modal-content .table-striped,
+.modal-content .table-striped tbody tr,
+.modal-content .table-striped tbody tr:nth-of-type(odd),
+.modal-content .table-striped tbody tr:nth-of-type(even) {
+  background-color: transparent !important;
+  color: var(--text-color);
+}
+
+/* Reset Bootstrap 5's styling for table cells */
+.modal-content .table-striped > tbody > tr > * {
+  --bs-table-accent-bg: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Additional reset for Bootstrap table striping */
+.modal-content .table-striped > tbody {
+  background-color: transparent !important;
+}
+
+/* Fix for specific modal tables */
+#dnsLookupModal .table-striped,
+#dnsLookupModal .table-bordered,
+#dnsLookupModal .table-striped tbody tr,
+#dnsLookupModal .table-bordered tbody tr,
+#dnsLookupModal .table-striped th,
+#dnsLookupModal .table-striped td,
+#dnsLookupModal .table {
+  background-color: transparent !important;
+}
+
+/* Fix for light backgrounds in DNS records area */
+#dnsLookupModal .tool-output,
+#dnsLookupModal .dns-result-container,
+#dnsLookupModal #dnsRecordsWrap,
+#dnsLookupModal #dnsRecords {
+  background-color: transparent !important;
+}
+
+.dns-record-type.mx {
+  background-color: rgba(13, 202, 240, 0.2);
+}
+
+.dns-record-type.txt {
+  background-color: rgba(255, 193, 7, 0.2);
+}
+
+.dns-record-type.cname {
+  background-color: rgba(111, 66, 193, 0.2);
+}
+
+.dns-record-type.ns {
+  background-color: rgba(108, 117, 125, 0.3);
+}
+
+.dns-record-type.soa {
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+.dns-record-type.ptr {
+  background-color: rgba(253, 126, 20, 0.2);
+}
+
+.dns-record-type.caa {
+  background-color: rgba(13, 110, 253, 0.2);
+}
+
+.dns-record-type.srv {
+  background-color: rgba(214, 51, 132, 0.2);
+}
+
+/* Ping/Traceroute Tool Styles */
+.network-output {
+  background-color: var(--code-bg);
+  color: var(--code-color);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  max-height: 350px;
+  overflow-y: auto;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 1rem;
+}
+
+.result-table td {
+  padding: 0.5rem;
+}
+
+.result-table td:first-child {
+  font-weight: bold;
+  width: 40%;
+}
+
+.traceroute-vis {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1rem 0;
+}
+
+.hop-container {
+  display: flex;
+  width: 100%;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+
+.hop-number {
+  flex: 0 0 40px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.hop-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.hop-node-icon {
+  flex: 0 0 auto;
+  margin-right: 1rem;
+  color: var(--primary-color);
+}
+
+.hop-details {
+  flex: 1;
+}
+
+.hop-hostname {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.hop-ip {
+  font-size: 0.85rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: var(--text-muted);
+}
+
+.hop-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.hop-stat {
+  display: flex;
+  align-items: center;
+}
+
+.hop-stat-label {
+  margin-right: 0.25rem;
+  font-weight: bold;
+}
+
+.hop-stat-value {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.hop-path {
+  position: relative;
+  width: 2px;
+  background-color: var(--border-color);
+  margin: 0 auto;
+  height: 1.5rem;
+  margin-bottom: -0.5rem;
+}
+
+.latency-good {
+  color: var(--success-color);
+}
+
+.latency-medium {
+  color: var(--warning-color);
+}
+
+.latency-bad {
+  color: var(--danger-color);
+}
+
+/* For RTT Visualization */
+.rtt-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.rtt-bar-label {
+  flex: 0 0 50px;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.rtt-bar-wrapper {
+  flex: 1;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rtt-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.rtt-bar-value {
+  flex: 0 0 50px;
+  font-size: 0.75rem;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Timeout/Error Styling */
+.hop-timeout {
+  color: var(--danger-color);
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #toolTabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .tool-card .card-header {
+    padding: 1rem;
+  }
+  
+  .tool-card .card-body {
+    padding: 1rem;
+  }
+  
+  .hop-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hop-number {
+    margin-bottom: 0.5rem;
+  }
+  
+  .hop-path {
+    margin-top: 0.5rem;
+    margin-left: 20px;
+    width: 1px;
+    height: 1rem;
+  }
+  
+  .hop-stats {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  #toolTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  #toolTabs .nav-link i {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  
+  .tool-card .card-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .tool-card .card-header i {
+    font-size: 1.5rem !important;
+  }
+}
