@@ -3,14 +3,14 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="pingTracerouteModalLabel">Ping Tool</h5>
+                <h5 class="modal-title" id="pingTracerouteModalLabel">Network Diagnostic Tools</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-12 mb-4">
                         <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i> Test network connectivity to remote hosts using ping.
+                            <i class="fas fa-info-circle me-2"></i> Test network connectivity to remote hosts using ping. Use the <strong>Global Test</strong> button to run tests from multiple locations worldwide!
                         </div>
                     </div>
 
@@ -23,7 +23,18 @@
 
                     <div class="col-md-4">
                         <div class="tool-input-group">
-                            <input type="hidden" id="toolType" value="ping">
+                            <label for="toolType" class="form-label">Tool Type:</label>
+                            <select class="form-select" id="toolType" style="background-color: #FFFFFF !important;">
+                                <option value="ping" selected>Ping</option>
+                                <option value="traceroute" disabled>Traceroute (Local only)</option>
+                                <option value="mtr" disabled>MTR (Local only)</option>
+                            </select>
+                            <div class="form-text">Select network diagnostic tool</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="tool-input-group">
                             <label for="packetCount" class="form-label">Packet Count:</label>
                             <input type="number" class="form-control" id="packetCount" min="1" max="20" value="4" style="background-color: #FFFFFF !important; background: #FFFFFF !important;">
                             <div class="form-text">Number of packets to send (1-20)</div>
@@ -76,7 +87,15 @@
                                     <div id="resultOutput" class="network-output code-block"></div>
                                 </div>
                                 
-                                <!-- Visual Results Tab removed as it only applies to traceroute -->
+                                <!-- Visual Results Tab for Global Tests -->
+                                <div class="tab-pane fade" id="visualResults" role="tabpanel" aria-labelledby="visualResults-tab">
+                                    <div id="globalMapContainer" style="height: 400px;" class="d-none">
+                                        <!-- Map visualization will be added here -->
+                                    </div>
+                                    <div id="globalLocationsList" class="row">
+                                        <!-- Location cards will be added here -->
+                                    </div>
+                                </div>
                                 
                                 <!-- Stats Tab -->
                                 <div class="tab-pane fade" id="statsResults" role="tabpanel" aria-labelledby="statsResults-tab">
@@ -144,7 +163,9 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="rawResults-tab" data-bs-toggle="tab" data-bs-target="#rawResults" type="button" role="tab" aria-controls="rawResults" aria-selected="true">Raw Output</button>
                                 </li>
-                                <!-- Visualization tab removed as it only applies to traceroute/MTR -->
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link d-none" id="visualResults-tab" data-bs-toggle="tab" data-bs-target="#visualResults" type="button" role="tab" aria-controls="visualResults" aria-selected="false">Visual</button>
+                                </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="statsResults-tab" data-bs-toggle="tab" data-bs-target="#statsResults" type="button" role="tab" aria-controls="statsResults" aria-selected="false">Statistics</button>
                                 </li>
@@ -226,6 +247,14 @@
                             <li>Enter a domain name (e.g., example.com) or IP address (e.g., 8.8.8.8)</li>
                             <li>Adjust packet count if needed (more packets = more reliable stats, but takes longer)</li>
                             <li>The statistics tab provides summarized metrics about the connection</li>
+                        </ul>
+                        
+                        <h6 class="mt-3">Global Testing</h6>
+                        <ul class="small">
+                            <li>Use the <strong>Global Test</strong> button to run ping tests from multiple locations worldwide</li>
+                            <li>Select preset regions: Worldwide, North America, Europe, Asia, Oceania, or South America</li>
+                            <li>View results in the Visual tab to see location cards with status indicators</li>
+                            <li>Compare latency and packet loss across different geographic regions</li>
                         </ul>
                         
                         <h6 class="mt-3">Direct Linking</h6>

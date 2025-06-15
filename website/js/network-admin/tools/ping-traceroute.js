@@ -3,6 +3,8 @@
  * Provides network diagnostic tool features for the Network Admin Tools page
  */
 
+import { initializeGlobalTest } from './global-ping.js';
+
 /**
  * Initialize Ping functionality
  */
@@ -54,8 +56,7 @@ function setupPingTraceroute() {
    * Run a network test through the API
    */
   function runNetworkTest(host, tool) {
-    // Always force tool to be 'ping'
-    tool = 'ping';
+    // Use the selected tool
     
     // Show loading indicator
     if (loadingDiv) loadingDiv.classList.remove('d-none');
@@ -281,10 +282,7 @@ function setupPingTraceroute() {
     });
   }
   
-  // Always force tool to be ping
-  if (toolTypeSelect) {
-    toolTypeSelect.value = 'ping';
-  }
+  // Keep tool type as selected
   
   // Run button event listener
   if (runButton) {
@@ -310,9 +308,12 @@ function setupPingTraceroute() {
       // Reset display
       resetNetworkToolDisplay();
       
+      // Get selected tool
+      const tool = toolTypeSelect ? toolTypeSelect.value : 'ping';
+      
       // Run the test
       setTimeout(() => {
-        runNetworkTest(host, 'ping');
+        runNetworkTest(host, tool);
       }, 50);
     });
   }
@@ -324,6 +325,13 @@ function setupPingTraceroute() {
       // Extract parameters
       const paramsStr = hash.split('?')[1] || '';
       const searchParams = new URLSearchParams(paramsStr);
+      
+      // Check for shared results
+      const shareId = searchParams.get('share');
+      if (shareId) {
+        loadSharedResults(shareId);
+        return;
+      }
       
       // Get host parameter
       const host = searchParams.get('host');
@@ -360,8 +368,118 @@ function setupPingTraceroute() {
     }
   }
   
+  /**
+   * Load shared results from the API
+   */
+  async function loadSharedResults(shareId) {
+    try {
+      // Show loading
+      if (loadingDiv) {
+        loadingDiv.classList.remove('d-none');
+        const loadingText = loadingDiv.querySelector('p');
+        if (loadingText) {
+          loadingText.textContent = 'Loading shared results...';
+        }
+      }
+      
+      const response = await fetch(`/api/shared-results.php?id=${encodeURIComponent(shareId)}`);
+      const sharedData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(sharedData.error || 'Failed to load shared results');
+      }
+      
+      // Hide loading
+      if (loadingDiv) loadingDiv.classList.add('d-none');
+      
+      // Set the host field
+      if (hostTargetInput) {
+        hostTargetInput.value = sharedData.host;
+      }
+      
+      // Display the shared results
+      if (typeof displayGlobalResults === 'function') {
+        displayGlobalResults({
+          tool: sharedData.tool,
+          host: sharedData.host,
+          measurementId: sharedData.measurementId,
+          data: sharedData.data,
+          cached: true
+        }, sharedData.host);
+      } else {
+        // Fallback for local results display
+        if (resultsDiv) resultsDiv.classList.remove('d-none');
+        if (resultHost) resultHost.textContent = sharedData.host;
+        if (resultToolType) resultToolType.textContent = sharedData.tool.toUpperCase();
+        
+        // Show raw output
+        if (resultOutput) {
+          let output = `SHARED ${sharedData.tool.toUpperCase()} RESULTS\n`;
+          output += `Target: ${sharedData.host}\n`;
+          output += `Shared on: ${new Date(sharedData.created * 1000).toLocaleString()}\n`;
+          output += `${'='.repeat(60)}\n\n`;
+          
+          sharedData.data.forEach((result, index) => {
+            const location = result.location;
+            output += `LOCATION ${index + 1}: ${location.city || location.country}\n`;
+            output += `Network: ${location.network}\n`;
+            if (result.output) {
+              output += result.output;
+            }
+            output += `\n${'='.repeat(60)}\n\n`;
+          });
+          
+          resultOutput.textContent = output;
+        }
+      }
+      
+      // Show info about shared results
+      const infoAlert = document.createElement('div');
+      infoAlert.className = 'alert alert-info mt-3';
+      infoAlert.innerHTML = `
+        <i class="fas fa-share-alt me-2"></i>
+        These are shared results from ${new Date(sharedData.created * 1000).toLocaleDateString()}.
+        <a href="#" onclick="window.location.hash='#ping-traceroute'" class="alert-link ms-2">Run new test</a>
+      `;
+      
+      const container = resultsDiv || document.querySelector('.modal-body');
+      if (container) {
+        // Remove existing shared info
+        const existingInfo = container.querySelector('.shared-results-info');
+        if (existingInfo) existingInfo.remove();
+        
+        infoAlert.className += ' shared-results-info';
+        container.appendChild(infoAlert);
+      }
+      
+    } catch (error) {
+      console.error('Error loading shared results:', error);
+      
+      // Hide loading
+      if (loadingDiv) loadingDiv.classList.add('d-none');
+      
+      // Show error
+      if (errorDiv && errorText) {
+        errorDiv.classList.remove('d-none');
+        errorText.innerHTML = `
+          <div class="mb-2">Failed to load shared results: ${error.message}</div>
+          <div class="small text-muted">
+            The shared link may have expired or been removed.
+            <a href="#" onclick="window.location.hash='#ping-traceroute'" class="alert-link">Run new test</a>
+          </div>
+        `;
+      }
+    }
+  }
+  
   // Check URL parameters on load
   checkUrlParams();
+  
+  // Initialize global test functionality
+  const modal = document.getElementById('pingTracerouteModal');
+  if (modal) {
+    initializeGlobalTest(modal);
+  }
 }
 
 // Export the setup function
