@@ -38,12 +38,20 @@
                     
                     <!-- Basic Rule Settings -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="ruleName" class="form-label">Rule Name/Description</label>
                             <input type="text" class="form-control bg-secondary text-light border-secondary" 
                                    id="ruleName" placeholder="e.g., Allow HTTPS traffic">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label for="ruleDirection" class="form-label">Direction <span class="text-danger">*</span></label>
+                            <select class="form-select bg-secondary text-light border-secondary" id="ruleDirection">
+                                <option value="in">Inbound</option>
+                                <option value="out">Outbound</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label for="ruleAction" class="form-label">Action</label>
                             <select class="form-select bg-secondary text-light border-secondary" id="ruleAction">
                                 <option value="allow">Allow</option>
@@ -51,7 +59,7 @@
                                 <option value="log">Log Only</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="ruleProtocol" class="form-label">Protocol</label>
                             <select class="form-select bg-secondary text-light border-secondary" id="ruleProtocol">
                                 <option value="any">Any</option>
@@ -60,12 +68,27 @@
                                 <option value="icmp">ICMP</option>
                             </select>
                         </div>
+                        <div class="col-md-2">
+                            <label for="ruleInterface" class="form-label">Interface</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" 
+                                   id="ruleInterface" placeholder="e.g., eth0, wan">
+                        </div>
                     </div>
 
+                    <!-- Direction Indicator -->
+                    <div class="alert alert-info mb-3" id="directionIndicator">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="directionText">Configuring an <strong>Inbound</strong> rule: Traffic flows from Source to Destination</span>
+                    </div>
+                    
                     <!-- Source Configuration -->
-                    <div class="card bg-secondary mb-3">
+                    <div class="card bg-secondary mb-3" id="sourceCard">
                         <div class="card-header">
-                            <h6 class="mb-0">Source</h6>
+                            <h6 class="mb-0">
+                                <i class="fas fa-sign-out-alt me-2" id="sourceIcon"></i>
+                                <span id="sourceLabel">Source</span>
+                                <small class="text-muted ms-2" id="sourceHint">(Where traffic originates)</small>
+                            </h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -93,9 +116,13 @@
                     </div>
 
                     <!-- Destination Configuration -->
-                    <div class="card bg-secondary mb-3">
+                    <div class="card bg-secondary mb-3" id="destinationCard">
                         <div class="card-header">
-                            <h6 class="mb-0">Destination</h6>
+                            <h6 class="mb-0">
+                                <i class="fas fa-sign-in-alt me-2" id="destIcon"></i>
+                                <span id="destLabel">Destination</span>
+                                <small class="text-muted ms-2" id="destHint">(Where traffic is going)</small>
+                            </h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -151,20 +178,7 @@
                             <div class="card bg-secondary">
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Interface</label>
-                                            <input type="text" class="form-control bg-dark text-light border-secondary" 
-                                                   id="ruleInterface" placeholder="e.g., eth0, wan, inside">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Direction</label>
-                                            <select class="form-select bg-dark text-light border-secondary" id="ruleDirection">
-                                                <option value="">Auto</option>
-                                                <option value="in">Inbound</option>
-                                                <option value="out">Outbound</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <label class="form-label">Logging</label>
                                             <div class="form-check form-switch mt-2">
                                                 <input class="form-check-input" type="checkbox" id="enableLogging">
@@ -173,9 +187,7 @@
                                                 </label>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                        <div class="col-12">
+                                        <div class="col-md-6">
                                             <label class="form-label">Comment</label>
                                             <input type="text" class="form-control bg-dark text-light border-secondary" 
                                                    id="ruleComment" placeholder="Optional comment for the rule">

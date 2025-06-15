@@ -1657,3 +1657,53 @@ input:-webkit-autofill:active {
   background-color: #FFFFFF !important;
   color: #212529 !important;
 }
+
+/* Firewall Rule Generator Styles */
+#firewallRuleGeneratorModal .border-primary {
+  border: 2px solid rgba(13, 110, 253, 0.5) !important;
+}
+
+#firewallRuleGeneratorModal .border-success {
+  border: 2px solid rgba(25, 135, 84, 0.5) !important;
+}
+
+#firewallRuleGeneratorModal .border-info {
+  border: 2px solid rgba(13, 202, 240, 0.5) !important;
+}
+
+#firewallRuleGeneratorModal .template-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+#firewallRuleGeneratorModal .template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-color: var(--primary-color);
+}
+
+#directionIndicator {
+  background-color: rgba(13, 202, 240, 0.1);
+  border-color: rgba(13, 202, 240, 0.3);
+  border-left: 4px solid #0dcaf0;
+}
+
+#directionIndicator strong {
+  color: #0dcaf0;
+}
+
+/* Direction-specific icon colors */
+#sourceCard .fa-globe,
+#destinationCard .fa-globe {
+  color: #0d6efd;
+}
+
+#sourceCard .fa-server,
+#destinationCard .fa-server {
+  color: #198754;
+}
+
+#sourceCard .fa-exchange-alt,
+#destinationCard .fa-exchange-alt {
+  color: #0dcaf0;
+}

@@ -37,6 +37,11 @@ class FirewallRuleGenerator {
         document.getElementById('platformSelect').addEventListener('change', (e) => {
             this.handlePlatformChange(e.target.value);
         });
+        
+        // Direction change handler
+        document.getElementById('ruleDirection').addEventListener('change', (e) => {
+            this.updateDirectionIndicators(e.target.value);
+        });
 
         // Source/Destination type changes
         document.getElementById('sourceType').addEventListener('change', (e) => {
@@ -263,12 +268,32 @@ class FirewallRuleGenerator {
     // Platform-specific rule generators
     generateIptablesRule() {
         let rules = [];
+        
+        // Handle "both" direction by generating two rules
+        if (this.ruleData.direction === 'both') {
+            // Generate inbound rule
+            let inboundRule = this.generateIptablesRuleForDirection('in');
+            rules.push(...inboundRule.split('\n'));
+            
+            // Generate outbound rule
+            let outboundRule = this.generateIptablesRuleForDirection('out');
+            rules.push(...outboundRule.split('\n'));
+            
+            return rules.join('\n');
+        }
+        
+        // Single direction rule
+        return this.generateIptablesRuleForDirection(this.ruleData.direction);
+    }
+    
+    generateIptablesRuleForDirection(direction) {
+        let rules = [];
         let baseRule = 'iptables -A ';
         
         // Chain based on direction
-        if (this.ruleData.direction === 'in' || !this.ruleData.direction) {
+        if (direction === 'in') {
             baseRule += 'INPUT ';
-        } else if (this.ruleData.direction === 'out') {
+        } else if (direction === 'out') {
             baseRule += 'OUTPUT ';
         } else {
             baseRule += 'FORWARD ';
@@ -276,7 +301,7 @@ class FirewallRuleGenerator {
 
         // Interface
         if (this.ruleData.interface) {
-            if (this.ruleData.direction === 'out') {
+            if (direction === 'out') {
                 baseRule += `-o ${this.ruleData.interface} `;
             } else {
                 baseRule += `-i ${this.ruleData.interface} `;
@@ -550,10 +575,28 @@ class FirewallRuleGenerator {
     }
 
     generateWindowsRule() {
+        // Handle "both" direction by generating two rules
+        if (this.ruleData.direction === 'both') {
+            let rules = [];
+            
+            // Generate inbound rule
+            rules.push(this.generateWindowsRuleForDirection('in', `${this.ruleData.name || 'Generated Rule'} - Inbound`));
+            
+            // Generate outbound rule
+            rules.push(this.generateWindowsRuleForDirection('out', `${this.ruleData.name || 'Generated Rule'} - Outbound`));
+            
+            return rules.join('\n');
+        }
+        
+        // Single direction rule
+        return this.generateWindowsRuleForDirection(this.ruleData.direction, this.ruleData.name || 'Generated Rule');
+    }
+    
+    generateWindowsRuleForDirection(direction, ruleName) {
         let rule = 'netsh advfirewall firewall add rule ';
         
-        rule += `name="${this.ruleData.name || 'Generated Rule'}" `;
-        rule += `dir=${this.ruleData.direction === 'out' ? 'out' : 'in'} `;
+        rule += `name="${ruleName}" `;
+        rule += `dir=${direction === 'out' ? 'out' : 'in'} `;
         rule += `action=${this.ruleData.action === 'allow' ? 'allow' : 'block'} `;
         
         if (this.ruleData.protocol !== 'any') {
@@ -562,19 +605,19 @@ class FirewallRuleGenerator {
 
         // Source (remote for inbound, local for outbound)
         if (this.ruleData.source.type !== 'any' && this.ruleData.source.value) {
-            const addr = this.ruleData.direction === 'out' ? 'localip' : 'remoteip';
+            const addr = direction === 'out' ? 'localip' : 'remoteip';
             rule += `${addr}=${this.ruleData.source.value} `;
         }
 
         // Destination
         if (this.ruleData.destination.type !== 'any' && this.ruleData.destination.value) {
-            const addr = this.ruleData.direction === 'out' ? 'remoteip' : 'localip';
+            const addr = direction === 'out' ? 'remoteip' : 'localip';
             rule += `${addr}=${this.ruleData.destination.value} `;
         }
 
         // Ports
         if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any') {
-            const port = this.ruleData.direction === 'out' ? 'remoteport' : 'localport';
+            const port = direction === 'out' ? 'remoteport' : 'localport';
             rule += `${port}=${this.ruleData.destination.port} `;
         }
 
@@ -815,18 +858,65 @@ class FirewallRuleGenerator {
     }
 
     updatePlatformUI(platform) {
-        // Show/hide platform-specific options
-        const directionField = document.getElementById('ruleDirection').parentElement;
-        const interfaceField = document.getElementById('ruleInterface').parentElement;
+        // Platform-specific UI updates
+        // Direction is now always visible in the main interface
+        // Could add platform-specific hints or validations here in the future
         
-        // Different platforms have different capabilities
-        switch (platform) {
-            case 'iptables':
-            case 'windows':
-                directionField.style.display = 'block';
+        // Update direction indicators on platform change
+        this.updateDirectionIndicators(document.getElementById('ruleDirection').value);
+    }
+    
+    updateDirectionIndicators(direction) {
+        const directionText = document.getElementById('directionText');
+        const sourceIcon = document.getElementById('sourceIcon');
+        const destIcon = document.getElementById('destIcon');
+        const sourceLabel = document.getElementById('sourceLabel');
+        const destLabel = document.getElementById('destLabel');
+        const sourceHint = document.getElementById('sourceHint');
+        const destHint = document.getElementById('destHint');
+        const sourceCard = document.getElementById('sourceCard');
+        const destCard = document.getElementById('destinationCard');
+        
+        // Remove existing border classes
+        sourceCard.classList.remove('border-primary', 'border-success', 'border-info');
+        destCard.classList.remove('border-primary', 'border-success', 'border-info');
+        
+        switch (direction) {
+            case 'in':
+                directionText.innerHTML = 'Configuring an <strong>Inbound</strong> rule: Traffic flows from external Source to local Destination';
+                sourceIcon.className = 'fas fa-globe me-2';
+                destIcon.className = 'fas fa-server me-2';
+                sourceLabel.textContent = 'Source';
+                destLabel.textContent = 'Destination';
+                sourceHint.textContent = '(External/Remote)';
+                destHint.textContent = '(Local/Protected)';
+                sourceCard.classList.add('border-primary');
+                destCard.classList.add('border-success');
                 break;
-            default:
-                directionField.style.display = 'none';
+                
+            case 'out':
+                directionText.innerHTML = 'Configuring an <strong>Outbound</strong> rule: Traffic flows from local Source to external Destination';
+                sourceIcon.className = 'fas fa-server me-2';
+                destIcon.className = 'fas fa-globe me-2';
+                sourceLabel.textContent = 'Source';
+                destLabel.textContent = 'Destination';
+                sourceHint.textContent = '(Local/Internal)';
+                destHint.textContent = '(External/Remote)';
+                sourceCard.classList.add('border-success');
+                destCard.classList.add('border-primary');
+                break;
+                
+            case 'both':
+                directionText.innerHTML = 'Configuring a <strong>Bidirectional</strong> rule: Traffic flows in both directions between Source and Destination';
+                sourceIcon.className = 'fas fa-exchange-alt me-2';
+                destIcon.className = 'fas fa-exchange-alt me-2';
+                sourceLabel.textContent = 'Endpoint A';
+                destLabel.textContent = 'Endpoint B';
+                sourceHint.textContent = '(First endpoint)';
+                destHint.textContent = '(Second endpoint)';
+                sourceCard.classList.add('border-info');
+                destCard.classList.add('border-info');
+                break;
         }
     }
 
@@ -976,7 +1066,7 @@ class FirewallRuleGenerator {
         document.getElementById('destValue').value = '';
         document.getElementById('destPort').value = '';
         document.getElementById('ruleInterface').value = '';
-        document.getElementById('ruleDirection').value = '';
+        document.getElementById('ruleDirection').value = 'in';  // Default to inbound
         document.getElementById('enableLogging').checked = false;
         document.getElementById('ruleComment').value = '';
         
@@ -1013,7 +1103,7 @@ class FirewallRuleGenerator {
             source: { type: 'any', value: '', port: '' },
             destination: { type: 'any', value: '', port: '' },
             interface: '',
-            direction: '',
+            direction: 'in',  // Default to inbound
             logging: false,
             comment: ''
         };
