@@ -175,13 +175,13 @@ function createWindowsCommandCard(command) {
         </div>
       </div>
       <div class="card-body">
-        <div class="syntax-section mb-2">
+        <div class="syntax-section mb-1">
           <strong class="small">Syntax:</strong>
           <code class="d-block mt-1 text-success">${command.syntax}</code>
         </div>
-        <div class="description-section mb-3">
+        <div class="description-section mb-4">
           <p class="card-text mb-2">${command.description}</p>
-          ${command.detailedDescription ? `<p class="text-muted small">${command.detailedDescription}</p>` : ''}
+          ${command.detailedDescription ? `<p class="text-muted small mb-0">${command.detailedDescription}</p>` : ''}
         </div>
         
         ${command.commonOptions.length > 0 ? `
@@ -191,8 +191,9 @@ function createWindowsCommandCard(command) {
           </button>
           <div class="collapse mt-2" id="${cardId}-options">
             ${command.commonOptions.map(opt => `
-              <div class="small border-start border-info ps-2 mb-1">
-                <code class="text-warning">${opt}</code>
+              <div class="small border-start border-info ps-2 mb-2 d-flex align-items-baseline">
+                <code class="text-warning flex-shrink-0">${opt.flag}</code>
+                <span class="ms-2">${opt.description}</span>
               </div>
             `).join('')}
           </div>

@@ -509,13 +509,13 @@ class FirewallRuleGenerator {
         let rule = 'access-list ';
         
         // Determine interface based on direction if not specified
-        let interface = this.ruleData.interface;
-        if (!interface) {
-            interface = direction === 'in' ? 'outside' : 'inside';
+        let interfaceName = this.ruleData.interface;
+        if (!interfaceName) {
+            interfaceName = direction === 'in' ? 'outside' : 'inside';
         }
         
         // ACL name based on interface and direction
-        const aclName = interface + '_access_' + (direction === 'out' ? 'out' : 'in');
+        const aclName = interfaceName + '_access_' + (direction === 'out' ? 'out' : 'in');
         rule += aclName + ' extended ';
         
         // Add comment about direction

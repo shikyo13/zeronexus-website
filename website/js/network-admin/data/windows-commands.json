@@ -2,1137 +2,1940 @@
   "commands": [
     {
       "name": "dir",
-    "category": "file-management",
-    "description": "List directory contents",
-    "detailedDescription": "The dir command displays a list of files and subdirectories in a directory. Without parameters, it displays the disk's volume label and serial number, followed by a list of directories and files on the disk.",
-    "syntax": "dir [drive:][path][filename] [/A[[:]attributes]] [/B] [/C] [/D] [/L] [/N] [/O[[:]sortorder]] [/P] [/Q] [/R] [/S] [/T[[:]timefield]] [/W] [/X] [/4]",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/A - Display files with specified attributes",
-      "/B - Use bare format (no heading or summary)",
-      "/C - Display thousands separator in file sizes",
-      "/D - Same as wide but files sorted by column",
-      "/L - Use lowercase",
-      "/O - List files in sorted order",
-      "/P - Pause after each screenful",
-      "/Q - Display file ownership",
-      "/R - Display alternate data streams",
-      "/S - Display files in specified directory and subdirectories",
-      "/W - Use wide list format",
-      "/X - Display short names for non-8.3 files"
-    ],
-    "examples": [
-      {
-        "description": "List all files in current directory",
-        "command": "dir"
-      },
-      {
-        "description": "List all files including hidden",
-        "command": "dir /A"
-      },
-      {
-        "description": "List files in bare format",
-        "command": "dir /B"
-      },
-      {
-        "description": "List all .txt files recursively",
-        "command": "dir *.txt /S"
-      },
-      {
-        "description": "List files sorted by date",
-        "command": "dir /O:D"
-      }
-    ],
-    "related": ["tree", "attrib", "where"],
-    "tags": ["files", "directories", "listing", "search"]
-  },
-  {
-    "name": "copy",
-    "category": "file-management",
-    "description": "Copy files to another location",
-    "detailedDescription": "The copy command copies one or more files from one location to another. It can also be used to combine files and create new files from the command line.",
-    "syntax": "copy [/D] [/V] [/N] [/Y | /-Y] [/Z] [/L] [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [destination [/A | /B]]",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/V - Verify that new files are written correctly",
-      "/N - Use short filename if available when copying",
-      "/Y - Suppress confirmation prompt for overwriting",
-      "/-Y - Cause confirmation prompt for overwriting",
-      "/Z - Copy networked files in restartable mode",
-      "/A - ASCII text file",
-      "/B - Binary file",
-      "/D - Allow destination file to be created decrypted"
-    ],
-    "examples": [
-      {
-        "description": "Copy a file",
-        "command": "copy file.txt backup.txt"
-      },
-      {
-        "description": "Copy with verification",
-        "command": "copy /V source.txt dest.txt"
-      },
-      {
-        "description": "Copy without confirmation",
-        "command": "copy /Y *.txt C:\\backup\\"
-      },
-      {
-        "description": "Combine text files",
-        "command": "copy file1.txt + file2.txt combined.txt"
-      }
-    ],
-    "related": ["xcopy", "robocopy", "move"],
-    "tags": ["files", "backup", "duplicate"]
-  },
-  {
-    "name": "xcopy",
-    "category": "file-management",
-    "description": "Copy files and directory trees",
-    "detailedDescription": "Extended copy command that copies files and directories, including subdirectories. More powerful than the basic copy command with additional options for attributes, empty directories, and more.",
-    "syntax": "xcopy source [destination] [/A | /M] [/D[:date]] [/P] [/S [/E]] [/V] [/W] [/C] [/I] [/Q] [/F] [/L] [/G] [/H] [/R] [/T] [/U] [/K] [/N] [/O] [/X] [/Y] [/-Y] [/Z] [/B] [/J]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/S - Copy directories and subdirectories except empty ones",
-      "/E - Copy directories and subdirectories, including empty ones",
-      "/H - Copy hidden and system files",
-      "/R - Overwrite read-only files",
-      "/Y - Suppress overwrite confirmation",
-      "/I - Assume destination is directory if copying multiple files",
-      "/D:date - Copy files changed on or after specified date",
-      "/U - Copy only files that already exist in destination",
-      "/K - Copy attributes",
-      "/Q - Quiet mode"
-    ],
-    "examples": [
-      {
-        "description": "Copy directory tree",
-        "command": "xcopy C:\\source D:\\backup /S /E"
-      },
-      {
-        "description": "Copy only newer files",
-        "command": "xcopy source dest /D /Y"
-      },
-      {
-        "description": "Copy including hidden files",
-        "command": "xcopy source dest /H /S"
-      },
-      {
-        "description": "Preview what will be copied",
-        "command": "xcopy source dest /L /S"
-      }
-    ],
-    "related": ["copy", "robocopy", "move"],
-    "tags": ["files", "directories", "backup", "sync"]
-  },
-  {
-    "name": "move",
-    "category": "file-management",
-    "description": "Move files and rename files and directories",
-    "detailedDescription": "The move command moves one or more files from one directory to another directory. It can also be used to rename files and directories.",
-    "syntax": "move [/Y | /-Y] [drive:][path]source [drive:][path]destination",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/Y - Suppress confirmation prompt for overwriting",
-      "/-Y - Cause confirmation prompt for overwriting"
-    ],
-    "examples": [
-      {
-        "description": "Move a file",
-        "command": "move file.txt C:\\newfolder\\"
-      },
-      {
-        "description": "Rename a file",
-        "command": "move oldname.txt newname.txt"
-      },
-      {
-        "description": "Move multiple files",
-        "command": "move *.txt C:\\textfiles\\"
-      },
-      {
-        "description": "Move without confirmation",
-        "command": "move /Y source.txt dest.txt"
-      }
-    ],
-    "related": ["copy", "xcopy", "ren"],
-    "tags": ["files", "rename", "organize"]
-  },
-  {
-    "name": "del",
-    "category": "file-management",
-    "description": "Delete one or more files",
-    "detailedDescription": "The del (or erase) command deletes one or more files. Be careful as deleted files typically cannot be recovered without special software.",
-    "syntax": "del [/P] [/F] [/S] [/Q] [/A[[:]attributes]] names",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/P - Prompt for confirmation before deleting each file",
-      "/F - Force deletion of read-only files",
-      "/S - Delete specified files from all subdirectories",
-      "/Q - Quiet mode, do not ask for confirmation",
-      "/A - Select files to delete based on attributes"
-    ],
-    "examples": [
-      {
-        "description": "Delete a file",
-        "command": "del file.txt"
-      },
-      {
-        "description": "Delete all .tmp files",
-        "command": "del *.tmp"
-      },
-      {
-        "description": "Force delete read-only files",
-        "command": "del /F readonly.txt"
-      },
-      {
-        "description": "Delete files in subdirectories",
-        "command": "del /S *.bak"
-      },
-      {
-        "description": "Delete with confirmation",
-        "command": "del /P important.doc"
-      }
-    ],
-    "related": ["rmdir", "erase", "rd"],
-    "tags": ["files", "delete", "cleanup"]
-  },
-  {
-    "name": "mkdir",
-    "category": "file-management",
-    "description": "Create a directory",
-    "detailedDescription": "The mkdir (or md) command creates a directory. It can create multiple levels of directories in one command.",
-    "syntax": "mkdir [drive:]path",
-    "difficulty": "beginner",
-    "commonOptions": [],
-    "examples": [
-      {
-        "description": "Create a directory",
-        "command": "mkdir newfolder"
-      },
-      {
-        "description": "Create nested directories",
-        "command": "mkdir parent\\child\\grandchild"
-      },
-      {
-        "description": "Create directory on different drive",
-        "command": "mkdir D:\\projects\\newproject"
-      },
-      {
-        "description": "Create multiple directories",
-        "command": "mkdir folder1 folder2 folder3"
-      }
-    ],
-    "related": ["rmdir", "cd", "dir"],
-    "tags": ["directories", "create", "folders"]
-  },
-  {
-    "name": "rmdir",
-    "category": "file-management",
-    "description": "Remove a directory",
-    "detailedDescription": "The rmdir (or rd) command removes a directory. By default, the directory must be empty unless you use the /S option.",
-    "syntax": "rmdir [/S] [/Q] [drive:]path",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/S - Remove the directory and all its contents",
-      "/Q - Quiet mode, do not ask for confirmation"
-    ],
-    "examples": [
-      {
-        "description": "Remove empty directory",
-        "command": "rmdir emptyfolder"
-      },
-      {
-        "description": "Remove directory and contents",
-        "command": "rmdir /S oldfolder"
-      },
-      {
-        "description": "Remove without confirmation",
-        "command": "rmdir /S /Q tempfolder"
-      },
-      {
-        "description": "Remove nested empty directories",
-        "command": "rmdir parent\\child\\grandchild"
-      }
-    ],
-    "related": ["mkdir", "del", "rd"],
-    "tags": ["directories", "delete", "cleanup"]
-  },
-  {
-    "name": "attrib",
-    "category": "file-management",
-    "description": "Display or change file attributes",
-    "detailedDescription": "The attrib command displays, sets, or removes attributes assigned to files or directories. Attributes include Read-only (R), Archive (A), System (S), and Hidden (H).",
-    "syntax": "attrib [+R | -R] [+A | -A] [+S | -S] [+H | -H] [+O | -O] [+I | -I] [+P | -P] [+U | -U] [drive:][path][filename] [/S [/D]] [/L]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "+R/-R - Set/clear Read-only attribute",
-      "+H/-H - Set/clear Hidden attribute",
-      "+S/-S - Set/clear System attribute",
-      "+A/-A - Set/clear Archive attribute",
-      "/S - Process files in current folder and subfolders",
-      "/D - Process folders as well"
-    ],
-    "examples": [
-      {
-        "description": "Display file attributes",
-        "command": "attrib file.txt"
-      },
-      {
-        "description": "Make file hidden",
-        "command": "attrib +H secret.txt"
-      },
-      {
-        "description": "Remove read-only attribute",
-        "command": "attrib -R document.doc"
-      },
-      {
-        "description": "Hide all .log files",
-        "command": "attrib +H *.log /S"
-      }
-    ],
-    "related": ["dir", "cacls", "icacls"],
-    "tags": ["files", "attributes", "permissions", "hidden"]
-  },
-  {
-    "name": "type",
-    "category": "file-management",
-    "description": "Display the contents of a text file",
-    "detailedDescription": "The type command displays the contents of a text file or files. It's useful for quickly viewing file contents without opening an editor.",
-    "syntax": "type [drive:][path]filename",
-    "difficulty": "beginner",
-    "commonOptions": [],
-    "examples": [
-      {
-        "description": "Display file contents",
-        "command": "type readme.txt"
-      },
-      {
-        "description": "Display multiple files",
-        "command": "type file1.txt file2.txt"
-      },
-      {
-        "description": "Pipe to more for pagination",
-        "command": "type largefile.txt | more"
-      },
-      {
-        "description": "Search in file contents",
-        "command": "type config.ini | find \"port\""
-      }
-    ],
-    "related": ["more", "find", "findstr"],
-    "tags": ["files", "view", "text", "display"]
-  },
-  {
-    "name": "ipconfig",
-    "category": "networking",
-    "description": "Display and manage IP configuration",
-    "detailedDescription": "The ipconfig command displays all current TCP/IP network configuration values and can refresh DHCP and DNS settings. It's essential for network troubleshooting.",
-    "syntax": "ipconfig [/all] [/release [adapter]] [/renew [adapter]] [/flushdns] [/displaydns] [/registerdns] [/showclassid adapter] [/setclassid adapter [classid]]",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/all - Display full configuration information",
-      "/release - Release the IP address for the specified adapter",
-      "/renew - Renew the IP address for the specified adapter",
-      "/flushdns - Purge the DNS resolver cache",
-      "/displaydns - Display the DNS resolver cache",
-      "/registerdns - Refresh all DHCP leases and re-register DNS names"
-    ],
-    "examples": [
-      {
-        "description": "Show basic IP configuration",
-        "command": "ipconfig"
-      },
-      {
-        "description": "Show detailed configuration",
-        "command": "ipconfig /all"
-      },
-      {
-        "description": "Release and renew IP address",
-        "command": "ipconfig /release && ipconfig /renew"
-      },
-      {
-        "description": "Clear DNS cache",
-        "command": "ipconfig /flushdns"
-      },
-      {
-        "description": "Show DNS cache",
-        "command": "ipconfig /displaydns"
-      }
-    ],
-    "related": ["ping", "nslookup", "netstat", "arp"],
-    "tags": ["network", "ip", "dns", "dhcp"]
-  },
-  {
-    "name": "ping",
-    "category": "networking",
-    "description": "Test network connectivity",
-    "detailedDescription": "The ping command sends ICMP echo request packets to a target host and listens for echo reply packets. It's used to test network connectivity and measure round-trip time.",
-    "syntax": "ping [-t] [-a] [-n count] [-l size] [-f] [-i TTL] [-v TOS] [-r count] [-s count] [-w timeout] [-R] [-S srcaddr] [-p] [-4] [-6] target_name",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "-t - Ping continuously until stopped",
-      "-n count - Number of echo requests to send",
-      "-l size - Size of send buffer",
-      "-f - Set Don't Fragment flag",
-      "-i TTL - Time To Live",
-      "-w timeout - Timeout in milliseconds",
-      "-4 - Force IPv4",
-      "-6 - Force IPv6"
-    ],
-    "examples": [
-      {
-        "description": "Ping a host 4 times",
-        "command": "ping google.com"
-      },
-      {
-        "description": "Continuous ping",
-        "command": "ping -t 192.168.1.1"
-      },
-      {
-        "description": "Ping with specific packet count",
-        "command": "ping -n 10 example.com"
-      },
-      {
-        "description": "Ping with larger packets",
-        "command": "ping -l 1000 server.local"
-      }
-    ],
-    "related": ["tracert", "pathping", "nslookup"],
-    "tags": ["network", "connectivity", "troubleshooting", "latency"]
-  },
-  {
-    "name": "tracert",
-    "category": "networking",
-    "description": "Trace route to destination",
-    "detailedDescription": "The tracert command traces the route that packets take to reach a destination. It shows each hop along the path and the time taken for each hop.",
-    "syntax": "tracert [-d] [-h maximum_hops] [-j host-list] [-w timeout] [-R] [-S srcaddr] [-4] [-6] target_name",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "-d - Do not resolve addresses to hostnames",
-      "-h hops - Maximum number of hops to search",
-      "-w timeout - Wait timeout in milliseconds for each reply",
-      "-4 - Force IPv4",
-      "-6 - Force IPv6"
-    ],
-    "examples": [
-      {
-        "description": "Trace route to a host",
-        "command": "tracert google.com"
-      },
-      {
-        "description": "Trace without DNS resolution",
-        "command": "tracert -d 8.8.8.8"
-      },
-      {
-        "description": "Limit maximum hops",
-        "command": "tracert -h 15 example.com"
-      },
-      {
-        "description": "Set timeout per hop",
-        "command": "tracert -w 500 server.local"
-      }
-    ],
-    "related": ["ping", "pathping", "nslookup"],
-    "tags": ["network", "routing", "troubleshooting", "hops"]
-  },
-  {
-    "name": "nslookup",
-    "category": "networking",
-    "description": "Query DNS servers",
-    "detailedDescription": "The nslookup command queries DNS servers to find DNS details, including IP addresses of a particular computer, MX records for a domain, and more.",
-    "syntax": "nslookup [-option] [name | -] [server]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "set type=A - Query A records (default)",
-      "set type=MX - Query mail exchange records",
-      "set type=NS - Query name server records",
-      "set type=TXT - Query text records",
-      "set type=ANY - Query all record types",
-      "server - Change default DNS server"
-    ],
-    "examples": [
-      {
-        "description": "Basic DNS lookup",
-        "command": "nslookup google.com"
-      },
-      {
-        "description": "Query specific DNS server",
-        "command": "nslookup example.com 8.8.8.8"
-      },
-      {
-        "description": "Find mail servers",
-        "command": "nslookup -type=MX gmail.com"
-      },
-      {
-        "description": "Reverse DNS lookup",
-        "command": "nslookup 8.8.8.8"
-      }
-    ],
-    "related": ["ping", "ipconfig", "netstat"],
-    "tags": ["network", "dns", "domain", "resolution"]
-  },
-  {
-    "name": "netstat",
-    "category": "networking",
-    "description": "Display network connections and statistics",
-    "detailedDescription": "The netstat command displays network connections, routing tables, interface statistics, masquerade connections, and multicast memberships.",
-    "syntax": "netstat [-a] [-b] [-e] [-f] [-n] [-o] [-p proto] [-r] [-s] [-t] [-x] [-y] [interval]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "-a - Display all connections and listening ports",
-      "-b - Display executable involved in creating connections",
-      "-n - Display addresses and ports in numerical form",
-      "-o - Display owning process ID",
-      "-p proto - Show connections for specified protocol",
-      "-r - Display routing table",
-      "-s - Display per-protocol statistics"
-    ],
-    "examples": [
-      {
-        "description": "Show all connections",
-        "command": "netstat -a"
-      },
-      {
-        "description": "Show connections with process IDs",
-        "command": "netstat -ano"
-      },
-      {
-        "description": "Show only TCP connections",
-        "command": "netstat -p TCP"
-      },
-      {
-        "description": "Show network statistics",
-        "command": "netstat -s"
-      },
-      {
-        "description": "Show routing table",
-        "command": "netstat -r"
-      }
-    ],
-    "related": ["ipconfig", "arp", "route"],
-    "tags": ["network", "connections", "ports", "statistics"]
-  },
-  {
-    "name": "systeminfo",
-    "category": "system-info",
-    "description": "Display detailed system configuration",
-    "detailedDescription": "The systeminfo command displays detailed configuration information about a computer, including hardware, network adapter, and OS configuration.",
-    "syntax": "systeminfo [/s computer] [/u domain\\user] [/p password] [/fo format] [/nh]",
-    "difficulty": "beginner",
-    "commonOptions": [
-      "/s computer - Remote computer to query",
-      "/u user - User context for remote query",
-      "/fo format - Output format (TABLE, LIST, CSV)",
-      "/nh - No headers in table/CSV output"
-    ],
-    "examples": [
-      {
-        "description": "Display local system info",
-        "command": "systeminfo"
-      },
-      {
-        "description": "Output to CSV format",
-        "command": "systeminfo /fo CSV"
-      },
-      {
-        "description": "Query remote computer",
-        "command": "systeminfo /s server01"
-      },
-      {
-        "description": "Filter for specific info",
-        "command": "systeminfo | findstr /C:\"OS Name\""
-      }
-    ],
-    "related": ["wmic", "ver", "hostname"],
-    "tags": ["system", "hardware", "information", "configuration"]
-  },
-  {
-    "name": "tasklist",
-    "category": "process-management",
-    "description": "Display running processes",
-    "detailedDescription": "The tasklist command displays a list of currently running processes on a local or remote computer, along with their process IDs, memory usage, and more.",
-    "syntax": "tasklist [/s computer] [/u domain\\user] [/p password] [/m [module] | /svc | /v] [/fi filter] [/fo format] [/nh]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/v - Verbose output with detailed information",
-      "/svc - List services hosted in each process",
-      "/m module - List processes using given DLL",
-      "/fi filter - Display processes matching filter criteria",
-      "/fo format - Output format (TABLE, LIST, CSV)"
-    ],
-    "examples": [
-      {
-        "description": "List all processes",
-        "command": "tasklist"
-      },
-      {
-        "description": "Show processes with services",
-        "command": "tasklist /svc"
-      },
-      {
-        "description": "Filter by memory usage",
-        "command": "tasklist /fi \"MEMUSAGE gt 100000\""
-      },
-      {
-        "description": "Find process by name",
-        "command": "tasklist /fi \"IMAGENAME eq chrome.exe\""
-      },
-      {
-        "description": "Export to CSV",
-        "command": "tasklist /fo CSV > processes.csv"
-      }
-    ],
-    "related": ["taskkill", "wmic", "start"],
-    "tags": ["process", "tasks", "memory", "cpu"]
-  },
-  {
-    "name": "taskkill",
-    "category": "process-management",
-    "description": "Terminate processes",
-    "detailedDescription": "The taskkill command terminates one or more processes by process ID or image name. It can forcefully terminate processes that don't respond to normal termination.",
-    "syntax": "taskkill [/s computer] [/u domain\\user] [/p password] [/fi filter] [/pid processid | /im imagename] [/t] [/f]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/f - Force termination of process",
-      "/t - Terminate process and child processes",
-      "/pid id - Specify process ID to terminate",
-      "/im name - Specify image name to terminate",
-      "/fi filter - Apply filter to select processes"
-    ],
-    "examples": [
-      {
-        "description": "Kill process by name",
-        "command": "taskkill /im notepad.exe"
-      },
-      {
-        "description": "Force kill process",
-        "command": "taskkill /f /im chrome.exe"
-      },
-      {
-        "description": "Kill process by PID",
-        "command": "taskkill /pid 1234"
-      },
-      {
-        "description": "Kill process tree",
-        "command": "taskkill /t /f /pid 5678"
-      },
-      {
-        "description": "Kill not responding processes",
-        "command": "taskkill /fi \"STATUS eq NOT RESPONDING\" /f"
-      }
-    ],
-    "related": ["tasklist", "start", "wmic"],
-    "tags": ["process", "terminate", "kill", "force"]
-  },
-  {
-    "name": "chkdsk",
-    "category": "disk-management",
-    "description": "Check disk for errors",
-    "detailedDescription": "The chkdsk command checks the file system and file system metadata of a volume for logical and physical errors. It can also fix errors when specified.",
-    "syntax": "chkdsk [volume[[path]filename]] [/f] [/v] [/r] [/x] [/i] [/c] [/l[:size]] [/b]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "/f - Fix errors on the disk",
-      "/v - Display verbose output",
-      "/r - Locate bad sectors and recover readable information",
-      "/x - Force volume dismount if necessary",
-      "/i - Perform less vigorous index checking (NTFS only)",
-      "/c - Skip checking cycles within folder structure (NTFS only)",
-      "/b - Re-evaluate bad clusters (NTFS only)"
-    ],
-    "examples": [
-      {
-        "description": "Check current drive",
-        "command": "chkdsk"
-      },
-      {
-        "description": "Check and fix drive C:",
-        "command": "chkdsk C: /f"
-      },
-      {
-        "description": "Scan for bad sectors",
-        "command": "chkdsk D: /r"
-      },
-      {
-        "description": "Force check on next restart",
-        "command": "chkdsk C: /f /r"
-      }
-    ],
-    "related": ["sfc", "diskpart", "defrag"],
-    "tags": ["disk", "filesystem", "repair", "scan"]
-  },
-  {
-    "name": "sfc",
-    "category": "security",
-    "description": "System File Checker",
-    "detailedDescription": "The sfc (System File Checker) command scans and verifies the integrity of all protected system files and replaces incorrect versions with correct Microsoft versions.",
-    "syntax": "sfc [/scannow] [/verifyonly] [/scanfile=file] [/verifyfile=file] [/offwindir=offline-windows-directory] [/offbootdir=offline-boot-directory]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "/scannow - Scan and repair system files immediately",
-      "/verifyonly - Scan for integrity violations without repairing",
-      "/scanfile=file - Scan and repair specific file",
-      "/verifyfile=file - Verify specific file without repairing"
-    ],
-    "examples": [
-      {
-        "description": "Scan and repair system files",
-        "command": "sfc /scannow"
-      },
-      {
-        "description": "Verify system files only",
-        "command": "sfc /verifyonly"
-      },
-      {
-        "description": "Scan specific system file",
-        "command": "sfc /scanfile=C:\\Windows\\System32\\kernel32.dll"
-      },
-      {
-        "description": "Verify specific file",
-        "command": "sfc /verifyfile=C:\\Windows\\System32\\user32.dll"
-      }
-    ],
-    "related": ["chkdsk", "dism"],
-    "tags": ["system", "repair", "integrity", "security"]
-  },
-  {
-    "name": "net user",
-    "category": "user-management",
-    "description": "Manage user accounts",
-    "detailedDescription": "The net user command creates and modifies user accounts on computers. When used without parameters, it lists the user accounts on the computer.",
-    "syntax": "net user [username [password | *] [options]] [/domain]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/add - Add a new user account",
-      "/delete - Delete a user account",
-      "/active:yes|no - Enable or disable account",
-      "/expires:date - Set account expiration date",
-      "/fullname:\"name\" - Set user's full name",
-      "/passwordreq:yes|no - Require password",
-      "/domain - Perform operation on domain controller"
-    ],
-    "examples": [
-      {
-        "description": "List all users",
-        "command": "net user"
-      },
-      {
-        "description": "Show user details",
-        "command": "net user username"
-      },
-      {
-        "description": "Create new user",
-        "command": "net user newuser password123 /add"
-      },
-      {
-        "description": "Disable user account",
-        "command": "net user username /active:no"
-      },
-      {
-        "description": "Delete user",
-        "command": "net user username /delete"
-      }
-    ],
-    "related": ["net localgroup", "whoami"],
-    "tags": ["users", "accounts", "security", "management"]
-  },
-  {
-    "name": "shutdown",
-    "category": "power-management",
-    "description": "Shutdown or restart computer",
-    "detailedDescription": "The shutdown command allows you to shut down or restart local or remote computers one at a time. It provides various options for logging off users, shutting down, or restarting.",
-    "syntax": "shutdown [/i | /l | /s | /sg | /r | /g | /a | /p | /h | /e | /o] [/hybrid] [/fw] [/f] [/m \\\\computer] [/t xxx] [/d [p|u:]xx:yy] [/c \"comment\"]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/s - Shutdown the computer",
-      "/r - Restart the computer",
-      "/l - Log off current user",
-      "/t xxx - Set timeout period before shutdown",
-      "/a - Abort a system shutdown",
-      "/f - Force running applications to close",
-      "/m \\\\computer - Specify target computer",
-      "/c \"comment\" - Comment on reason for shutdown"
-    ],
-    "examples": [
-      {
-        "description": "Shutdown immediately",
-        "command": "shutdown /s /t 0"
-      },
-      {
-        "description": "Restart in 60 seconds",
-        "command": "shutdown /r /t 60"
-      },
-      {
-        "description": "Abort shutdown",
-        "command": "shutdown /a"
-      },
-      {
-        "description": "Shutdown with message",
-        "command": "shutdown /s /t 300 /c \"System maintenance\""
-      },
-      {
-        "description": "Force restart",
-        "command": "shutdown /r /f /t 0"
-      }
-    ],
-    "related": ["logoff", "powercfg"],
-    "tags": ["power", "restart", "shutdown", "system"]
-  },
-  {
-    "name": "reg",
-    "category": "registry",
-    "description": "Registry editor command line",
-    "detailedDescription": "The reg command performs operations on registry subkeys and values. It can query, add, delete, copy, save, and restore registry entries.",
-    "syntax": "reg command [parameters]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "query - Display registry values",
-      "add - Add new registry entry",
-      "delete - Delete registry entry",
-      "copy - Copy registry entry",
-      "save - Save registry hive to file",
-      "restore - Restore registry from file",
-      "export - Export registry to .reg file",
-      "import - Import .reg file"
-    ],
-    "examples": [
-      {
-        "description": "Query registry value",
-        "command": "reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion"
-      },
-      {
-        "description": "Add registry value",
-        "command": "reg add HKCU\\Software\\MyApp /v Setting /t REG_SZ /d \"Value\""
-      },
-      {
-        "description": "Delete registry key",
-        "command": "reg delete HKCU\\Software\\MyApp /f"
-      },
-      {
-        "description": "Export registry branch",
-        "command": "reg export HKLM\\Software\\MyApp backup.reg"
-      }
-    ],
-    "related": ["regedit", "regsvr32"],
-    "tags": ["registry", "configuration", "system", "settings"]
-  },
-  {
-    "name": "sc",
-    "category": "services",
-    "description": "Service Control Manager",
-    "detailedDescription": "The sc command communicates with the Service Control Manager to configure, query, stop, start, and manage Windows services.",
-    "syntax": "sc [\\\\computer] [command] [service_name] [options]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "query - Query service status",
-      "start - Start a service",
-      "stop - Stop a service",
-      "config - Configure service properties",
-      "create - Create a new service",
-      "delete - Delete a service",
-      "qc - Query service configuration"
-    ],
-    "examples": [
-      {
-        "description": "List all services",
-        "command": "sc query"
-      },
-      {
-        "description": "Query specific service",
-        "command": "sc query servicename"
-      },
-      {
-        "description": "Start a service",
-        "command": "sc start servicename"
-      },
-      {
-        "description": "Stop a service",
-        "command": "sc stop servicename"
-      },
-      {
-        "description": "Set service to automatic",
-        "command": "sc config servicename start=auto"
-      }
-    ],
-    "related": ["net start", "net stop", "services.msc"],
-    "tags": ["services", "management", "system", "configuration"]
-  },
-  {
-    "name": "wmic",
-    "category": "system-info",
-    "description": "Windows Management Instrumentation CLI",
-    "detailedDescription": "WMIC is a command-line interface to Windows Management Instrumentation (WMI) that allows you to query and manage Windows systems. Note: WMIC is deprecated in Windows 11 and later.",
-    "syntax": "wmic [global_switches] [alias] [where clause] [verb clause]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "process - Manage processes",
-      "service - Manage services",
-      "product - Manage installed software",
-      "cpu - Query CPU information",
-      "os - Query operating system info",
-      "diskdrive - Query disk information"
-    ],
-    "examples": [
-      {
-        "description": "Get CPU information",
-        "command": "wmic cpu get name,maxclockspeed,numberofcores"
-      },
-      {
-        "description": "List running processes",
-        "command": "wmic process list brief"
-      },
-      {
-        "description": "Get OS information",
-        "command": "wmic os get caption,version,buildnumber"
-      },
-      {
-        "description": "Uninstall software",
-        "command": "wmic product where \"name='Software Name'\" uninstall"
-      },
-      {
-        "description": "Get disk info",
-        "command": "wmic diskdrive get model,size,status"
-      }
-    ],
-    "related": ["systeminfo", "tasklist", "sc"],
-    "tags": ["wmi", "system", "query", "management"]
-  },
-  {
-    "name": "powercfg",
-    "category": "power-management",
-    "description": "Power configuration settings",
-    "detailedDescription": "The powercfg command controls power settings and generates detailed reports about power usage, battery life, and sleep issues on the system.",
-    "syntax": "powercfg [/option] [arguments]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/list - List all power schemes",
-      "/query - Display detailed power scheme settings",
-      "/change - Modify power plan settings",
-      "/setactive - Set active power scheme",
-      "/batteryreport - Generate battery usage report",
-      "/energy - Generate energy efficiency report",
-      "/sleepstudy - Generate sleep study report"
-    ],
-    "examples": [
-      {
-        "description": "List power plans",
-        "command": "powercfg /list"
-      },
-      {
-        "description": "Generate battery report",
-        "command": "powercfg /batteryreport"
-      },
-      {
-        "description": "Set high performance plan",
-        "command": "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
-      },
-      {
-        "description": "Check sleep issues",
-        "command": "powercfg /sleepstudy"
-      },
-      {
-        "description": "Disable hibernation",
-        "command": "powercfg /hibernate off"
-      }
-    ],
-    "related": ["shutdown", "systeminfo"],
-    "tags": ["power", "battery", "energy", "performance"]
-  },
-  {
-    "name": "cipher",
-    "category": "security",
-    "description": "Encrypt or decrypt files and folders",
-    "detailedDescription": "The cipher command displays or alters the encryption of directories and files on NTFS volumes. It can also be used to securely overwrite deleted data.",
-    "syntax": "cipher [/e | /d | /c] [/s:directory] [/b] [/h] [pathname [...]]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "/e - Encrypt specified files or directories",
-      "/d - Decrypt specified files or directories",
-      "/c - Display encryption info for files",
-      "/s:dir - Perform operation in directory and subdirectories",
-      "/w:dir - Remove data from unused disk space",
-      "/k - Create new encryption key for user"
-    ],
-    "examples": [
-      {
-        "description": "Show encryption status",
-        "command": "cipher"
-      },
-      {
-        "description": "Encrypt a folder",
-        "command": "cipher /e /s:C:\\SecureData"
-      },
-      {
-        "description": "Decrypt files",
-        "command": "cipher /d *.doc"
-      },
-      {
-        "description": "Securely wipe free space",
-        "command": "cipher /w:C:"
-      }
-    ],
-    "related": ["attrib", "cacls", "icacls"],
-    "tags": ["encryption", "security", "files", "privacy"]
-  },
-  {
-    "name": "arp",
-    "category": "networking",
-    "description": "Display and modify ARP cache",
-    "detailedDescription": "The arp command displays and modifies entries in the Address Resolution Protocol (ARP) cache, which contains IP-to-MAC address mappings.",
-    "syntax": "arp [-a] [-g] [-d] [-s] [inet_addr] [if_addr] [eth_addr]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "-a - Display current ARP entries",
-      "-g - Same as -a",
-      "-d addr - Delete an entry",
-      "-s addr mac - Add static entry"
-    ],
-    "examples": [
-      {
-        "description": "Display ARP cache",
-        "command": "arp -a"
-      },
-      {
-        "description": "Delete ARP entry",
-        "command": "arp -d 192.168.1.100"
-      },
-      {
-        "description": "Add static ARP entry",
-        "command": "arp -s 192.168.1.100 00-11-22-33-44-55"
-      }
-    ],
-    "related": ["ipconfig", "netstat", "route"],
-    "tags": ["network", "arp", "mac", "cache"]
-  },
-  {
-    "name": "route",
-    "category": "networking",
-    "description": "Display and modify network routing tables",
-    "detailedDescription": "The route command displays and modifies the entries in the local IP routing table. It's used to manually configure network routes.",
-    "syntax": "route [-f] [-p] [-4|-6] command [destination] [mask netmask] [gateway] [metric metric] [if interface]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "print - Display routing table",
-      "add - Add a route",
-      "delete - Delete a route",
-      "change - Modify existing route",
-      "-p - Make route persistent across reboots"
-    ],
-    "examples": [
-      {
-        "description": "Display routing table",
-        "command": "route print"
-      },
-      {
-        "description": "Add a route",
-        "command": "route add 10.0.0.0 mask 255.0.0.0 192.168.1.1"
-      },
-      {
-        "description": "Add persistent route",
-        "command": "route -p add 172.16.0.0 mask 255.255.0.0 192.168.1.1"
-      },
-      {
-        "description": "Delete a route",
-        "command": "route delete 10.0.0.0"
-      }
-    ],
-    "related": ["netstat", "ipconfig", "tracert"],
-    "tags": ["network", "routing", "gateway", "configuration"]
-  },
-  {
-    "name": "format",
-    "category": "disk-management",
-    "description": "Format a disk for use with Windows",
-    "detailedDescription": "The format command formats a disk for use with Windows. It creates a new file system on the specified volume. Warning: This erases all data on the volume.",
-    "syntax": "format volume [/fs:file-system] [/v:label] [/q] [/a:size] [/c] [/x] [/p:passes]",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "/fs:filesystem - Specify file system (NTFS, FAT32, exFAT)",
-      "/v:label - Specify volume label",
-      "/q - Perform quick format",
-      "/a:size - Override default allocation unit size",
-      "/c - Files created will be compressed by default (NTFS only)"
-    ],
-    "examples": [
-      {
-        "description": "Quick format to NTFS",
-        "command": "format E: /fs:NTFS /q"
-      },
-      {
-        "description": "Format with volume label",
-        "command": "format F: /v:BACKUP /fs:NTFS"
-      },
-      {
-        "description": "Format USB to FAT32",
-        "command": "format G: /fs:FAT32 /q"
-      }
-    ],
-    "related": ["diskpart", "chkdsk", "convert"],
-    "tags": ["disk", "format", "filesystem", "storage"]
-  },
-  {
-    "name": "diskpart",
-    "category": "disk-management",
-    "description": "Disk partition management utility",
-    "detailedDescription": "DiskPart is a powerful disk partitioning utility that allows you to manage disks, partitions, and volumes. It runs in its own command interpreter.",
-    "syntax": "diskpart",
-    "difficulty": "advanced",
-    "commonOptions": [
-      "list disk - Show all disks",
-      "list volume - Show all volumes",
-      "list partition - Show partitions on selected disk",
-      "select disk n - Select disk to work with",
-      "clean - Remove all partitions from selected disk",
-      "create partition primary - Create primary partition",
-      "format fs=ntfs quick - Quick format to NTFS",
-      "assign letter=X - Assign drive letter"
-    ],
-    "examples": [
-      {
-        "description": "List all disks",
-        "command": "diskpart > list disk"
-      },
-      {
-        "description": "Select and clean disk",
-        "command": "diskpart > select disk 1 > clean"
-      },
-      {
-        "description": "Create and format partition",
-        "command": "diskpart > create partition primary > format fs=ntfs quick"
-      }
-    ],
-    "related": ["format", "chkdsk", "convert"],
-    "tags": ["disk", "partition", "volume", "management"]
-  },
-  {
-    "name": "gpupdate",
-    "category": "security",
-    "description": "Update Group Policy settings",
-    "detailedDescription": "The gpupdate command refreshes local and Active Directory-based Group Policy settings, including security settings.",
-    "syntax": "gpupdate [/target:{computer | user}] [/force] [/wait:value] [/logoff] [/boot] [/sync]",
-    "difficulty": "intermediate",
-    "commonOptions": [
-      "/force - Reapply all policy settings",
-      "/target:computer - Update only computer policies",
-      "/target:user - Update only user policies",
-      "/logoff - Log off after update if required",
-      "/boot - Restart after update if required"
-    ],
-    "examples": [
-      {
-        "description": "Update all policies",
-        "command": "gpupdate"
-      },
-      {
-        "description": "Force update all policies",
-        "command": "gpupdate /force"
-      },
-      {
-        "description": "Update computer policies only",
-        "command": "gpupdate /target:computer"
-      }
-    ],
-    "related": ["gpresult", "rsop.msc"],
-    "tags": ["policy", "security", "domain", "configuration"]
-  }
+      "category": "file-management",
+      "description": "List directory contents",
+      "detailedDescription": "The dir command displays a list of files and subdirectories in a directory. Without parameters, it displays the disk's volume label and serial number, followed by a list of directories and files on the disk.",
+      "syntax": "dir [path] [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/A",
+          "description": "Display files with specified attributes"
+        },
+        {
+          "flag": "/B",
+          "description": "Use bare format (no heading or summary)"
+        },
+        {
+          "flag": "/C",
+          "description": "Display thousands separator in file sizes"
+        },
+        {
+          "flag": "/D",
+          "description": "Same as wide but files sorted by column"
+        },
+        {
+          "flag": "/L",
+          "description": "Use lowercase"
+        },
+        {
+          "flag": "/O",
+          "description": "List files in sorted order"
+        },
+        {
+          "flag": "/P",
+          "description": "Pause after each screenful"
+        },
+        {
+          "flag": "/Q",
+          "description": "Display file ownership"
+        },
+        {
+          "flag": "/R",
+          "description": "Display alternate data streams"
+        },
+        {
+          "flag": "/S",
+          "description": "Display files in specified directory and subdirectories"
+        },
+        {
+          "flag": "/W",
+          "description": "Use wide list format"
+        },
+        {
+          "flag": "/X",
+          "description": "Display short names for non-8.3 files"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List all files in current directory",
+          "command": "dir"
+        },
+        {
+          "description": "List all files including hidden",
+          "command": "dir /A"
+        },
+        {
+          "description": "List files in bare format",
+          "command": "dir /B"
+        },
+        {
+          "description": "List all .txt files recursively",
+          "command": "dir *.txt /S"
+        },
+        {
+          "description": "List files sorted by date",
+          "command": "dir /O:D"
+        }
+      ],
+      "related": [
+        "tree",
+        "attrib",
+        "where"
+      ],
+      "tags": [
+        "files",
+        "directories",
+        "listing",
+        "search"
+      ]
+    },
+    {
+      "name": "copy",
+      "category": "file-management",
+      "description": "Copy files to another location",
+      "detailedDescription": "The copy command copies one or more files from one location to another. It can also be used to combine files and create new files from the command line.",
+      "syntax": "copy source destination [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/V",
+          "description": "Verify that new files are written correctly"
+        },
+        {
+          "flag": "/N",
+          "description": "Use short filename if available when copying"
+        },
+        {
+          "flag": "/Y",
+          "description": "Suppress confirmation prompt for overwriting"
+        },
+        {
+          "flag": "/-Y",
+          "description": "Cause confirmation prompt for overwriting"
+        },
+        {
+          "flag": "/Z",
+          "description": "Copy networked files in restartable mode"
+        },
+        {
+          "flag": "/A",
+          "description": "ASCII text file"
+        },
+        {
+          "flag": "/B",
+          "description": "Binary file"
+        },
+        {
+          "flag": "/D",
+          "description": "Allow destination file to be created decrypted"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Copy a file",
+          "command": "copy file.txt backup.txt"
+        },
+        {
+          "description": "Copy with verification",
+          "command": "copy /V source.txt dest.txt"
+        },
+        {
+          "description": "Copy without confirmation",
+          "command": "copy /Y *.txt C:\\backup\\"
+        },
+        {
+          "description": "Combine text files",
+          "command": "copy file1.txt + file2.txt combined.txt"
+        }
+      ],
+      "related": [
+        "xcopy",
+        "robocopy",
+        "move"
+      ],
+      "tags": [
+        "files",
+        "backup",
+        "duplicate"
+      ]
+    },
+    {
+      "name": "xcopy",
+      "category": "file-management",
+      "description": "Copy files and directory trees",
+      "detailedDescription": "Extended copy command that copies files and directories, including subdirectories. More powerful than the basic copy command with additional options for attributes, empty directories, and more.",
+      "syntax": "xcopy source destination [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/S",
+          "description": "Copy directories and subdirectories except empty ones"
+        },
+        {
+          "flag": "/E",
+          "description": "Copy directories and subdirectories, including empty ones"
+        },
+        {
+          "flag": "/H",
+          "description": "Copy hidden and system files"
+        },
+        {
+          "flag": "/R",
+          "description": "Overwrite read-only files"
+        },
+        {
+          "flag": "/Y",
+          "description": "Suppress overwrite confirmation"
+        },
+        {
+          "flag": "/I",
+          "description": "Assume destination is directory if copying multiple files"
+        },
+        {
+          "flag": "/D:date",
+          "description": "Copy files changed on or after specified date"
+        },
+        {
+          "flag": "/U",
+          "description": "Copy only files that already exist in destination"
+        },
+        {
+          "flag": "/K",
+          "description": "Copy attributes"
+        },
+        {
+          "flag": "/Q",
+          "description": "Quiet mode"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Copy directory tree",
+          "command": "xcopy C:\\source D:\\backup /S /E"
+        },
+        {
+          "description": "Copy only newer files",
+          "command": "xcopy source dest /D /Y"
+        },
+        {
+          "description": "Copy including hidden files",
+          "command": "xcopy source dest /H /S"
+        },
+        {
+          "description": "Preview what will be copied",
+          "command": "xcopy source dest /L /S"
+        }
+      ],
+      "related": [
+        "copy",
+        "robocopy",
+        "move"
+      ],
+      "tags": [
+        "files",
+        "directories",
+        "backup",
+        "sync"
+      ]
+    },
+    {
+      "name": "move",
+      "category": "file-management",
+      "description": "Move files and rename files and directories",
+      "detailedDescription": "The move command moves one or more files from one directory to another directory. It can also be used to rename files and directories.",
+      "syntax": "move source destination [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/Y",
+          "description": "Suppress confirmation prompt for overwriting"
+        },
+        {
+          "flag": "/-Y",
+          "description": "Cause confirmation prompt for overwriting"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Move a file",
+          "command": "move file.txt C:\\newfolder\\"
+        },
+        {
+          "description": "Rename a file",
+          "command": "move oldname.txt newname.txt"
+        },
+        {
+          "description": "Move multiple files",
+          "command": "move *.txt C:\\textfiles\\"
+        },
+        {
+          "description": "Move without confirmation",
+          "command": "move /Y source.txt dest.txt"
+        }
+      ],
+      "related": [
+        "copy",
+        "xcopy",
+        "ren"
+      ],
+      "tags": [
+        "files",
+        "rename",
+        "organize"
+      ]
+    },
+    {
+      "name": "del",
+      "category": "file-management",
+      "description": "Delete one or more files",
+      "detailedDescription": "The del (or erase) command deletes one or more files. Be careful as deleted files typically cannot be recovered without special software.",
+      "syntax": "del filename [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/P",
+          "description": "Prompt for confirmation before deleting each file"
+        },
+        {
+          "flag": "/F",
+          "description": "Force deletion of read-only files"
+        },
+        {
+          "flag": "/S",
+          "description": "Delete specified files from all subdirectories"
+        },
+        {
+          "flag": "/Q",
+          "description": "Quiet mode, do not ask for confirmation"
+        },
+        {
+          "flag": "/A",
+          "description": "Select files to delete based on attributes"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Delete a file",
+          "command": "del file.txt"
+        },
+        {
+          "description": "Delete all .tmp files",
+          "command": "del *.tmp"
+        },
+        {
+          "description": "Force delete read-only files",
+          "command": "del /F readonly.txt"
+        },
+        {
+          "description": "Delete files in subdirectories",
+          "command": "del /S *.bak"
+        },
+        {
+          "description": "Delete with confirmation",
+          "command": "del /P important.doc"
+        }
+      ],
+      "related": [
+        "rmdir",
+        "erase",
+        "rd"
+      ],
+      "tags": [
+        "files",
+        "delete",
+        "cleanup"
+      ]
+    },
+    {
+      "name": "mkdir",
+      "category": "file-management",
+      "description": "Create a directory",
+      "detailedDescription": "The mkdir (or md) command creates a directory. It can create multiple levels of directories in one command.",
+      "syntax": "mkdir directory",
+      "difficulty": "beginner",
+      "commonOptions": [],
+      "examples": [
+        {
+          "description": "Create a directory",
+          "command": "mkdir newfolder"
+        },
+        {
+          "description": "Create nested directories",
+          "command": "mkdir parent\\child\\grandchild"
+        },
+        {
+          "description": "Create directory on different drive",
+          "command": "mkdir D:\\projects\\newproject"
+        },
+        {
+          "description": "Create multiple directories",
+          "command": "mkdir folder1 folder2 folder3"
+        }
+      ],
+      "related": [
+        "rmdir",
+        "cd",
+        "dir"
+      ],
+      "tags": [
+        "directories",
+        "create",
+        "folders"
+      ]
+    },
+    {
+      "name": "rmdir",
+      "category": "file-management",
+      "description": "Remove a directory",
+      "detailedDescription": "The rmdir (or rd) command removes a directory. By default, the directory must be empty unless you use the /S option.",
+      "syntax": "rmdir directory [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/S",
+          "description": "Remove the directory and all its contents"
+        },
+        {
+          "flag": "/Q",
+          "description": "Quiet mode, do not ask for confirmation"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Remove empty directory",
+          "command": "rmdir emptyfolder"
+        },
+        {
+          "description": "Remove directory and contents",
+          "command": "rmdir /S oldfolder"
+        },
+        {
+          "description": "Remove without confirmation",
+          "command": "rmdir /S /Q tempfolder"
+        },
+        {
+          "description": "Remove nested empty directories",
+          "command": "rmdir parent\\child\\grandchild"
+        }
+      ],
+      "related": [
+        "mkdir",
+        "del",
+        "rd"
+      ],
+      "tags": [
+        "directories",
+        "delete",
+        "cleanup"
+      ]
+    },
+    {
+      "name": "attrib",
+      "category": "file-management",
+      "description": "Display or change file attributes",
+      "detailedDescription": "The attrib command displays, sets, or removes attributes assigned to files or directories. Attributes include Read-only (R), Archive (A), System (S), and Hidden (H).",
+      "syntax": "attrib [attributes] filename [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "+R/-R",
+          "description": "Set/clear Read-only attribute"
+        },
+        {
+          "flag": "+H/-H",
+          "description": "Set/clear Hidden attribute"
+        },
+        {
+          "flag": "+S/-S",
+          "description": "Set/clear System attribute"
+        },
+        {
+          "flag": "+A/-A",
+          "description": "Set/clear Archive attribute"
+        },
+        {
+          "flag": "/S",
+          "description": "Process files in current folder and subfolders"
+        },
+        {
+          "flag": "/D",
+          "description": "Process folders as well"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Display file attributes",
+          "command": "attrib file.txt"
+        },
+        {
+          "description": "Make file hidden",
+          "command": "attrib +H secret.txt"
+        },
+        {
+          "description": "Remove read-only attribute",
+          "command": "attrib -R document.doc"
+        },
+        {
+          "description": "Hide all .log files",
+          "command": "attrib +H *.log /S"
+        }
+      ],
+      "related": [
+        "dir",
+        "cacls",
+        "icacls"
+      ],
+      "tags": [
+        "files",
+        "attributes",
+        "permissions",
+        "hidden"
+      ]
+    },
+    {
+      "name": "type",
+      "category": "file-management",
+      "description": "Display the contents of a text file",
+      "detailedDescription": "The type command displays the contents of a text file or files. It's useful for quickly viewing file contents without opening an editor.",
+      "syntax": "type filename",
+      "difficulty": "beginner",
+      "commonOptions": [],
+      "examples": [
+        {
+          "description": "Display file contents",
+          "command": "type readme.txt"
+        },
+        {
+          "description": "Display multiple files",
+          "command": "type file1.txt file2.txt"
+        },
+        {
+          "description": "Pipe to more for pagination",
+          "command": "type largefile.txt | more"
+        },
+        {
+          "description": "Search in file contents",
+          "command": "type config.ini | find \"port\""
+        }
+      ],
+      "related": [
+        "more",
+        "find",
+        "findstr"
+      ],
+      "tags": [
+        "files",
+        "view",
+        "text",
+        "display"
+      ]
+    },
+    {
+      "name": "ipconfig",
+      "category": "networking",
+      "description": "Display and manage IP configuration",
+      "detailedDescription": "The ipconfig command displays all current TCP/IP network configuration values and can refresh DHCP and DNS settings. It's essential for network troubleshooting.",
+      "syntax": "ipconfig [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/all",
+          "description": "Display full configuration information"
+        },
+        {
+          "flag": "/release",
+          "description": "Release the IP address for the specified adapter"
+        },
+        {
+          "flag": "/renew",
+          "description": "Renew the IP address for the specified adapter"
+        },
+        {
+          "flag": "/flushdns",
+          "description": "Purge the DNS resolver cache"
+        },
+        {
+          "flag": "/displaydns",
+          "description": "Display the DNS resolver cache"
+        },
+        {
+          "flag": "/registerdns",
+          "description": "Refresh all DHCP leases and re-register DNS names"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Show basic IP configuration",
+          "command": "ipconfig"
+        },
+        {
+          "description": "Show detailed configuration",
+          "command": "ipconfig /all"
+        },
+        {
+          "description": "Release and renew IP address",
+          "command": "ipconfig /release && ipconfig /renew"
+        },
+        {
+          "description": "Clear DNS cache",
+          "command": "ipconfig /flushdns"
+        },
+        {
+          "description": "Show DNS cache",
+          "command": "ipconfig /displaydns"
+        }
+      ],
+      "related": [
+        "ping",
+        "nslookup",
+        "netstat",
+        "arp"
+      ],
+      "tags": [
+        "network",
+        "ip",
+        "dns",
+        "dhcp"
+      ]
+    },
+    {
+      "name": "ping",
+      "category": "networking",
+      "description": "Test network connectivity",
+      "detailedDescription": "The ping command sends ICMP echo request packets to a target host and listens for echo reply packets. It's used to test network connectivity and measure round-trip time.",
+      "syntax": "ping hostname [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "-t",
+          "description": "Ping continuously until stopped"
+        },
+        {
+          "flag": "-n count",
+          "description": "Number of echo requests to send"
+        },
+        {
+          "flag": "-l size",
+          "description": "Size of send buffer"
+        },
+        {
+          "flag": "-f",
+          "description": "Set Don't Fragment flag"
+        },
+        {
+          "flag": "-i TTL",
+          "description": "Time To Live"
+        },
+        {
+          "flag": "-w timeout",
+          "description": "Timeout in milliseconds"
+        },
+        {
+          "flag": "-4",
+          "description": "Force IPv4"
+        },
+        {
+          "flag": "-6",
+          "description": "Force IPv6"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Ping a host 4 times",
+          "command": "ping google.com"
+        },
+        {
+          "description": "Continuous ping",
+          "command": "ping -t 192.168.1.1"
+        },
+        {
+          "description": "Ping with specific packet count",
+          "command": "ping -n 10 example.com"
+        },
+        {
+          "description": "Ping with larger packets",
+          "command": "ping -l 1000 server.local"
+        }
+      ],
+      "related": [
+        "tracert",
+        "pathping",
+        "nslookup"
+      ],
+      "tags": [
+        "network",
+        "connectivity",
+        "troubleshooting",
+        "latency"
+      ]
+    },
+    {
+      "name": "tracert",
+      "category": "networking",
+      "description": "Trace route to destination",
+      "detailedDescription": "The tracert command traces the route that packets take to reach a destination. It shows each hop along the path and the time taken for each hop.",
+      "syntax": "tracert hostname [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "-d",
+          "description": "Do not resolve addresses to hostnames"
+        },
+        {
+          "flag": "-h hops",
+          "description": "Maximum number of hops to search"
+        },
+        {
+          "flag": "-w timeout",
+          "description": "Wait timeout in milliseconds for each reply"
+        },
+        {
+          "flag": "-4",
+          "description": "Force IPv4"
+        },
+        {
+          "flag": "-6",
+          "description": "Force IPv6"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Trace route to a host",
+          "command": "tracert google.com"
+        },
+        {
+          "description": "Trace without DNS resolution",
+          "command": "tracert -d 8.8.8.8"
+        },
+        {
+          "description": "Limit maximum hops",
+          "command": "tracert -h 15 example.com"
+        },
+        {
+          "description": "Set timeout per hop",
+          "command": "tracert -w 500 server.local"
+        }
+      ],
+      "related": [
+        "ping",
+        "pathping",
+        "nslookup"
+      ],
+      "tags": [
+        "network",
+        "routing",
+        "troubleshooting",
+        "hops"
+      ]
+    },
+    {
+      "name": "nslookup",
+      "category": "networking",
+      "description": "Query DNS servers",
+      "detailedDescription": "The nslookup command queries DNS servers to find DNS details, including IP addresses of a particular computer, MX records for a domain, and more.",
+      "syntax": "nslookup hostname [server] [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "set type=A",
+          "description": "Query A records (default)"
+        },
+        {
+          "flag": "set type=MX",
+          "description": "Query mail exchange records"
+        },
+        {
+          "flag": "set type=NS",
+          "description": "Query name server records"
+        },
+        {
+          "flag": "set type=TXT",
+          "description": "Query text records"
+        },
+        {
+          "flag": "set type=ANY",
+          "description": "Query all record types"
+        },
+        {
+          "flag": "server",
+          "description": "Change default DNS server"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Basic DNS lookup",
+          "command": "nslookup google.com"
+        },
+        {
+          "description": "Query specific DNS server",
+          "command": "nslookup example.com 8.8.8.8"
+        },
+        {
+          "description": "Find mail servers",
+          "command": "nslookup -type=MX gmail.com"
+        },
+        {
+          "description": "Reverse DNS lookup",
+          "command": "nslookup 8.8.8.8"
+        }
+      ],
+      "related": [
+        "ping",
+        "ipconfig",
+        "netstat"
+      ],
+      "tags": [
+        "network",
+        "dns",
+        "domain",
+        "resolution"
+      ]
+    },
+    {
+      "name": "netstat",
+      "category": "networking",
+      "description": "Display network connections and statistics",
+      "detailedDescription": "The netstat command displays network connections, routing tables, interface statistics, masquerade connections, and multicast memberships.",
+      "syntax": "netstat [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "-a",
+          "description": "Display all connections and listening ports"
+        },
+        {
+          "flag": "-b",
+          "description": "Display executable involved in creating connections"
+        },
+        {
+          "flag": "-n",
+          "description": "Display addresses and ports in numerical form"
+        },
+        {
+          "flag": "-o",
+          "description": "Display owning process ID"
+        },
+        {
+          "flag": "-p proto",
+          "description": "Show connections for specified protocol"
+        },
+        {
+          "flag": "-r",
+          "description": "Display routing table"
+        },
+        {
+          "flag": "-s",
+          "description": "Display per-protocol statistics"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Show all connections",
+          "command": "netstat -a"
+        },
+        {
+          "description": "Show connections with process IDs",
+          "command": "netstat -ano"
+        },
+        {
+          "description": "Show only TCP connections",
+          "command": "netstat -p TCP"
+        },
+        {
+          "description": "Show network statistics",
+          "command": "netstat -s"
+        },
+        {
+          "description": "Show routing table",
+          "command": "netstat -r"
+        }
+      ],
+      "related": [
+        "ipconfig",
+        "arp",
+        "route"
+      ],
+      "tags": [
+        "network",
+        "connections",
+        "ports",
+        "statistics"
+      ]
+    },
+    {
+      "name": "systeminfo",
+      "category": "system-info",
+      "description": "Display detailed system configuration",
+      "detailedDescription": "The systeminfo command displays detailed configuration information about a computer, including hardware, network adapter, and OS configuration.",
+      "syntax": "systeminfo [options]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        {
+          "flag": "/s computer",
+          "description": "Remote computer to query"
+        },
+        {
+          "flag": "/u user",
+          "description": "User context for remote query"
+        },
+        {
+          "flag": "/fo format",
+          "description": "Output format (TABLE, LIST, CSV)"
+        },
+        {
+          "flag": "/nh",
+          "description": "No headers in table/CSV output"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Display local system info",
+          "command": "systeminfo"
+        },
+        {
+          "description": "Output to CSV format",
+          "command": "systeminfo /fo CSV"
+        },
+        {
+          "description": "Query remote computer",
+          "command": "systeminfo /s server01"
+        },
+        {
+          "description": "Filter for specific info",
+          "command": "systeminfo | findstr /C:\"OS Name\""
+        }
+      ],
+      "related": [
+        "wmic",
+        "ver",
+        "hostname"
+      ],
+      "tags": [
+        "system",
+        "hardware",
+        "information",
+        "configuration"
+      ]
+    },
+    {
+      "name": "tasklist",
+      "category": "process-management",
+      "description": "Display running processes",
+      "detailedDescription": "The tasklist command displays a list of currently running processes on a local or remote computer, along with their process IDs, memory usage, and more.",
+      "syntax": "tasklist [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/v",
+          "description": "Verbose output with detailed information"
+        },
+        {
+          "flag": "/svc",
+          "description": "List services hosted in each process"
+        },
+        {
+          "flag": "/m module",
+          "description": "List processes using given DLL"
+        },
+        {
+          "flag": "/fi filter",
+          "description": "Display processes matching filter criteria"
+        },
+        {
+          "flag": "/fo format",
+          "description": "Output format (TABLE, LIST, CSV)"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List all processes",
+          "command": "tasklist"
+        },
+        {
+          "description": "Show processes with services",
+          "command": "tasklist /svc"
+        },
+        {
+          "description": "Filter by memory usage",
+          "command": "tasklist /fi \"MEMUSAGE gt 100000\""
+        },
+        {
+          "description": "Find process by name",
+          "command": "tasklist /fi \"IMAGENAME eq chrome.exe\""
+        },
+        {
+          "description": "Export to CSV",
+          "command": "tasklist /fo CSV > processes.csv"
+        }
+      ],
+      "related": [
+        "taskkill",
+        "wmic",
+        "start"
+      ],
+      "tags": [
+        "process",
+        "tasks",
+        "memory",
+        "cpu"
+      ]
+    },
+    {
+      "name": "taskkill",
+      "category": "process-management",
+      "description": "Terminate processes",
+      "detailedDescription": "The taskkill command terminates one or more processes by process ID or image name. It can forcefully terminate processes that don't respond to normal termination.",
+      "syntax": "taskkill [/pid processid | /im imagename] [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/f",
+          "description": "Force termination of process"
+        },
+        {
+          "flag": "/t",
+          "description": "Terminate process and child processes"
+        },
+        {
+          "flag": "/pid id",
+          "description": "Specify process ID to terminate"
+        },
+        {
+          "flag": "/im name",
+          "description": "Specify image name to terminate"
+        },
+        {
+          "flag": "/fi filter",
+          "description": "Apply filter to select processes"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Kill process by name",
+          "command": "taskkill /im notepad.exe"
+        },
+        {
+          "description": "Force kill process",
+          "command": "taskkill /f /im chrome.exe"
+        },
+        {
+          "description": "Kill process by PID",
+          "command": "taskkill /pid 1234"
+        },
+        {
+          "description": "Kill process tree",
+          "command": "taskkill /t /f /pid 5678"
+        },
+        {
+          "description": "Kill not responding processes",
+          "command": "taskkill /fi \"STATUS eq NOT RESPONDING\" /f"
+        }
+      ],
+      "related": [
+        "tasklist",
+        "start",
+        "wmic"
+      ],
+      "tags": [
+        "process",
+        "terminate",
+        "kill",
+        "force"
+      ]
+    },
+    {
+      "name": "chkdsk",
+      "category": "disk-management",
+      "description": "Check disk for errors",
+      "detailedDescription": "The chkdsk command checks the file system and file system metadata of a volume for logical and physical errors. It can also fix errors when specified.",
+      "syntax": "chkdsk [drive:] [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "/f",
+          "description": "Fix errors on the disk"
+        },
+        {
+          "flag": "/v",
+          "description": "Display verbose output"
+        },
+        {
+          "flag": "/r",
+          "description": "Locate bad sectors and recover readable information"
+        },
+        {
+          "flag": "/x",
+          "description": "Force volume dismount if necessary"
+        },
+        {
+          "flag": "/i",
+          "description": "Perform less vigorous index checking (NTFS only)"
+        },
+        {
+          "flag": "/c",
+          "description": "Skip checking cycles within folder structure (NTFS only)"
+        },
+        {
+          "flag": "/b",
+          "description": "Re-evaluate bad clusters (NTFS only)"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Check current drive",
+          "command": "chkdsk"
+        },
+        {
+          "description": "Check and fix drive C:",
+          "command": "chkdsk C: /f"
+        },
+        {
+          "description": "Scan for bad sectors",
+          "command": "chkdsk D: /r"
+        },
+        {
+          "description": "Force check on next restart",
+          "command": "chkdsk C: /f /r"
+        }
+      ],
+      "related": [
+        "sfc",
+        "diskpart",
+        "defrag"
+      ],
+      "tags": [
+        "disk",
+        "filesystem",
+        "repair",
+        "scan"
+      ]
+    },
+    {
+      "name": "sfc",
+      "category": "security",
+      "description": "System File Checker",
+      "detailedDescription": "The sfc (System File Checker) command scans and verifies the integrity of all protected system files and replaces incorrect versions with correct Microsoft versions.",
+      "syntax": "sfc [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "/scannow",
+          "description": "Scan and repair system files immediately"
+        },
+        {
+          "flag": "/verifyonly",
+          "description": "Scan for integrity violations without repairing"
+        },
+        {
+          "flag": "/scanfile=file",
+          "description": "Scan and repair specific file"
+        },
+        {
+          "flag": "/verifyfile=file",
+          "description": "Verify specific file without repairing"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Scan and repair system files",
+          "command": "sfc /scannow"
+        },
+        {
+          "description": "Verify system files only",
+          "command": "sfc /verifyonly"
+        },
+        {
+          "description": "Scan specific system file",
+          "command": "sfc /scanfile=C:\\Windows\\System32\\kernel32.dll"
+        },
+        {
+          "description": "Verify specific file",
+          "command": "sfc /verifyfile=C:\\Windows\\System32\\user32.dll"
+        }
+      ],
+      "related": [
+        "chkdsk",
+        "dism"
+      ],
+      "tags": [
+        "system",
+        "repair",
+        "integrity",
+        "security"
+      ]
+    },
+    {
+      "name": "net user",
+      "category": "user-management",
+      "description": "Manage user accounts",
+      "detailedDescription": "The net user command creates and modifies user accounts on computers. When used without parameters, it lists the user accounts on the computer.",
+      "syntax": "net user [username] [password] [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/add",
+          "description": "Add a new user account"
+        },
+        {
+          "flag": "/delete",
+          "description": "Delete a user account"
+        },
+        {
+          "flag": "/active:yes|no",
+          "description": "Enable or disable account"
+        },
+        {
+          "flag": "/expires:date",
+          "description": "Set account expiration date"
+        },
+        {
+          "flag": "/fullname:\"name\"",
+          "description": "Set user's full name"
+        },
+        {
+          "flag": "/passwordreq:yes|no",
+          "description": "Require password"
+        },
+        {
+          "flag": "/domain",
+          "description": "Perform operation on domain controller"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List all users",
+          "command": "net user"
+        },
+        {
+          "description": "Show user details",
+          "command": "net user username"
+        },
+        {
+          "description": "Create new user",
+          "command": "net user newuser password123 /add"
+        },
+        {
+          "description": "Disable user account",
+          "command": "net user username /active:no"
+        },
+        {
+          "description": "Delete user",
+          "command": "net user username /delete"
+        }
+      ],
+      "related": [
+        "net localgroup",
+        "whoami"
+      ],
+      "tags": [
+        "users",
+        "accounts",
+        "security",
+        "management"
+      ]
+    },
+    {
+      "name": "shutdown",
+      "category": "power-management",
+      "description": "Shutdown or restart computer",
+      "detailedDescription": "The shutdown command allows you to shut down or restart local or remote computers one at a time. It provides various options for logging off users, shutting down, or restarting.",
+      "syntax": "shutdown [/s | /r | /l] [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/s",
+          "description": "Shutdown the computer"
+        },
+        {
+          "flag": "/r",
+          "description": "Restart the computer"
+        },
+        {
+          "flag": "/l",
+          "description": "Log off current user"
+        },
+        {
+          "flag": "/t xxx",
+          "description": "Set timeout period before shutdown"
+        },
+        {
+          "flag": "/a",
+          "description": "Abort a system shutdown"
+        },
+        {
+          "flag": "/f",
+          "description": "Force running applications to close"
+        },
+        {
+          "flag": "/m \\\\computer",
+          "description": "Specify target computer"
+        },
+        {
+          "flag": "/c \"comment\"",
+          "description": "Comment on reason for shutdown"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Shutdown immediately",
+          "command": "shutdown /s /t 0"
+        },
+        {
+          "description": "Restart in 60 seconds",
+          "command": "shutdown /r /t 60"
+        },
+        {
+          "description": "Abort shutdown",
+          "command": "shutdown /a"
+        },
+        {
+          "description": "Shutdown with message",
+          "command": "shutdown /s /t 300 /c \"System maintenance\""
+        },
+        {
+          "description": "Force restart",
+          "command": "shutdown /r /f /t 0"
+        }
+      ],
+      "related": [
+        "logoff",
+        "powercfg"
+      ],
+      "tags": [
+        "power",
+        "restart",
+        "shutdown",
+        "system"
+      ]
+    },
+    {
+      "name": "reg",
+      "category": "registry",
+      "description": "Registry editor command line",
+      "detailedDescription": "The reg command performs operations on registry subkeys and values. It can query, add, delete, copy, save, and restore registry entries.",
+      "syntax": "reg command keyname [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "query",
+          "description": "Display registry values"
+        },
+        {
+          "flag": "add",
+          "description": "Add new registry entry"
+        },
+        {
+          "flag": "delete",
+          "description": "Delete registry entry"
+        },
+        {
+          "flag": "copy",
+          "description": "Copy registry entry"
+        },
+        {
+          "flag": "save",
+          "description": "Save registry hive to file"
+        },
+        {
+          "flag": "restore",
+          "description": "Restore registry from file"
+        },
+        {
+          "flag": "export",
+          "description": "Export registry to .reg file"
+        },
+        {
+          "flag": "import",
+          "description": "Import .reg file"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Query registry value",
+          "command": "reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion"
+        },
+        {
+          "description": "Add registry value",
+          "command": "reg add HKCU\\Software\\MyApp /v Setting /t REG_SZ /d \"Value\""
+        },
+        {
+          "description": "Delete registry key",
+          "command": "reg delete HKCU\\Software\\MyApp /f"
+        },
+        {
+          "description": "Export registry branch",
+          "command": "reg export HKLM\\Software\\MyApp backup.reg"
+        }
+      ],
+      "related": [
+        "regedit",
+        "regsvr32"
+      ],
+      "tags": [
+        "registry",
+        "configuration",
+        "system",
+        "settings"
+      ]
+    },
+    {
+      "name": "sc",
+      "category": "services",
+      "description": "Service Control Manager",
+      "detailedDescription": "The sc command communicates with the Service Control Manager to configure, query, stop, start, and manage Windows services.",
+      "syntax": "sc command [service_name] [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "query",
+          "description": "Query service status"
+        },
+        {
+          "flag": "start",
+          "description": "Start a service"
+        },
+        {
+          "flag": "stop",
+          "description": "Stop a service"
+        },
+        {
+          "flag": "config",
+          "description": "Configure service properties"
+        },
+        {
+          "flag": "create",
+          "description": "Create a new service"
+        },
+        {
+          "flag": "delete",
+          "description": "Delete a service"
+        },
+        {
+          "flag": "qc",
+          "description": "Query service configuration"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List all services",
+          "command": "sc query"
+        },
+        {
+          "description": "Query specific service",
+          "command": "sc query servicename"
+        },
+        {
+          "description": "Start a service",
+          "command": "sc start servicename"
+        },
+        {
+          "description": "Stop a service",
+          "command": "sc stop servicename"
+        },
+        {
+          "description": "Set service to automatic",
+          "command": "sc config servicename start=auto"
+        }
+      ],
+      "related": [
+        "net start",
+        "net stop",
+        "services.msc"
+      ],
+      "tags": [
+        "services",
+        "management",
+        "system",
+        "configuration"
+      ]
+    },
+    {
+      "name": "wmic",
+      "category": "system-info",
+      "description": "Windows Management Instrumentation CLI",
+      "detailedDescription": "WMIC is a command-line interface to Windows Management Instrumentation (WMI) that allows you to query and manage Windows systems. Note: WMIC is deprecated in Windows 11 and later.",
+      "syntax": "wmic alias [where clause] [verb]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "process",
+          "description": "Manage processes"
+        },
+        {
+          "flag": "service",
+          "description": "Manage services"
+        },
+        {
+          "flag": "product",
+          "description": "Manage installed software"
+        },
+        {
+          "flag": "cpu",
+          "description": "Query CPU information"
+        },
+        {
+          "flag": "os",
+          "description": "Query operating system info"
+        },
+        {
+          "flag": "diskdrive",
+          "description": "Query disk information"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Get CPU information",
+          "command": "wmic cpu get name,maxclockspeed,numberofcores"
+        },
+        {
+          "description": "List running processes",
+          "command": "wmic process list brief"
+        },
+        {
+          "description": "Get OS information",
+          "command": "wmic os get caption,version,buildnumber"
+        },
+        {
+          "description": "Uninstall software",
+          "command": "wmic product where \"name='Software Name'\" uninstall"
+        },
+        {
+          "description": "Get disk info",
+          "command": "wmic diskdrive get model,size,status"
+        }
+      ],
+      "related": [
+        "systeminfo",
+        "tasklist",
+        "sc"
+      ],
+      "tags": [
+        "wmi",
+        "system",
+        "query",
+        "management"
+      ]
+    },
+    {
+      "name": "powercfg",
+      "category": "power-management",
+      "description": "Power configuration settings",
+      "detailedDescription": "The powercfg command controls power settings and generates detailed reports about power usage, battery life, and sleep issues on the system.",
+      "syntax": "powercfg [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/list",
+          "description": "List all power schemes"
+        },
+        {
+          "flag": "/query",
+          "description": "Display detailed power scheme settings"
+        },
+        {
+          "flag": "/change",
+          "description": "Modify power plan settings"
+        },
+        {
+          "flag": "/setactive",
+          "description": "Set active power scheme"
+        },
+        {
+          "flag": "/batteryreport",
+          "description": "Generate battery usage report"
+        },
+        {
+          "flag": "/energy",
+          "description": "Generate energy efficiency report"
+        },
+        {
+          "flag": "/sleepstudy",
+          "description": "Generate sleep study report"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List power plans",
+          "command": "powercfg /list"
+        },
+        {
+          "description": "Generate battery report",
+          "command": "powercfg /batteryreport"
+        },
+        {
+          "description": "Set high performance plan",
+          "command": "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
+        },
+        {
+          "description": "Check sleep issues",
+          "command": "powercfg /sleepstudy"
+        },
+        {
+          "description": "Disable hibernation",
+          "command": "powercfg /hibernate off"
+        }
+      ],
+      "related": [
+        "shutdown",
+        "systeminfo"
+      ],
+      "tags": [
+        "power",
+        "battery",
+        "energy",
+        "performance"
+      ]
+    },
+    {
+      "name": "cipher",
+      "category": "security",
+      "description": "Encrypt or decrypt files and folders",
+      "detailedDescription": "The cipher command displays or alters the encryption of directories and files on NTFS volumes. It can also be used to securely overwrite deleted data.",
+      "syntax": "cipher [/e | /d] pathname [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "/e",
+          "description": "Encrypt specified files or directories"
+        },
+        {
+          "flag": "/d",
+          "description": "Decrypt specified files or directories"
+        },
+        {
+          "flag": "/c",
+          "description": "Display encryption info for files"
+        },
+        {
+          "flag": "/s:dir",
+          "description": "Perform operation in directory and subdirectories"
+        },
+        {
+          "flag": "/w:dir",
+          "description": "Remove data from unused disk space"
+        },
+        {
+          "flag": "/k",
+          "description": "Create new encryption key for user"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Show encryption status",
+          "command": "cipher"
+        },
+        {
+          "description": "Encrypt a folder",
+          "command": "cipher /e /s:C:\\SecureData"
+        },
+        {
+          "description": "Decrypt files",
+          "command": "cipher /d *.doc"
+        },
+        {
+          "description": "Securely wipe free space",
+          "command": "cipher /w:C:"
+        }
+      ],
+      "related": [
+        "attrib",
+        "cacls",
+        "icacls"
+      ],
+      "tags": [
+        "encryption",
+        "security",
+        "files",
+        "privacy"
+      ]
+    },
+    {
+      "name": "arp",
+      "category": "networking",
+      "description": "Display and modify ARP cache",
+      "detailedDescription": "The arp command displays and modifies entries in the Address Resolution Protocol (ARP) cache, which contains IP-to-MAC address mappings.",
+      "syntax": "arp [options] [inet_addr]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "-a",
+          "description": "Display current ARP entries"
+        },
+        {
+          "flag": "-g",
+          "description": "Same as -a"
+        },
+        {
+          "flag": "-d addr",
+          "description": "Delete an entry"
+        },
+        {
+          "flag": "-s addr mac",
+          "description": "Add static entry"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Display ARP cache",
+          "command": "arp -a"
+        },
+        {
+          "description": "Delete ARP entry",
+          "command": "arp -d 192.168.1.100"
+        },
+        {
+          "description": "Add static ARP entry",
+          "command": "arp -s 192.168.1.100 00-11-22-33-44-55"
+        }
+      ],
+      "related": [
+        "ipconfig",
+        "netstat",
+        "route"
+      ],
+      "tags": [
+        "network",
+        "arp",
+        "mac",
+        "cache"
+      ]
+    },
+    {
+      "name": "route",
+      "category": "networking",
+      "description": "Display and modify network routing tables",
+      "detailedDescription": "The route command displays and modifies the entries in the local IP routing table. It's used to manually configure network routes.",
+      "syntax": "route command [destination] [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "print",
+          "description": "Display routing table"
+        },
+        {
+          "flag": "add",
+          "description": "Add a route"
+        },
+        {
+          "flag": "delete",
+          "description": "Delete a route"
+        },
+        {
+          "flag": "change",
+          "description": "Modify existing route"
+        },
+        {
+          "flag": "-p",
+          "description": "Make route persistent across reboots"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Display routing table",
+          "command": "route print"
+        },
+        {
+          "description": "Add a route",
+          "command": "route add 10.0.0.0 mask 255.0.0.0 192.168.1.1"
+        },
+        {
+          "description": "Add persistent route",
+          "command": "route -p add 172.16.0.0 mask 255.255.0.0 192.168.1.1"
+        },
+        {
+          "description": "Delete a route",
+          "command": "route delete 10.0.0.0"
+        }
+      ],
+      "related": [
+        "netstat",
+        "ipconfig",
+        "tracert"
+      ],
+      "tags": [
+        "network",
+        "routing",
+        "gateway",
+        "configuration"
+      ]
+    },
+    {
+      "name": "format",
+      "category": "disk-management",
+      "description": "Format a disk for use with Windows",
+      "detailedDescription": "The format command formats a disk for use with Windows. It creates a new file system on the specified volume. Warning: This erases all data on the volume.",
+      "syntax": "format drive: [options]",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "/fs:filesystem",
+          "description": "Specify file system (NTFS, FAT32, exFAT)"
+        },
+        {
+          "flag": "/v:label",
+          "description": "Specify volume label"
+        },
+        {
+          "flag": "/q",
+          "description": "Perform quick format"
+        },
+        {
+          "flag": "/a:size",
+          "description": "Override default allocation unit size"
+        },
+        {
+          "flag": "/c",
+          "description": "Files created will be compressed by default (NTFS only)"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Quick format to NTFS",
+          "command": "format E: /fs:NTFS /q"
+        },
+        {
+          "description": "Format with volume label",
+          "command": "format F: /v:BACKUP /fs:NTFS"
+        },
+        {
+          "description": "Format USB to FAT32",
+          "command": "format G: /fs:FAT32 /q"
+        }
+      ],
+      "related": [
+        "diskpart",
+        "chkdsk",
+        "convert"
+      ],
+      "tags": [
+        "disk",
+        "format",
+        "filesystem",
+        "storage"
+      ]
+    },
+    {
+      "name": "diskpart",
+      "category": "disk-management",
+      "description": "Disk partition management utility",
+      "detailedDescription": "DiskPart is a powerful disk partitioning utility that allows you to manage disks, partitions, and volumes. It runs in its own command interpreter.",
+      "syntax": "diskpart",
+      "difficulty": "advanced",
+      "commonOptions": [
+        {
+          "flag": "list disk",
+          "description": "Show all disks"
+        },
+        {
+          "flag": "list volume",
+          "description": "Show all volumes"
+        },
+        {
+          "flag": "list partition",
+          "description": "Show partitions on selected disk"
+        },
+        {
+          "flag": "select disk n",
+          "description": "Select disk to work with"
+        },
+        {
+          "flag": "clean",
+          "description": "Remove all partitions from selected disk"
+        },
+        {
+          "flag": "create partition primary",
+          "description": "Create primary partition"
+        },
+        {
+          "flag": "format fs=ntfs quick",
+          "description": "Quick format to NTFS"
+        },
+        {
+          "flag": "assign letter=X",
+          "description": "Assign drive letter"
+        }
+      ],
+      "examples": [
+        {
+          "description": "List all disks",
+          "command": "diskpart > list disk"
+        },
+        {
+          "description": "Select and clean disk",
+          "command": "diskpart > select disk 1 > clean"
+        },
+        {
+          "description": "Create and format partition",
+          "command": "diskpart > create partition primary > format fs=ntfs quick"
+        }
+      ],
+      "related": [
+        "format",
+        "chkdsk",
+        "convert"
+      ],
+      "tags": [
+        "disk",
+        "partition",
+        "volume",
+        "management"
+      ]
+    },
+    {
+      "name": "gpupdate",
+      "category": "security",
+      "description": "Update Group Policy settings",
+      "detailedDescription": "The gpupdate command refreshes local and Active Directory-based Group Policy settings, including security settings.",
+      "syntax": "gpupdate [options]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        {
+          "flag": "/force",
+          "description": "Reapply all policy settings"
+        },
+        {
+          "flag": "/target:computer",
+          "description": "Update only computer policies"
+        },
+        {
+          "flag": "/target:user",
+          "description": "Update only user policies"
+        },
+        {
+          "flag": "/logoff",
+          "description": "Log off after update if required"
+        },
+        {
+          "flag": "/boot",
+          "description": "Restart after update if required"
+        }
+      ],
+      "examples": [
+        {
+          "description": "Update all policies",
+          "command": "gpupdate"
+        },
+        {
+          "description": "Force update all policies",
+          "command": "gpupdate /force"
+        },
+        {
+          "description": "Update computer policies only",
+          "command": "gpupdate /target:computer"
+        }
+      ],
+      "related": [
+        "gpresult",
+        "rsop.msc"
+      ],
+      "tags": [
+        "policy",
+        "security",
+        "domain",
+        "configuration"
+      ]
+    }
   ]
 }
