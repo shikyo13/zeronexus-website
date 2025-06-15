@@ -88,6 +88,7 @@ include $modals_path . 'ping-traceroute.php';
 include $modals_path . 'security-headers.php';
 include $modals_path . 'security-headers-generator.php';
 include $modals_path . 'security-headers-help.php';
+include $modals_path . 'password-strength.php';
 include $modals_path . 'firewall-rule-generator.php';
 ?>
 

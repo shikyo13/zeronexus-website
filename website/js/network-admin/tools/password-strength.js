@@ -1,0 +1,543 @@
+/**
+ * Password Strength Tester & Generator
+ * Provides password strength analysis and secure password generation
+ */
+
+// Character sets for password generation
+const CHAR_SETS = {
+  uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  lowercase: 'abcdefghijklmnopqrstuvwxyz',
+  numbers: '0123456789',
+  symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+};
+
+// Common password patterns to detect
+const COMMON_PATTERNS = [
+  /^(password|123456|qwerty|admin|letmein|welcome|monkey|dragon)/i,
+  /^(\d)\1+$/,  // Repeated digits
+  /^([a-z])\1+$/i,  // Repeated letters
+  /^(abc|xyz|123|qwe)/i,  // Sequential patterns
+  /^(.)\1{2,}$/  // Same character repeated 3+ times
+];
+
+// Strength levels
+const STRENGTH_LEVELS = {
+  0: { label: 'Very Weak', class: 'bg-danger', color: '#dc3545' },
+  1: { label: 'Weak', class: 'bg-warning', color: '#ffc107' },
+  2: { label: 'Fair', class: 'bg-info', color: '#0dcaf0' },
+  3: { label: 'Good', class: 'bg-primary', color: '#0d6efd' },
+  4: { label: 'Strong', class: 'bg-success', color: '#198754' }
+};
+
+// Session storage for password history
+let passwordHistory = [];
+
+/**
+ * Initialize Password Strength Tool
+ */
+export default function setupPasswordStrength() {
+  console.log('Setting up Password Strength Tool...');
+  
+  // Set up event listeners
+  setupPasswordTester();
+  setupPasswordGenerator();
+  
+  // Initialize UI elements
+  initializeUI();
+}
+
+/**
+ * Initialize UI elements
+ */
+function initializeUI() {
+  // Sync length slider with number input
+  const lengthSlider = document.getElementById('passwordLength');
+  const lengthValue = document.getElementById('passwordLengthValue');
+  
+  if (lengthSlider && lengthValue) {
+    lengthSlider.addEventListener('input', () => {
+      lengthValue.value = lengthSlider.value;
+    });
+    
+    lengthValue.addEventListener('input', () => {
+      lengthSlider.value = lengthValue.value;
+    });
+  }
+}
+
+/**
+ * Set up password tester functionality
+ */
+function setupPasswordTester() {
+  const passwordInput = document.getElementById('passwordInput');
+  const toggleBtn = document.getElementById('togglePasswordVisibility');
+  const advancedCheckbox = document.getElementById('advancedAnalysis');
+  
+  if (!passwordInput) return;
+  
+  // Real-time password analysis
+  let debounceTimer;
+  passwordInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      analyzePassword(passwordInput.value);
+    }, 300);
+  });
+  
+  // Toggle password visibility
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
+      toggleBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+  }
+  
+  // Advanced analysis toggle
+  if (advancedCheckbox) {
+    advancedCheckbox.addEventListener('change', () => {
+      if (passwordInput.value) {
+        analyzePassword(passwordInput.value);
+      }
+    });
+  }
+}
+
+/**
+ * Analyze password strength
+ */
+function analyzePassword(password) {
+  if (!password) {
+    hidePasswordAnalysis();
+    return;
+  }
+  
+  // Calculate basic entropy
+  const entropy = calculateEntropy(password);
+  const score = calculateStrengthScore(password, entropy);
+  
+  // Update UI
+  updateStrengthMeter(score);
+  updateAnalysisDetails(password, entropy, score);
+  
+  // Show analysis sections
+  document.getElementById('passwordStrengthMeter')?.classList.remove('d-none');
+  document.getElementById('passwordAnalysis')?.classList.remove('d-none');
+}
+
+/**
+ * Calculate password entropy
+ */
+function calculateEntropy(password) {
+  const charsetSize = getCharsetSize(password);
+  return Math.log2(Math.pow(charsetSize, password.length));
+}
+
+/**
+ * Get charset size based on password content
+ */
+function getCharsetSize(password) {
+  let size = 0;
+  
+  if (/[a-z]/.test(password)) size += 26;
+  if (/[A-Z]/.test(password)) size += 26;
+  if (/[0-9]/.test(password)) size += 10;
+  if (/[^a-zA-Z0-9]/.test(password)) size += 32;
+  
+  return size;
+}
+
+/**
+ * Calculate overall strength score (0-4)
+ */
+function calculateStrengthScore(password, entropy) {
+  let score = 0;
+  
+  // Length scoring
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (password.length >= 16) score++;
+  
+  // Entropy scoring
+  if (entropy >= 30) score++;
+  if (entropy >= 50) score++;
+  if (entropy >= 70) score++;
+  
+  // Character diversity
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+  
+  const diversity = [hasLower, hasUpper, hasNumber, hasSymbol].filter(Boolean).length;
+  if (diversity >= 3) score++;
+  if (diversity === 4) score++;
+  
+  // Penalties
+  if (password.length < 8) score = 0;
+  
+  // Check common patterns
+  for (const pattern of COMMON_PATTERNS) {
+    if (pattern.test(password)) {
+      score = Math.max(0, score - 2);
+      break;
+    }
+  }
+  
+  // Normalize score to 0-4
+  return Math.min(4, Math.max(0, Math.floor(score / 2)));
+}
+
+/**
+ * Update strength meter UI
+ */
+function updateStrengthMeter(score) {
+  const strengthBar = document.getElementById('strengthBar');
+  const strengthLabel = document.getElementById('strengthLabel');
+  
+  if (!strengthBar || !strengthLabel) return;
+  
+  const level = STRENGTH_LEVELS[score];
+  const percentage = (score + 1) * 20;
+  
+  strengthBar.style.width = percentage + '%';
+  strengthBar.className = 'progress-bar ' + level.class;
+  strengthBar.setAttribute('aria-valuenow', percentage);
+  
+  strengthLabel.textContent = level.label;
+  strengthLabel.className = 'badge ' + level.class;
+}
+
+/**
+ * Update analysis details
+ */
+function updateAnalysisDetails(password, entropy, score) {
+  const statsEl = document.getElementById('passwordStats');
+  const feedbackEl = document.getElementById('passwordFeedback');
+  
+  if (!statsEl || !feedbackEl) return;
+  
+  // Stats
+  const stats = [
+    `<li><strong>Length:</strong> ${password.length} characters</li>`,
+    `<li><strong>Entropy:</strong> ${entropy.toFixed(1)} bits</li>`,
+    `<li><strong>Character Set Size:</strong> ${getCharsetSize(password)}</li>`,
+    `<li><strong>Time to Crack:</strong> ${estimateCrackTime(entropy)}</li>`
+  ];
+  statsEl.innerHTML = stats.join('');
+  
+  // Feedback
+  const feedback = generateFeedback(password, score);
+  feedbackEl.innerHTML = feedback;
+}
+
+/**
+ * Estimate time to crack based on entropy
+ */
+function estimateCrackTime(entropy) {
+  // Assuming 1 trillion guesses per second
+  const guessesPerSecond = 1e12;
+  const totalGuesses = Math.pow(2, entropy);
+  const seconds = totalGuesses / (2 * guessesPerSecond); // Average case
+  
+  if (seconds < 1) return 'Instant';
+  if (seconds < 60) return Math.round(seconds) + ' seconds';
+  if (seconds < 3600) return Math.round(seconds / 60) + ' minutes';
+  if (seconds < 86400) return Math.round(seconds / 3600) + ' hours';
+  if (seconds < 2592000) return Math.round(seconds / 86400) + ' days';
+  if (seconds < 31536000) return Math.round(seconds / 2592000) + ' months';
+  
+  const years = seconds / 31536000;
+  if (years < 1000) return Math.round(years) + ' years';
+  if (years < 1e6) return (years / 1000).toFixed(1) + ' thousand years';
+  if (years < 1e9) return (years / 1e6).toFixed(1) + ' million years';
+  return (years / 1e9).toFixed(1) + ' billion years';
+}
+
+/**
+ * Generate feedback based on password analysis
+ */
+function generateFeedback(password, score) {
+  const feedback = [];
+  
+  if (score < 3) {
+    feedback.push('<h6 class="text-warning">Suggestions:</h6>');
+    feedback.push('<ul class="mb-0">');
+    
+    if (password.length < 12) {
+      feedback.push('<li>Use at least 12 characters</li>');
+    }
+    
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      feedback.push('<li>Mix uppercase and lowercase letters</li>');
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      feedback.push('<li>Include numbers</li>');
+    }
+    
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+      feedback.push('<li>Add special characters</li>');
+    }
+    
+    for (const pattern of COMMON_PATTERNS) {
+      if (pattern.test(password)) {
+        feedback.push('<li class="text-danger">Avoid common patterns and dictionary words</li>');
+        break;
+      }
+    }
+    
+    feedback.push('</ul>');
+  } else {
+    feedback.push('<div class="alert alert-success mb-0">');
+    feedback.push('<i class="fas fa-check-circle me-2"></i>');
+    feedback.push('Your password is strong!');
+    feedback.push('</div>');
+  }
+  
+  return feedback.join('');
+}
+
+/**
+ * Hide password analysis
+ */
+function hidePasswordAnalysis() {
+  document.getElementById('passwordStrengthMeter')?.classList.add('d-none');
+  document.getElementById('passwordAnalysis')?.classList.add('d-none');
+}
+
+/**
+ * Set up password generator functionality
+ */
+function setupPasswordGenerator() {
+  const generateBtn = document.getElementById('generatePasswordBtn');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+  if (generateBtn) {
+    generateBtn.addEventListener('click', generatePasswords);
+  }
+  
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', clearPasswordHistory);
+  }
+}
+
+/**
+ * Generate secure passwords
+ */
+function generatePasswords() {
+  const length = parseInt(document.getElementById('passwordLength').value);
+  const count = parseInt(document.getElementById('passwordCount').value);
+  const options = {
+    uppercase: document.getElementById('includeUppercase').checked,
+    lowercase: document.getElementById('includeLowercase').checked,
+    numbers: document.getElementById('includeNumbers').checked,
+    symbols: document.getElementById('includeSymbols').checked,
+    exclude: document.getElementById('excludeChars').value
+  };
+  
+  // Validate options
+  if (!options.uppercase && !options.lowercase && !options.numbers && !options.symbols) {
+    alert('Please select at least one character type.');
+    return;
+  }
+  
+  const passwords = [];
+  for (let i = 0; i < count; i++) {
+    const password = generateSecurePassword(length, options);
+    passwords.push(password);
+    passwordHistory.unshift({ password, timestamp: new Date() });
+  }
+  
+  // Keep history limited to 50 entries
+  passwordHistory = passwordHistory.slice(0, 50);
+  
+  displayGeneratedPasswords(passwords);
+  updatePasswordHistory();
+}
+
+/**
+ * Generate a secure password using Web Crypto API
+ */
+function generateSecurePassword(length, options) {
+  let charset = '';
+  
+  if (options.uppercase) charset += CHAR_SETS.uppercase;
+  if (options.lowercase) charset += CHAR_SETS.lowercase;
+  if (options.numbers) charset += CHAR_SETS.numbers;
+  if (options.symbols) charset += CHAR_SETS.symbols;
+  
+  // Remove excluded characters
+  if (options.exclude) {
+    const excludeSet = new Set(options.exclude.split(''));
+    charset = charset.split('').filter(char => !excludeSet.has(char)).join('');
+  }
+  
+  if (!charset) return '';
+  
+  const password = new Uint8Array(length);
+  crypto.getRandomValues(password);
+  
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += charset[password[i] % charset.length];
+  }
+  
+  // Ensure at least one character from each selected type
+  if (options.uppercase && !/[A-Z]/.test(result)) {
+    result = ensureCharacterType(result, CHAR_SETS.uppercase, charset);
+  }
+  if (options.lowercase && !/[a-z]/.test(result)) {
+    result = ensureCharacterType(result, CHAR_SETS.lowercase, charset);
+  }
+  if (options.numbers && !/[0-9]/.test(result)) {
+    result = ensureCharacterType(result, CHAR_SETS.numbers, charset);
+  }
+  if (options.symbols && !/[^a-zA-Z0-9]/.test(result)) {
+    result = ensureCharacterType(result, CHAR_SETS.symbols, charset);
+  }
+  
+  return result;
+}
+
+/**
+ * Ensure password contains at least one character from specified type
+ */
+function ensureCharacterType(password, typeCharset, fullCharset) {
+  const randomIndex = crypto.getRandomValues(new Uint8Array(1))[0] % password.length;
+  const randomChar = typeCharset[crypto.getRandomValues(new Uint8Array(1))[0] % typeCharset.length];
+  
+  return password.substring(0, randomIndex) + randomChar + password.substring(randomIndex + 1);
+}
+
+
+/**
+ * Display generated passwords
+ */
+function displayGeneratedPasswords(passwords) {
+  const container = document.getElementById('generatedPasswords');
+  const list = document.getElementById('passwordList');
+  
+  if (!container || !list) return;
+  
+  container.classList.remove('d-none');
+  
+  list.innerHTML = passwords.map((password, index) => {
+    const strength = calculateStrengthScore(password, calculateEntropy(password));
+    const level = STRENGTH_LEVELS[strength];
+    
+    return `
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center flex-grow-1">
+          <code class="fs-6 me-3">${escapeHtml(password)}</code>
+          <span class="badge ${level.class}">${level.label}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary copy-password-btn" data-password="${escapeHtml(password)}">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    `;
+  }).join('');
+  
+  // Add copy event listeners
+  list.querySelectorAll('.copy-password-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const password = e.currentTarget.dataset.password;
+      copyToClipboard(password, e.currentTarget);
+    });
+  });
+}
+
+/**
+ * Update password history display
+ */
+function updatePasswordHistory() {
+  const container = document.getElementById('passwordHistory');
+  const list = document.getElementById('historyList');
+  
+  if (!container || !list || passwordHistory.length === 0) return;
+  
+  container.classList.remove('d-none');
+  
+  list.innerHTML = passwordHistory.slice(0, 10).map(entry => {
+    const timeAgo = getTimeAgo(entry.timestamp);
+    return `
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <code class="small">${escapeHtml(entry.password)}</code>
+          <div class="text-muted small">${timeAgo}</div>
+        </div>
+        <button class="btn btn-sm btn-outline-primary copy-password-btn" data-password="${escapeHtml(entry.password)}">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    `;
+  }).join('');
+  
+  // Add copy event listeners
+  list.querySelectorAll('.copy-password-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const password = e.currentTarget.dataset.password;
+      copyToClipboard(password, e.currentTarget);
+    });
+  });
+}
+
+/**
+ * Clear password history
+ */
+function clearPasswordHistory() {
+  passwordHistory = [];
+  document.getElementById('passwordHistory')?.classList.add('d-none');
+  document.getElementById('historyList').innerHTML = '';
+}
+
+/**
+ * Copy to clipboard with feedback
+ */
+async function copyToClipboard(text, button) {
+  try {
+    await navigator.clipboard.writeText(text);
+    
+    // Visual feedback
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-outline-primary');
+    
+    setTimeout(() => {
+      button.innerHTML = originalHtml;
+      button.classList.remove('btn-success');
+      button.classList.add('btn-outline-primary');
+    }, 2000);
+    
+    // Clear clipboard after 60 seconds
+    setTimeout(() => {
+      navigator.clipboard.writeText('');
+    }, 60000);
+    
+  } catch (err) {
+    console.error('Failed to copy:', err);
+    alert('Failed to copy to clipboard');
+  }
+}
+
+/**
+ * Get time ago string
+ */
+function getTimeAgo(timestamp) {
+  const seconds = Math.floor((new Date() - timestamp) / 1000);
+  
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+  return Math.floor(seconds / 86400) + ' days ago';
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
