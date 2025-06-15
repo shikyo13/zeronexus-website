@@ -1,0 +1,19 @@
+{
+    "extends": "stylelint-config-standard",
+    "rules": {
+        "at-rule-no-unknown": [true, {
+            "ignoreAtRules": ["tailwind", "apply", "variants", "responsive", "screen"]
+        }],
+        "selector-class-pattern": null,
+        "selector-id-pattern": null,
+        "no-descending-specificity": null,
+        "declaration-block-no-duplicate-properties": [true, {
+            "ignore": ["consecutive-duplicates-with-different-values"]
+        }]
+    },
+    "ignoreFiles": [
+        "website/css/bootstrap*.css",
+        "website/css/*.min.css",
+        "**/*.min.css"
+    ]
+}

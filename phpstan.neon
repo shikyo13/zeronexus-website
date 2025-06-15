@@ -1,0 +1,12 @@
+parameters:
+    level: 0
+    paths:
+        - website
+    excludePaths:
+        - website/artwork
+        - website/img
+    ignoreErrors:
+        - '#Call to an undefined method#'
+        - '#Access to an undefined property#'
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false

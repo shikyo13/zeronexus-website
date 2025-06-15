@@ -1,5 +1,7 @@
 # ZeroNexus Website
 
+[![Code Quality](https://github.com/shikyo13/zeronexus-website/actions/workflows/code-quality.yml/badge.svg)](https://github.com/shikyo13/zeronexus-website/actions/workflows/code-quality.yml)
+
 Personal website for Adam Hunt, featuring a portfolio showcase, security news feed, and social media integration.
 
 ## Features

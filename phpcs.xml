@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<ruleset name="ZeroNexus">
+    <description>ZeroNexus Website coding standards</description>
+    
+    <!-- Include PSR-12 standard -->
+    <rule ref="PSR12"/>
+    
+    <!-- Paths to check -->
+    <file>website</file>
+    
+    <!-- Exclude patterns -->
+    <exclude-pattern>*/artwork/*</exclude-pattern>
+    <exclude-pattern>*/img/*</exclude-pattern>
+    <exclude-pattern>*.min.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
+    
+    <!-- Show progress -->
+    <arg value="p"/>
+    
+    <!-- Show sniff codes -->
+    <arg value="s"/>
+    
+    <!-- Check only PHP files -->
+    <arg name="extensions" value="php"/>
+    
+    <!-- Custom rules -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+</ruleset>

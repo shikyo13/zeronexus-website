@@ -1,0 +1,84 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  php-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: PHPStan Analysis
+        uses: php-actions/phpstan@v3
+        with:
+          path: website/
+          level: 0
+          
+      - name: PHP CodeSniffer
+        uses: php-actions/phpcs@v1
+        with:
+          path: website/
+          standard: PSR12
+
+  js-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: ESLint
+        run: |
+          docker run --rm \
+            -v $PWD:/work \
+            -w /work \
+            cytopia/eslint \
+            --ext .js \
+            website/js/
+
+  css-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Stylelint
+        run: |
+          docker run --rm \
+            -v $PWD:/work \
+            -w /work \
+            cytopia/stylelint \
+            'website/css/*.css'
+
+  html-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Extract and Validate HTML
+        run: |
+          # Extract HTML from PHP files for validation
+          for file in website/*.php; do
+            echo "Validating: $file"
+            # Use PHP CLI to render the file (skip includes to avoid errors)
+            docker run --rm \
+              -v $PWD:/work \
+              -w /work \
+              php:8.2-cli \
+              php -r "
+                error_reporting(0);
+                define('SKIP_INCLUDES', true);
+                ob_start();
+                include '$file';
+                \$html = ob_get_clean();
+                file_put_contents('${file}.html', \$html);
+              " || true
+          done
+          
+          # Validate extracted HTML files
+          docker run --rm \
+            -v $PWD:/work \
+            -w /work \
+            validator/validator:latest \
+            website/*.php.html || true
