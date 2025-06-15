@@ -197,54 +197,63 @@ class CVESyncService {
      * Sync CVEs for a specific year
      */
     private function syncYear($year) {
-        $startDate = "$year-01-01T00:00:00.000Z";
-        $endDate = "$year-12-31T23:59:59.999Z";
-        
         $totalSynced = 0;
-        $startIndex = 0;
-        $requestCount = 0;
         
-        do {
-            $url = $this->nvdApiUrl . "?pubStartDate=" . urlencode($startDate) . 
-                   "&pubEndDate=" . urlencode($endDate) . 
-                   "&resultsPerPage=" . $this->batchSize . 
-                   "&startIndex=" . $startIndex;
+        // NVD API only allows 120 day ranges, so break year into quarters
+        $quarters = [
+            ['start' => "$year-01-01T00:00:00.000Z", 'end' => "$year-04-30T23:59:59.999Z"],
+            ['start' => "$year-05-01T00:00:00.000Z", 'end' => "$year-08-31T23:59:59.999Z"],
+            ['start' => "$year-09-01T00:00:00.000Z", 'end' => "$year-12-31T23:59:59.999Z"]
+        ];
+        
+        foreach ($quarters as $quarter) {
+            echo "  Syncing $year from {$quarter['start']} to {$quarter['end']}\n";
             
-            $data = $this->makeApiRequest($url);
-            if (!$data) {
-                echo "Failed to fetch data for year $year\n";
-                break;
-            }
+            $startIndex = 0;
+            $requestCount = 0;
             
-            if (!isset($data['vulnerabilities']) || empty($data['vulnerabilities'])) {
-                echo "No more vulnerabilities for year $year\n";
-                break;
-            }
-            
-            $batchSynced = $this->processBatch($data['vulnerabilities'], 'full');
-            $totalSynced += $batchSynced;
-            $requestCount++;
-            
-            echo "  Batch $requestCount: $batchSynced CVEs (Year total: $totalSynced)\n";
-            
-            $startIndex += $this->batchSize;
-            
-            // Check if we have more results
-            $totalResults = $data['totalResults'] ?? 0;
-            if ($startIndex >= $totalResults) {
-                break;
-            }
-            
-            // Rate limiting
-            sleep($this->rateLimitDelay);
-            
-            // Prevent too many requests in one run
-            if ($requestCount >= $this->maxRequestsPerRun) {
-                echo "  Request limit reached for year $year\n";
-                break;
-            }
-            
-        } while (true);
+            do {
+                $url = $this->nvdApiUrl . "?pubStartDate=" . urlencode($quarter['start']) . 
+                       "&pubEndDate=" . urlencode($quarter['end']) . 
+                       "&resultsPerPage=" . $this->batchSize . 
+                       "&startIndex=" . $startIndex;
+                
+                $data = $this->makeApiRequest($url);
+                if (!$data) {
+                    echo "Failed to fetch data for quarter\n";
+                    break;
+                }
+                
+                if (!isset($data['vulnerabilities']) || empty($data['vulnerabilities'])) {
+                    echo "No more vulnerabilities in this quarter\n";
+                    break;
+                }
+                
+                $batchSynced = $this->processBatch($data['vulnerabilities'], 'full');
+                $totalSynced += $batchSynced;
+                $requestCount++;
+                
+                echo "    Batch $requestCount: $batchSynced CVEs (Quarter progress)\n";
+                
+                $startIndex += $this->batchSize;
+                
+                // Check if we have more results
+                $totalResults = $data['totalResults'] ?? 0;
+                if ($startIndex >= $totalResults) {
+                    break;
+                }
+                
+                // Rate limiting
+                sleep($this->rateLimitDelay);
+                
+                // Prevent too many requests in one run
+                if ($requestCount >= $this->maxRequestsPerRun / 3) { // Divide by 3 for quarters
+                    echo "  Request limit reached for quarter\n";
+                    return $totalSynced; // Return early to stay under limits
+                }
+                
+            } while (true);
+        }
         
         return $totalSynced;
     }
