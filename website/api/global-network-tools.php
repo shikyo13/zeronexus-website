@@ -240,6 +240,13 @@ try {
     $tool = isset($input['tool']) ? $input['tool'] : 'ping';
     $locations = isset($input['locations']) ? $input['locations'] : [];
     
+    // Validate tool
+    if (!in_array($tool, ['ping', 'traceroute', 'mtr'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid tool. Allowed: ping, traceroute, mtr']);
+        exit;
+    }
+    
     // Validate host (basic SSRF protection)
     $privateIPs = [
         '10.0.0.0/8',

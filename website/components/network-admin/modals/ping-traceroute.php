@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="pingTracerouteModalLabel">Ping Tool</h5>
+                <h5 class="modal-title" id="pingTracerouteModalLabel">Network Diagnostic Tools</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -23,7 +23,18 @@
 
                     <div class="col-md-4">
                         <div class="tool-input-group">
-                            <input type="hidden" id="toolType" value="ping">
+                            <label for="toolType" class="form-label">Tool Type:</label>
+                            <select class="form-select" id="toolType" style="background-color: #FFFFFF !important;">
+                                <option value="ping" selected>Ping</option>
+                                <option value="traceroute" disabled>Traceroute (Local only)</option>
+                                <option value="mtr" disabled>MTR (Local only)</option>
+                            </select>
+                            <div class="form-text">Select network diagnostic tool</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="tool-input-group">
                             <label for="packetCount" class="form-label">Packet Count:</label>
                             <input type="number" class="form-control" id="packetCount" min="1" max="20" value="4" style="background-color: #FFFFFF !important; background: #FFFFFF !important;">
                             <div class="form-text">Number of packets to send (1-20)</div>
@@ -236,6 +247,14 @@
                             <li>Enter a domain name (e.g., example.com) or IP address (e.g., 8.8.8.8)</li>
                             <li>Adjust packet count if needed (more packets = more reliable stats, but takes longer)</li>
                             <li>The statistics tab provides summarized metrics about the connection</li>
+                        </ul>
+                        
+                        <h6 class="mt-3">Global Testing</h6>
+                        <ul class="small">
+                            <li>Use the <strong>Global Test</strong> button to run ping tests from multiple locations worldwide</li>
+                            <li>Select preset regions: Worldwide, North America, Europe, Asia, Oceania, or South America</li>
+                            <li>View results in the Visual tab to see location cards with status indicators</li>
+                            <li>Compare latency and packet loss across different geographic regions</li>
                         </ul>
                         
                         <h6 class="mt-3">Direct Linking</h6>

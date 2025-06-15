@@ -56,8 +56,7 @@ function setupPingTraceroute() {
    * Run a network test through the API
    */
   function runNetworkTest(host, tool) {
-    // Always force tool to be 'ping'
-    tool = 'ping';
+    // Use the selected tool
     
     // Show loading indicator
     if (loadingDiv) loadingDiv.classList.remove('d-none');
@@ -283,10 +282,7 @@ function setupPingTraceroute() {
     });
   }
   
-  // Always force tool to be ping
-  if (toolTypeSelect) {
-    toolTypeSelect.value = 'ping';
-  }
+  // Keep tool type as selected
   
   // Run button event listener
   if (runButton) {
@@ -312,9 +308,12 @@ function setupPingTraceroute() {
       // Reset display
       resetNetworkToolDisplay();
       
+      // Get selected tool
+      const tool = toolTypeSelect ? toolTypeSelect.value : 'ping';
+      
       // Run the test
       setTimeout(() => {
-        runNetworkTest(host, 'ping');
+        runNetworkTest(host, tool);
       }, 50);
     });
   }

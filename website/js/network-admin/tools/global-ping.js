@@ -1,6 +1,6 @@
 /**
- * Global Ping Tool functionality
- * Provides network diagnostics from multiple global locations
+ * Global Network Tools functionality
+ * Provides network diagnostics (ping, traceroute, mtr) from multiple global locations
  */
 
 // Location presets for quick selection
@@ -131,6 +131,7 @@ function createLocationSelector() {
  */
 async function runGlobalTest() {
     const hostInput = document.getElementById('hostTarget');
+    const toolTypeInput = document.getElementById('toolType');
     const locationSelect = document.getElementById('testLocations');
     const resultsDiv = document.getElementById('networkToolResults');
     const loadingDiv = document.getElementById('networkToolLoading');
@@ -139,6 +140,7 @@ async function runGlobalTest() {
     
     // Get values
     const host = hostInput?.value.trim();
+    const tool = toolTypeInput?.value || 'ping';
     const locationPreset = locationSelect?.value || 'world';
     
     // Validate
@@ -159,7 +161,7 @@ async function runGlobalTest() {
         loadingDiv.classList.remove('d-none');
         const loadingText = loadingDiv.querySelector('p');
         if (loadingText) {
-            loadingText.innerHTML = `Running global ping test from ${LOCATION_PRESETS[locationPreset].name}...`;
+            loadingText.innerHTML = `Running global ${tool} test from ${LOCATION_PRESETS[locationPreset].name}...`;
         }
     }
     
@@ -175,7 +177,7 @@ async function runGlobalTest() {
             },
             body: JSON.stringify({
                 host: host,
-                tool: 'ping',
+                tool: tool,
                 locations: locations,
                 packetCount: document.getElementById('packetCount')?.value || 4
             })
@@ -230,12 +232,15 @@ function displayGlobalResults(data, host) {
     // Update header
     const resultHost = document.getElementById('resultHost');
     const resultToolType = document.getElementById('resultToolType');
+    const tool = data.tool || 'ping';
+    
     if (resultHost) resultHost.textContent = host;
-    if (resultToolType) resultToolType.textContent = 'Global Ping';
+    if (resultToolType) resultToolType.textContent = `Global ${tool.charAt(0).toUpperCase() + tool.slice(1)}`;
     
     // Create formatted output
-    let output = `GLOBAL PING TEST RESULTS\n`;
+    let output = `GLOBAL ${tool.toUpperCase()} TEST RESULTS\n`;
     output += `Target: ${host}\n`;
+    output += `Tool: ${tool}\n`;
     output += `Measurement ID: ${data.measurementId || 'N/A'}\n`;
     output += data.cached ? '(Cached results)\n' : '';
     output += `${'='.repeat(60)}\n\n`;
