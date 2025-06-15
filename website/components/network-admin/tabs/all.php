@@ -107,9 +107,9 @@
             </div>
             <div class="card-body">
                 <p>Test password strength and generate secure passwords.</p>
-                <div class="btn btn-outline-primary disabled">
-                    <i class="fas fa-key me-2"></i>Coming Soon
-                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#passwordStrengthModal">
+                    <i class="fas fa-key me-2"></i>Use Tool
+                </button>
             </div>
         </div>
     </div>
