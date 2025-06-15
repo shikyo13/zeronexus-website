@@ -110,7 +110,6 @@ The Password Strength Tester & Generator provides comprehensive password analysi
   - Length (8-64 characters)
   - Character types (uppercase, lowercase, numbers, symbols)
   - Character exclusion
-  - Pronounceable passwords option
 - Generate multiple passwords at once (1, 5, or 10)
 - Session-based password history
 - Copy to clipboard with automatic clearing after 60 seconds
@@ -124,7 +123,6 @@ The password tool is implemented as an ES6 module with the following key compone
 - `calculateEntropy()` - Entropy calculation based on character set
 - `calculateStrengthScore()` - Overall strength scoring (0-4 scale)
 - `generateSecurePassword()` - Secure password generation using crypto.getRandomValues()
-- `generatePronounceablePassword()` - Alternative generation for easier-to-remember passwords
 - `copyToClipboard()` - Secure clipboard handling with timeout
 
 ### Security Considerations
