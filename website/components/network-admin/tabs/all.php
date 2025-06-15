@@ -90,10 +90,10 @@
                 <h3>Firewall Rule Generator</h3>
             </div>
             <div class="card-body">
-                <p>Generate firewall rules for different platforms like iptables, UFW, and more.</p>
-                <div class="btn btn-outline-primary disabled">
-                    <i class="fas fa-shield-alt me-2"></i>Coming Soon
-                </div>
+                <p>Generate firewall rules for multiple platforms including iptables, pfSense, Cisco ASA, and more.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#firewallRuleGeneratorModal">
+                    <i class="fas fa-shield-alt me-2"></i>Use Tool
+                </button>
             </div>
         </div>
     </div>
