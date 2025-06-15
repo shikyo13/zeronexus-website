@@ -3,6 +3,8 @@
  * Provides network diagnostic tool features for the Network Admin Tools page
  */
 
+import { initializeGlobalTest } from './global-ping.js';
+
 /**
  * Initialize Ping functionality
  */
@@ -362,6 +364,12 @@ function setupPingTraceroute() {
   
   // Check URL parameters on load
   checkUrlParams();
+  
+  // Initialize global test functionality
+  const modal = document.getElementById('pingTracerouteModal');
+  if (modal) {
+    initializeGlobalTest(modal);
+  }
 }
 
 // Export the setup function

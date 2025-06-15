@@ -10,7 +10,7 @@
                 <div class="row">
                     <div class="col-md-12 mb-4">
                         <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i> Test network connectivity to remote hosts using ping.
+                            <i class="fas fa-info-circle me-2"></i> Test network connectivity to remote hosts using ping. Use the <strong>Global Test</strong> button to run tests from multiple locations worldwide!
                         </div>
                     </div>
 
@@ -76,7 +76,15 @@
                                     <div id="resultOutput" class="network-output code-block"></div>
                                 </div>
                                 
-                                <!-- Visual Results Tab removed as it only applies to traceroute -->
+                                <!-- Visual Results Tab for Global Tests -->
+                                <div class="tab-pane fade" id="visualResults" role="tabpanel" aria-labelledby="visualResults-tab">
+                                    <div id="globalMapContainer" style="height: 400px;" class="d-none">
+                                        <!-- Map visualization will be added here -->
+                                    </div>
+                                    <div id="globalLocationsList" class="row">
+                                        <!-- Location cards will be added here -->
+                                    </div>
+                                </div>
                                 
                                 <!-- Stats Tab -->
                                 <div class="tab-pane fade" id="statsResults" role="tabpanel" aria-labelledby="statsResults-tab">
@@ -144,7 +152,9 @@
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="rawResults-tab" data-bs-toggle="tab" data-bs-target="#rawResults" type="button" role="tab" aria-controls="rawResults" aria-selected="true">Raw Output</button>
                                 </li>
-                                <!-- Visualization tab removed as it only applies to traceroute/MTR -->
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link d-none" id="visualResults-tab" data-bs-toggle="tab" data-bs-target="#visualResults" type="button" role="tab" aria-controls="visualResults" aria-selected="false">Visual</button>
+                                </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="statsResults-tab" data-bs-toggle="tab" data-bs-target="#statsResults" type="button" role="tab" aria-controls="statsResults" aria-selected="false">Statistics</button>
                                 </li>
