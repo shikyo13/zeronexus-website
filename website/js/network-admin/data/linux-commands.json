@@ -1,0 +1,756 @@
+{
+  "commands": [
+    {
+      "name": "ls",
+      "category": "file-operations",
+      "description": "List directory contents",
+      "syntax": "ls [OPTIONS] [FILE...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-l", "description": "Long format listing with detailed information" },
+        { "flag": "-a", "description": "Show hidden files (starting with .)" },
+        { "flag": "-h", "description": "Human-readable sizes (KB, MB, GB)" },
+        { "flag": "-R", "description": "Recursive listing of subdirectories" },
+        { "flag": "-t", "description": "Sort by modification time (newest first)" },
+        { "flag": "-S", "description": "Sort by file size (largest first)" }
+      ],
+      "examples": [
+        {
+          "command": "ls",
+          "description": "List files in current directory"
+        },
+        {
+          "command": "ls -la",
+          "description": "List all files with detailed information"
+        },
+        {
+          "command": "ls -lh /home",
+          "description": "List /home directory with human-readable sizes"
+        },
+        {
+          "command": "ls -lt",
+          "description": "List files sorted by modification time"
+        }
+      ],
+      "related": ["dir", "tree", "find"],
+      "tags": ["basic", "files", "directory", "listing"]
+    },
+    {
+      "name": "cd",
+      "category": "directory-navigation",
+      "description": "Change current directory",
+      "syntax": "cd [DIRECTORY]",
+      "difficulty": "beginner",
+      "commonOptions": [],
+      "examples": [
+        {
+          "command": "cd /home/user",
+          "description": "Change to specific directory"
+        },
+        {
+          "command": "cd ..",
+          "description": "Go up one directory level"
+        },
+        {
+          "command": "cd ~",
+          "description": "Go to home directory"
+        },
+        {
+          "command": "cd -",
+          "description": "Go to previous directory"
+        }
+      ],
+      "related": ["pwd", "ls", "mkdir"],
+      "tags": ["basic", "navigation", "directory"]
+    },
+    {
+      "name": "pwd",
+      "category": "directory-navigation",
+      "description": "Print working directory (current location)",
+      "syntax": "pwd",
+      "difficulty": "beginner",
+      "commonOptions": [],
+      "examples": [
+        {
+          "command": "pwd",
+          "description": "Show current directory path"
+        }
+      ],
+      "related": ["cd", "ls"],
+      "tags": ["basic", "navigation", "directory", "location"]
+    },
+    {
+      "name": "mkdir",
+      "category": "file-operations",
+      "description": "Create directories",
+      "syntax": "mkdir [OPTIONS] DIRECTORY...",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-p", "description": "Create parent directories as needed" },
+        { "flag": "-m", "description": "Set file mode (permissions)" },
+        { "flag": "-v", "description": "Verbose output (show what's being created)" }
+      ],
+      "examples": [
+        {
+          "command": "mkdir newfolder",
+          "description": "Create a single directory"
+        },
+        {
+          "command": "mkdir -p path/to/nested/dir",
+          "description": "Create nested directories"
+        },
+        {
+          "command": "mkdir dir1 dir2 dir3",
+          "description": "Create multiple directories"
+        }
+      ],
+      "related": ["rmdir", "cd", "ls"],
+      "tags": ["basic", "directory", "create"]
+    },
+    {
+      "name": "rmdir",
+      "category": "file-operations",
+      "description": "Remove empty directories",
+      "syntax": "rmdir [OPTIONS] DIRECTORY...",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-p", "description": "Remove parent directories if they become empty" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "rmdir emptyfolder",
+          "description": "Remove an empty directory"
+        },
+        {
+          "command": "rmdir -p path/to/empty/dirs",
+          "description": "Remove nested empty directories"
+        }
+      ],
+      "related": ["rm", "mkdir"],
+      "tags": ["basic", "directory", "remove", "delete"]
+    },
+    {
+      "name": "cp",
+      "category": "file-operations",
+      "description": "Copy files or directories",
+      "syntax": "cp [OPTIONS] SOURCE DESTINATION",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-r", "description": "Copy directories recursively" },
+        { "flag": "-i", "description": "Interactive mode (prompt before overwrite)" },
+        { "flag": "-v", "description": "Verbose output" },
+        { "flag": "-p", "description": "Preserve file attributes" },
+        { "flag": "-u", "description": "Copy only when source is newer" }
+      ],
+      "examples": [
+        {
+          "command": "cp file.txt backup.txt",
+          "description": "Copy a file"
+        },
+        {
+          "command": "cp -r folder/ backup_folder/",
+          "description": "Copy a directory recursively"
+        },
+        {
+          "command": "cp -i *.txt /backup/",
+          "description": "Copy all .txt files with confirmation"
+        }
+      ],
+      "related": ["mv", "rm", "rsync"],
+      "tags": ["basic", "copy", "backup", "files"]
+    },
+    {
+      "name": "mv",
+      "category": "file-operations",
+      "description": "Move or rename files and directories",
+      "syntax": "mv [OPTIONS] SOURCE DESTINATION",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-i", "description": "Interactive mode (prompt before overwrite)" },
+        { "flag": "-v", "description": "Verbose output" },
+        { "flag": "-u", "description": "Move only when source is newer" }
+      ],
+      "examples": [
+        {
+          "command": "mv oldname.txt newname.txt",
+          "description": "Rename a file"
+        },
+        {
+          "command": "mv file.txt /new/location/",
+          "description": "Move file to different directory"
+        },
+        {
+          "command": "mv *.log /var/log/",
+          "description": "Move all .log files to /var/log/"
+        }
+      ],
+      "related": ["cp", "rm", "rename"],
+      "tags": ["basic", "move", "rename", "files"]
+    },
+    {
+      "name": "rm",
+      "category": "file-operations",
+      "description": "Remove files and directories",
+      "syntax": "rm [OPTIONS] FILE...",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-r", "description": "Remove directories recursively" },
+        { "flag": "-i", "description": "Interactive mode (prompt before deletion)" },
+        { "flag": "-f", "description": "Force removal without prompts" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "rm file.txt",
+          "description": "Remove a file"
+        },
+        {
+          "command": "rm -r folder/",
+          "description": "Remove directory and contents"
+        },
+        {
+          "command": "rm -i *.tmp",
+          "description": "Remove .tmp files with confirmation"
+        }
+      ],
+      "related": ["rmdir", "cp", "mv"],
+      "tags": ["basic", "delete", "remove", "files", "dangerous"]
+    },
+    {
+      "name": "find",
+      "category": "search",
+      "description": "Search for files and directories",
+      "syntax": "find [PATH] [OPTIONS] [EXPRESSION]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-name", "description": "Search by filename pattern" },
+        { "flag": "-type", "description": "Search by file type (f=file, d=directory)" },
+        { "flag": "-size", "description": "Search by file size" },
+        { "flag": "-mtime", "description": "Search by modification time" },
+        { "flag": "-exec", "description": "Execute command on found files" }
+      ],
+      "examples": [
+        {
+          "command": "find . -name \"*.txt\"",
+          "description": "Find all .txt files in current directory"
+        },
+        {
+          "command": "find /home -type d -name \"backup*\"",
+          "description": "Find directories starting with 'backup'"
+        },
+        {
+          "command": "find . -size +100M",
+          "description": "Find files larger than 100MB"
+        },
+        {
+          "command": "find . -name \"*.log\" -exec rm {} \\;",
+          "description": "Find and delete all .log files"
+        }
+      ],
+      "related": ["locate", "grep", "which"],
+      "tags": ["search", "files", "locate", "advanced"]
+    },
+    {
+      "name": "grep",
+      "category": "text-processing",
+      "description": "Search text patterns in files",
+      "syntax": "grep [OPTIONS] PATTERN [FILE...]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-i", "description": "Case-insensitive search" },
+        { "flag": "-r", "description": "Recursive search in directories" },
+        { "flag": "-n", "description": "Show line numbers" },
+        { "flag": "-v", "description": "Invert match (show non-matching lines)" },
+        { "flag": "-c", "description": "Count matching lines" },
+        { "flag": "-l", "description": "Show only filenames with matches" }
+      ],
+      "examples": [
+        {
+          "command": "grep \"error\" logfile.txt",
+          "description": "Search for 'error' in a file"
+        },
+        {
+          "command": "grep -i \"warning\" *.log",
+          "description": "Case-insensitive search in all .log files"
+        },
+        {
+          "command": "grep -rn \"TODO\" /project/",
+          "description": "Recursive search with line numbers"
+        },
+        {
+          "command": "ps aux | grep apache",
+          "description": "Search for apache processes"
+        }
+      ],
+      "related": ["awk", "sed", "find"],
+      "tags": ["search", "text", "pattern", "regex"]
+    },
+    {
+      "name": "cat",
+      "category": "text-processing",
+      "description": "Display file contents",
+      "syntax": "cat [OPTIONS] [FILE...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-n", "description": "Number all output lines" },
+        { "flag": "-b", "description": "Number non-empty lines only" },
+        { "flag": "-s", "description": "Suppress repeated empty lines" }
+      ],
+      "examples": [
+        {
+          "command": "cat file.txt",
+          "description": "Display file contents"
+        },
+        {
+          "command": "cat -n script.sh",
+          "description": "Display file with line numbers"
+        },
+        {
+          "command": "cat file1 file2 > combined.txt",
+          "description": "Concatenate files and save"
+        }
+      ],
+      "related": ["less", "more", "head", "tail"],
+      "tags": ["basic", "text", "display", "view"]
+    },
+    {
+      "name": "less",
+      "category": "text-processing",
+      "description": "View file contents page by page",
+      "syntax": "less [OPTIONS] [FILE...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-N", "description": "Show line numbers" },
+        { "flag": "-S", "description": "Chop long lines (don't wrap)" },
+        { "flag": "-i", "description": "Case-insensitive search" }
+      ],
+      "examples": [
+        {
+          "command": "less /var/log/syslog",
+          "description": "View system log file"
+        },
+        {
+          "command": "less -N config.txt",
+          "description": "View file with line numbers"
+        },
+        {
+          "command": "ps aux | less",
+          "description": "View command output in pager"
+        }
+      ],
+      "related": ["more", "cat", "head", "tail"],
+      "tags": ["basic", "text", "pager", "view"]
+    },
+    {
+      "name": "head",
+      "category": "text-processing",
+      "description": "Display first lines of a file",
+      "syntax": "head [OPTIONS] [FILE...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-n", "description": "Number of lines to show (default 10)" },
+        { "flag": "-c", "description": "Number of bytes to show" }
+      ],
+      "examples": [
+        {
+          "command": "head file.txt",
+          "description": "Show first 10 lines"
+        },
+        {
+          "command": "head -n 20 access.log",
+          "description": "Show first 20 lines"
+        },
+        {
+          "command": "head -c 100 binary_file",
+          "description": "Show first 100 bytes"
+        }
+      ],
+      "related": ["tail", "cat", "less"],
+      "tags": ["basic", "text", "beginning", "preview"]
+    },
+    {
+      "name": "tail",
+      "category": "text-processing",
+      "description": "Display last lines of a file",
+      "syntax": "tail [OPTIONS] [FILE...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-n", "description": "Number of lines to show (default 10)" },
+        { "flag": "-f", "description": "Follow file changes (monitor)" },
+        { "flag": "-F", "description": "Follow with retry (useful for log rotation)" }
+      ],
+      "examples": [
+        {
+          "command": "tail file.txt",
+          "description": "Show last 10 lines"
+        },
+        {
+          "command": "tail -n 50 error.log",
+          "description": "Show last 50 lines"
+        },
+        {
+          "command": "tail -f /var/log/apache/access.log",
+          "description": "Monitor log file in real-time"
+        }
+      ],
+      "related": ["head", "cat", "less"],
+      "tags": ["basic", "text", "end", "monitoring", "logs"]
+    },
+    {
+      "name": "ps",
+      "category": "process-management",
+      "description": "Display running processes",
+      "syntax": "ps [OPTIONS]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "aux", "description": "Show all processes with detailed info" },
+        { "flag": "-ef", "description": "Show all processes (alternative format)" },
+        { "flag": "-u USER", "description": "Show processes for specific user" },
+        { "flag": "--forest", "description": "Show process tree" }
+      ],
+      "examples": [
+        {
+          "command": "ps aux",
+          "description": "Show all running processes"
+        },
+        {
+          "command": "ps -u username",
+          "description": "Show processes for specific user"
+        },
+        {
+          "command": "ps aux | grep apache",
+          "description": "Find apache processes"
+        }
+      ],
+      "related": ["top", "htop", "kill", "jobs"],
+      "tags": ["processes", "system", "monitoring"]
+    },
+    {
+      "name": "top",
+      "category": "monitoring",
+      "description": "Display and update sorted information about running processes",
+      "syntax": "top [OPTIONS]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-u USER", "description": "Show processes for specific user" },
+        { "flag": "-p PID", "description": "Monitor specific process ID" },
+        { "flag": "-d DELAY", "description": "Set update delay in seconds" }
+      ],
+      "examples": [
+        {
+          "command": "top",
+          "description": "Show real-time process monitor"
+        },
+        {
+          "command": "top -u apache",
+          "description": "Show processes for apache user"
+        }
+      ],
+      "related": ["htop", "ps", "kill"],
+      "tags": ["monitoring", "processes", "real-time", "system"]
+    },
+    {
+      "name": "kill",
+      "category": "process-management",
+      "description": "Terminate processes by PID",
+      "syntax": "kill [SIGNAL] PID...",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-9", "description": "Force kill (SIGKILL)" },
+        { "flag": "-15", "description": "Graceful termination (SIGTERM, default)" },
+        { "flag": "-HUP", "description": "Hang up signal (reload config)" }
+      ],
+      "examples": [
+        {
+          "command": "kill 1234",
+          "description": "Gracefully terminate process 1234"
+        },
+        {
+          "command": "kill -9 1234",
+          "description": "Force kill process 1234"
+        },
+        {
+          "command": "killall firefox",
+          "description": "Kill all firefox processes"
+        }
+      ],
+      "related": ["ps", "top", "killall", "pkill"],
+      "tags": ["processes", "terminate", "dangerous"]
+    },
+    {
+      "name": "df",
+      "category": "system-info",
+      "description": "Display filesystem disk space usage",
+      "syntax": "df [OPTIONS] [FILESYSTEM...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-h", "description": "Human-readable sizes" },
+        { "flag": "-T", "description": "Show filesystem type" },
+        { "flag": "-i", "description": "Show inode information" }
+      ],
+      "examples": [
+        {
+          "command": "df -h",
+          "description": "Show disk usage in human-readable format"
+        },
+        {
+          "command": "df -T",
+          "description": "Show disk usage with filesystem types"
+        }
+      ],
+      "related": ["du", "free", "lsblk"],
+      "tags": ["disk", "space", "filesystem", "system"]
+    },
+    {
+      "name": "du",
+      "category": "system-info",
+      "description": "Display directory space usage",
+      "syntax": "du [OPTIONS] [DIRECTORY...]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-h", "description": "Human-readable sizes" },
+        { "flag": "-s", "description": "Summary (total size only)" },
+        { "flag": "-a", "description": "Show all files, not just directories" },
+        { "flag": "--max-depth=N", "description": "Limit recursion depth" }
+      ],
+      "examples": [
+        {
+          "command": "du -h",
+          "description": "Show directory sizes in current location"
+        },
+        {
+          "command": "du -sh /home/user",
+          "description": "Show total size of user directory"
+        },
+        {
+          "command": "du -h --max-depth=1",
+          "description": "Show sizes of immediate subdirectories"
+        }
+      ],
+      "related": ["df", "ls", "find"],
+      "tags": ["disk", "space", "directory", "system"]
+    },
+    {
+      "name": "free",
+      "category": "system-info",
+      "description": "Display memory usage information",
+      "syntax": "free [OPTIONS]",
+      "difficulty": "beginner",
+      "commonOptions": [
+        { "flag": "-h", "description": "Human-readable sizes" },
+        { "flag": "-m", "description": "Show in megabytes" },
+        { "flag": "-g", "description": "Show in gigabytes" },
+        { "flag": "-s DELAY", "description": "Continuous display with delay" }
+      ],
+      "examples": [
+        {
+          "command": "free -h",
+          "description": "Show memory usage in human-readable format"
+        },
+        {
+          "command": "free -m",
+          "description": "Show memory usage in megabytes"
+        }
+      ],
+      "related": ["top", "htop", "ps"],
+      "tags": ["memory", "ram", "system", "monitoring"]
+    },
+    {
+      "name": "chmod",
+      "category": "permissions",
+      "description": "Change file permissions",
+      "syntax": "chmod [OPTIONS] MODE FILE...",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-R", "description": "Change permissions recursively" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "chmod 755 script.sh",
+          "description": "Make script executable by owner, readable by others"
+        },
+        {
+          "command": "chmod +x program",
+          "description": "Add execute permission"
+        },
+        {
+          "command": "chmod -R 644 /web/files/",
+          "description": "Set read/write for owner, read for others recursively"
+        }
+      ],
+      "related": ["chown", "chgrp", "ls"],
+      "tags": ["permissions", "security", "files"]
+    },
+    {
+      "name": "chown",
+      "category": "permissions",
+      "description": "Change file ownership",
+      "syntax": "chown [OPTIONS] OWNER[:GROUP] FILE...",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-R", "description": "Change ownership recursively" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "chown user:group file.txt",
+          "description": "Change owner and group"
+        },
+        {
+          "command": "chown -R www-data:www-data /var/www/",
+          "description": "Change ownership recursively"
+        }
+      ],
+      "related": ["chmod", "chgrp", "ls"],
+      "tags": ["ownership", "permissions", "security"]
+    },
+    {
+      "name": "tar",
+      "category": "archiving",
+      "description": "Archive files and directories",
+      "syntax": "tar [OPTIONS] [ARCHIVE] [FILE...]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-c", "description": "Create archive" },
+        { "flag": "-x", "description": "Extract archive" },
+        { "flag": "-z", "description": "Use gzip compression" },
+        { "flag": "-v", "description": "Verbose output" },
+        { "flag": "-f", "description": "Specify filename" }
+      ],
+      "examples": [
+        {
+          "command": "tar -czf backup.tar.gz /home/user",
+          "description": "Create compressed archive"
+        },
+        {
+          "command": "tar -xzf archive.tar.gz",
+          "description": "Extract compressed archive"
+        },
+        {
+          "command": "tar -tzf archive.tar.gz",
+          "description": "List archive contents"
+        }
+      ],
+      "related": ["gzip", "zip", "unzip"],
+      "tags": ["archive", "compression", "backup"]
+    },
+    {
+      "name": "wget",
+      "category": "networking",
+      "description": "Download files from the web",
+      "syntax": "wget [OPTIONS] URL...",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-O", "description": "Output to specific filename" },
+        { "flag": "-c", "description": "Continue partial downloads" },
+        { "flag": "-r", "description": "Recursive download" },
+        { "flag": "-q", "description": "Quiet mode" }
+      ],
+      "examples": [
+        {
+          "command": "wget https://example.com/file.zip",
+          "description": "Download a file"
+        },
+        {
+          "command": "wget -O output.html https://example.com",
+          "description": "Download and save with specific name"
+        },
+        {
+          "command": "wget -c https://example.com/large-file.iso",
+          "description": "Resume interrupted download"
+        }
+      ],
+      "related": ["curl", "scp", "rsync"],
+      "tags": ["download", "web", "transfer", "networking"]
+    },
+    {
+      "name": "curl",
+      "category": "networking",
+      "description": "Transfer data from or to servers",
+      "syntax": "curl [OPTIONS] URL...",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-o", "description": "Output to file" },
+        { "flag": "-L", "description": "Follow redirects" },
+        { "flag": "-I", "description": "Show headers only" },
+        { "flag": "-d", "description": "Send POST data" }
+      ],
+      "examples": [
+        {
+          "command": "curl https://api.example.com",
+          "description": "Make GET request"
+        },
+        {
+          "command": "curl -L -o page.html https://example.com",
+          "description": "Download following redirects"
+        },
+        {
+          "command": "curl -d 'param=value' https://api.example.com",
+          "description": "Make POST request with data"
+        }
+      ],
+      "related": ["wget", "ssh", "scp"],
+      "tags": ["web", "api", "transfer", "networking"]
+    },
+    {
+      "name": "ssh",
+      "category": "networking",
+      "description": "Secure Shell - remote login and command execution",
+      "syntax": "ssh [OPTIONS] [USER@]HOST [COMMAND]",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-p", "description": "Specify port number" },
+        { "flag": "-i", "description": "Identity file (private key)" },
+        { "flag": "-L", "description": "Local port forwarding" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "ssh user@example.com",
+          "description": "Connect to remote server"
+        },
+        {
+          "command": "ssh -p 2222 user@example.com",
+          "description": "Connect using specific port"
+        },
+        {
+          "command": "ssh user@server 'ls -la'",
+          "description": "Execute command on remote server"
+        }
+      ],
+      "related": ["scp", "rsync", "ssh-keygen"],
+      "tags": ["remote", "secure", "networking", "login"]
+    },
+    {
+      "name": "scp",
+      "category": "networking",
+      "description": "Secure copy files over SSH",
+      "syntax": "scp [OPTIONS] SOURCE DESTINATION",
+      "difficulty": "intermediate",
+      "commonOptions": [
+        { "flag": "-r", "description": "Copy directories recursively" },
+        { "flag": "-p", "description": "Preserve file attributes" },
+        { "flag": "-P", "description": "Specify port number" },
+        { "flag": "-v", "description": "Verbose output" }
+      ],
+      "examples": [
+        {
+          "command": "scp file.txt user@server:/home/user/",
+          "description": "Copy file to remote server"
+        },
+        {
+          "command": "scp user@server:/remote/file.txt ./",
+          "description": "Copy file from remote server"
+        },
+        {
+          "command": "scp -r folder/ user@server:/backup/",
+          "description": "Copy directory recursively"
+        }
+      ],
+      "related": ["ssh", "rsync", "wget"],
+      "tags": ["copy", "secure", "networking", "transfer"]
+    }
+  ]
+}

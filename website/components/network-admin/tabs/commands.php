@@ -5,13 +5,13 @@
         <div class="tool-card">
             <div class="card-header">
                 <i class="fab fa-linux fa-2x"></i>
-                <h3>Linux Networking Commands</h3>
+                <h3>Essential Linux Commands</h3>
             </div>
             <div class="card-body">
-                <p>Essential Linux commands for network diagnostics and configuration.</p>
-                <div class="btn btn-outline-primary disabled">
-                    <i class="fas fa-terminal me-2"></i>Coming Soon
-                </div>
+                <p>Comprehensive reference for essential Linux commands with examples, categorized by functionality and difficulty level.</p>
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linuxCommandsModal">
+                    <i class="fas fa-terminal me-2"></i>Open Commands Reference
+                </button>
             </div>
         </div>
     </div>
