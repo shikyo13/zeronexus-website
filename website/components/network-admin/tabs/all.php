@@ -98,12 +98,12 @@
         </div>
     </div>
     
-    <!-- Password Strength Tester -->
+    <!-- Password Tester & Generator -->
     <div class="col">
         <div class="tool-card">
             <div class="card-header">
                 <i class="fas fa-key fa-2x"></i>
-                <h3>Password Strength Tester</h3>
+                <h3>Password Tester & Generator</h3>
             </div>
             <div class="card-body">
                 <p>Test password strength and generate secure passwords.</p>

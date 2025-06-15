@@ -1471,6 +1471,41 @@ input:-webkit-autofill:active {
 }
 
 /* Password Strength Tool Styles */
+#passwordStrengthModal .form-check-input {
+  background-color: #FFFFFF !important;
+  border: 1px solid #ced4da !important;
+  width: 1em !important;
+  height: 1em !important;
+  margin-top: 0.25em !important;
+  vertical-align: top !important;
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  -moz-appearance: checkbox !important;
+}
+
+#passwordStrengthModal .form-check-input:checked {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+
+#passwordStrengthModal .form-check-input:focus {
+  border-color: #86b7fe !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+#passwordStrengthModal .form-check-label {
+  color: var(--text-color) !important;
+  margin-left: 0.5rem !important;
+  cursor: pointer !important;
+}
+
+#passwordStrengthModal .form-check {
+  margin-bottom: 0.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
 #passwordStrengthModal .progress {
   height: 25px;
   background-color: rgba(0, 0, 0, 0.2);
@@ -1482,14 +1517,6 @@ input:-webkit-autofill:active {
   font-weight: 600;
 }
 
-#passwordStrengthModal .form-range {
-  width: 100%;
-  margin-right: 1rem;
-}
-
-#passwordStrengthModal .input-group .form-range {
-  border-radius: 0.25rem 0 0 0.25rem;
-}
 
 #passwordStrengthModal .list-group-item {
   background-color: rgba(0, 0, 0, 0.2);
@@ -1543,6 +1570,12 @@ input:-webkit-autofill:active {
 #passwordAnalysis ul li {
   margin-bottom: 0.5rem;
   color: var(--text-color);
+}
+
+/* Center align password stats */
+#passwordStats li {
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
 #passwordHistory {

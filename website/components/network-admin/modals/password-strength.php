@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="passwordStrengthModalLabel">Password Strength Tester & Generator</h5>
+                <h5 class="modal-title" id="passwordStrengthModalLabel">Password Tester & Generator</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -51,31 +51,23 @@
                             </div>
                             
                             <!-- Password Analysis Results -->
-                            <div id="passwordAnalysis" class="d-none">
-                                <h6 class="mb-3">Analysis Details</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <ul class="list-unstyled" id="passwordStats">
-                                            <!-- Stats will be populated here -->
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div id="passwordFeedback">
-                                            <!-- Feedback will be populated here -->
-                                        </div>
+                            <div id="passwordAnalysis" class="d-none text-center">
+                                <h5 class="mb-4">Analysis Details</h5>
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-3">Statistics</h6>
+                                    <ul class="list-unstyled mb-0" id="passwordStats">
+                                        <!-- Stats will be populated here -->
+                                    </ul>
+                                </div>
+                                <hr class="my-4">
+                                <div>
+                                    <h6 class="text-muted mb-3">Security Analysis</h6>
+                                    <div id="passwordFeedback" class="mx-auto" style="max-width: 600px;">
+                                        <!-- Feedback will be populated here -->
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Advanced Analysis Toggle -->
-                            <div class="mt-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="advancedAnalysis">
-                                    <label class="form-check-label" for="advancedAnalysis">
-                                        Enable advanced pattern detection (loads additional resources)
-                                    </label>
-                                </div>
-                            </div>
                         </form>
                     </div>
                     
@@ -89,11 +81,8 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="passwordLength" class="form-label">Password Length</label>
-                                        <div class="input-group">
-                                            <input type="range" class="form-range" id="passwordLength" min="8" max="64" value="16" style="width: 70%;">
-                                            <input type="number" class="form-control" id="passwordLengthValue" min="8" max="64" value="16" style="width: 30%;">
-                                        </div>
+                                        <label for="passwordLengthValue" class="form-label">Password Length</label>
+                                        <input type="number" class="form-control" id="passwordLengthValue" min="8" max="64" value="16">
                                     </div>
                                     
                                     <div class="mb-3">
