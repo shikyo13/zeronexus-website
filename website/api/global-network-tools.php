@@ -45,8 +45,9 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 });
 
 try {
-    // Import rate limiting
+    // Import rate limiting and deduplication
     require_once 'rate-limit.php';
+    require_once 'request-dedup.php';
     
     // Apply rate limiting
     try {
@@ -174,16 +175,22 @@ try {
     }
     
     /**
-     * Cache implementation
+     * Cache implementation with automatic cleanup
      */
     class ResultCache {
         private $cacheDir;
         private $cacheLifetime = 300; // 5 minutes
+        private $maxCacheFiles = 100; // Maximum cache files before cleanup
         
         public function __construct() {
             $this->cacheDir = sys_get_temp_dir() . '/global_network_cache';
             if (!is_dir($this->cacheDir)) {
                 mkdir($this->cacheDir, 0777, true);
+            }
+            
+            // Periodic cleanup
+            if (rand(1, 10) === 1) {
+                $this->cleanup();
             }
         }
         
@@ -213,6 +220,42 @@ try {
             ];
             
             file_put_contents($filename, serialize($data));
+        }
+        
+        /**
+         * Clean up expired cache files
+         */
+        private function cleanup() {
+            $files = glob($this->cacheDir . '/*.cache');
+            if (!$files) return;
+            
+            // Sort by modification time
+            usort($files, function($a, $b) {
+                return filemtime($a) - filemtime($b);
+            });
+            
+            // Remove expired files
+            $removed = 0;
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    $data = @unserialize(file_get_contents($file));
+                    if (!$data || $data['expires'] < time()) {
+                        @unlink($file);
+                        $removed++;
+                    }
+                }
+            }
+            
+            // If still too many files, remove oldest ones
+            $remaining = count($files) - $removed;
+            if ($remaining > $this->maxCacheFiles) {
+                $toRemove = $remaining - $this->maxCacheFiles;
+                for ($i = 0; $i < $toRemove && $i < count($files); $i++) {
+                    if (file_exists($files[$i])) {
+                        @unlink($files[$i]);
+                    }
+                }
+            }
         }
     }
     
@@ -280,11 +323,18 @@ try {
         }
     }
     
-    // Initialize cache
+    // Initialize cache and deduplicator
     $cache = new ResultCache();
+    $dedup = new RequestDeduplicator();
     
-    // Generate cache key
-    $cacheKey = sprintf('%s:%s:%s', $tool, $host, md5(json_encode($locations)));
+    // Generate cache key including all relevant parameters
+    $cacheKeyData = [
+        'tool' => $tool,
+        'host' => $host,
+        'locations' => $locations,
+        'packetCount' => isset($input['packetCount']) ? intval($input['packetCount']) : 4
+    ];
+    $cacheKey = md5(json_encode($cacheKeyData));
     
     // Check cache first
     $cachedResult = $cache->get($cacheKey);
@@ -294,6 +344,23 @@ try {
             'data' => $cachedResult
         ]);
         exit;
+    }
+    
+    // Try to acquire lock for this request
+    if (!$dedup->acquireLock($cacheKey)) {
+        // Another request is already in progress, wait for it
+        $result = $dedup->waitForResult($cacheKey, $cache);
+        if ($result !== null) {
+            echo json_encode([
+                'cached' => true,
+                'deduplicated' => true,
+                'data' => $result
+            ]);
+            exit;
+        }
+        
+        // If we couldn't get the result, continue with new request
+        // This shouldn't normally happen
     }
     
     // Initialize Globalping client
@@ -372,6 +439,9 @@ try {
         // Cache results
         $cache->set($cacheKey, $processedResults);
         
+        // Release lock
+        $dedup->releaseLock($cacheKey);
+        
         // Return results
         echo json_encode([
             'cached' => false,
@@ -382,6 +452,11 @@ try {
         ]);
         
     } catch (Exception $e) {
+        // Release lock on error
+        if (isset($dedup) && isset($cacheKey)) {
+            $dedup->releaseLock($cacheKey);
+        }
+        
         http_response_code(500);
         echo json_encode([
             'error' => $e->getMessage()
