@@ -91,6 +91,7 @@ include $modals_path . 'security-headers-help.php';
 include $modals_path . 'password-strength.php';
 include $modals_path . 'firewall-rule-generator.php';
 include $modals_path . 'linux-commands.php';
+include $modals_path . 'windows-commands.php';
 ?>
 
 <?php

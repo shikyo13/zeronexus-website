@@ -21,13 +21,13 @@
         <div class="tool-card">
             <div class="card-header">
                 <i class="fab fa-windows fa-2x"></i>
-                <h3>Windows Networking Commands</h3>
+                <h3>Essential Windows Commands</h3>
             </div>
             <div class="card-body">
-                <p>Windows CMD and PowerShell commands for network management.</p>
-                <div class="btn btn-outline-primary disabled">
-                    <i class="fas fa-terminal me-2"></i>Coming Soon
-                </div>
+                <p>Comprehensive reference for essential Windows commands with examples, categorized by functionality and difficulty level.</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#windowsCommandsModal">
+                    <i class="fas fa-terminal me-2"></i>Open Commands Reference
+                </button>
             </div>
         </div>
     </div>
