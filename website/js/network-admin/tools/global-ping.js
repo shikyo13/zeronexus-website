@@ -66,27 +66,39 @@ const LOCATION_PRESETS = {
  * Initialize global network test functionality
  */
 export function initializeGlobalTest(modal) {
+    console.log('Initializing global test functionality...');
+    
     // Create location selector UI
     const locationSelector = createLocationSelector();
     
-    // Insert after tool type selector
-    const toolTypeRow = modal.querySelector('#toolType')?.closest('.col-md-4');
-    if (toolTypeRow) {
-        const newCol = document.createElement('div');
-        newCol.className = 'col-md-8';
-        newCol.innerHTML = `
-            <div class="tool-input-group">
-                <label for="testLocations" class="form-label">Test Locations:</label>
-                ${locationSelector}
-                <div class="form-text">Select regions to test from</div>
-            </div>
-        `;
+    // Find the row that contains the host input (first row)
+    const hostRow = modal.querySelector('#hostTarget')?.closest('.row');
+    if (hostRow) {
+        // Add location selector as a new column in the existing second row
+        const secondRow = hostRow.parentNode.querySelector('.row.g-3')?.parentNode.querySelector('.row') || 
+                           hostRow.nextElementSibling;
         
-        // Insert before the packet count column
-        toolTypeRow.parentNode.insertBefore(newCol, toolTypeRow);
-        
-        // Adjust packet count column width
-        toolTypeRow.className = 'col-md-4';
+        if (secondRow) {
+            // Create a new column for location selector
+            const locationCol = document.createElement('div');
+            locationCol.className = 'col-md-4';
+            locationCol.innerHTML = `
+                <div class="tool-input-group">
+                    <label for="testLocations" class="form-label">Test Locations:</label>
+                    ${locationSelector}
+                    <div class="form-text">Select regions to test from</div>
+                </div>
+            `;
+            
+            // Insert as the first child of the second row
+            secondRow.insertBefore(locationCol, secondRow.firstElementChild);
+            
+            // Adjust existing columns to be smaller
+            const existingCols = secondRow.querySelectorAll('.col-md-4:not(.col-md-4:first-child)');
+            existingCols.forEach(col => {
+                col.className = 'col-md-4';
+            });
+        }
     }
     
     // Add global test button
@@ -102,13 +114,13 @@ export function initializeGlobalTest(modal) {
         
         // Add event listener
         globalButton.addEventListener('click', runGlobalTest);
+        
+        console.log('Global test button added successfully');
+    } else {
+        console.error('Could not find run button for global test initialization');
     }
     
-    // Update modal title to reflect new capability
-    const modalTitle = modal.querySelector('.modal-title');
-    if (modalTitle) {
-        modalTitle.textContent = 'Ping Tool (Local & Global)';
-    }
+    console.log('Global test functionality initialized');
 }
 
 /**
