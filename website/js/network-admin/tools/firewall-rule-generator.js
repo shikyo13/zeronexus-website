@@ -37,6 +37,16 @@ class FirewallRuleGenerator {
         document.getElementById('platformSelect').addEventListener('change', (e) => {
             this.handlePlatformChange(e.target.value);
         });
+        
+        // Direction change handler
+        document.getElementById('ruleDirection').addEventListener('change', (e) => {
+            this.updateDirectionIndicators(e.target.value);
+            this.updateRuleData();
+            // Re-validate with new direction context
+            if (document.getElementById('generatedOutput').style.display !== 'none') {
+                this.checkDangerousRule();
+            }
+        });
 
         // Source/Destination type changes
         document.getElementById('sourceType').addEventListener('change', (e) => {
@@ -172,6 +182,11 @@ class FirewallRuleGenerator {
             this.showWarning(validation.message);
             return;
         }
+        
+        // Show validation warning if present but continue
+        if (validation.warning) {
+            this.showWarning(validation.warning);
+        }
 
         // Generate rule based on platform
         let rule = '';
@@ -181,26 +196,36 @@ class FirewallRuleGenerator {
             case 'iptables':
                 rule = this.generateIptablesRule();
                 notes = 'Add this rule to your iptables configuration. Use iptables-save to persist.';
+                if (this.ruleData.direction === 'both') {
+                    notes += ' Note: Two rules generated for bidirectional traffic.';
+                }
                 break;
             case 'pfsense':
                 rule = this.generatePfSenseRule();
-                notes = 'Add this rule through the pfSense web interface under Firewall > Rules.';
+                notes = 'Add this rule through the pfSense web interface under Firewall > Rules. ';
+                notes += 'Direction is determined by the interface where the rule is applied.';
                 break;
             case 'cisco-asa':
                 rule = this.generateCiscoASARule();
-                notes = 'Apply this rule in configuration mode. Remember to save with "write memory".';
+                notes = 'Apply this rule in configuration mode. Remember to save with "write memory". ';
+                notes += 'Direction is controlled by ACL assignment to interface (in/out).';
                 break;
             case 'fortigate':
                 rule = this.generateFortiGateRule();
-                notes = 'Apply this in FortiGate CLI. Commit changes with "end" command.';
+                notes = 'Apply this in FortiGate CLI. Commit changes with "end" command. ';
+                notes += 'FortiGate uses srcintf/dstintf to control traffic direction.';
                 break;
             case 'paloalto':
                 rule = this.generatePaloAltoRule();
-                notes = 'Add through Panorama or device CLI. Commit to activate.';
+                notes = 'Add through Panorama or device CLI. Commit to activate. ';
+                notes += 'Direction is implicit based on zone configuration.';
                 break;
             case 'windows':
                 rule = this.generateWindowsRule();
                 notes = 'Run this command in an elevated PowerShell or Command Prompt.';
+                if (this.ruleData.direction === 'both') {
+                    notes += ' Note: Two rules generated for bidirectional traffic.';
+                }
                 break;
         }
 
@@ -256,6 +281,41 @@ class FirewallRuleGenerator {
         if (this.ruleData.destination.port && !this.isValidPort(this.ruleData.destination.port)) {
             return { valid: false, message: 'Invalid destination port format' };
         }
+        
+        // Direction-specific validation
+        const direction = this.ruleData.direction;
+        
+        // Inbound validation
+        if (direction === 'in' || direction === 'both') {
+            // Warn about inbound rules to all interfaces
+            if (this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow' &&
+                (!this.ruleData.interface || this.ruleData.interface === 'any')) {
+                return { 
+                    valid: false, 
+                    message: 'Inbound rules should specify a destination or interface to avoid exposing all services' 
+                };
+            }
+            
+            // Validate source ports for inbound rules (usually should be any/empty)
+            if (this.ruleData.source.port && this.ruleData.source.port !== 'any') {
+                // This is usually a mistake for inbound rules
+                console.warn('Source port specified for inbound rule - this is unusual and may not work as expected');
+            }
+        }
+        
+        // Outbound validation
+        if (direction === 'out' || direction === 'both') {
+            // Check for overly broad outbound rules
+            if (this.ruleData.protocol === 'any' && 
+                this.ruleData.destination.type === 'any' &&
+                (!this.ruleData.destination.port || this.ruleData.destination.port === 'any')) {
+                return { 
+                    valid: true, 
+                    warning: 'This outbound rule is very permissive. Consider restricting protocol or ports.' 
+                };
+            }
+        }
 
         return { valid: true };
     }
@@ -263,12 +323,32 @@ class FirewallRuleGenerator {
     // Platform-specific rule generators
     generateIptablesRule() {
         let rules = [];
+        
+        // Handle "both" direction by generating two rules
+        if (this.ruleData.direction === 'both') {
+            // Generate inbound rule
+            let inboundRule = this.generateIptablesRuleForDirection('in');
+            rules.push(...inboundRule.split('\n'));
+            
+            // Generate outbound rule
+            let outboundRule = this.generateIptablesRuleForDirection('out');
+            rules.push(...outboundRule.split('\n'));
+            
+            return rules.join('\n');
+        }
+        
+        // Single direction rule
+        return this.generateIptablesRuleForDirection(this.ruleData.direction);
+    }
+    
+    generateIptablesRuleForDirection(direction) {
+        let rules = [];
         let baseRule = 'iptables -A ';
         
         // Chain based on direction
-        if (this.ruleData.direction === 'in' || !this.ruleData.direction) {
+        if (direction === 'in') {
             baseRule += 'INPUT ';
-        } else if (this.ruleData.direction === 'out') {
+        } else if (direction === 'out') {
             baseRule += 'OUTPUT ';
         } else {
             baseRule += 'FORWARD ';
@@ -276,7 +356,7 @@ class FirewallRuleGenerator {
 
         // Interface
         if (this.ruleData.interface) {
-            if (this.ruleData.direction === 'out') {
+            if (direction === 'out') {
                 baseRule += `-o ${this.ruleData.interface} `;
             } else {
                 baseRule += `-i ${this.ruleData.interface} `;
@@ -339,10 +419,32 @@ class FirewallRuleGenerator {
     }
 
     generatePfSenseRule() {
-        let rule = '';
+        let rules = [];
         
+        // Handle "both" direction
+        if (this.ruleData.direction === 'both') {
+            rules.push('# Note: pfSense handles direction implicitly based on interface assignment');
+            rules.push('# You may need to create two separate rules for true bidirectional traffic');
+            rules.push('');
+        }
+        
+        // Determine interface based on direction
+        let suggestedInterface = this.ruleData.interface;
+        if (!suggestedInterface) {
+            if (this.ruleData.direction === 'in') {
+                suggestedInterface = 'WAN';  // Inbound typically on WAN
+            } else if (this.ruleData.direction === 'out') {
+                suggestedInterface = 'LAN';  // Outbound typically on LAN
+            } else {
+                suggestedInterface = 'WAN';  // Default
+            }
+        }
+        
+        let rule = '';
+        rule += `# Direction: ${this.ruleData.direction === 'in' ? 'Inbound' : 
+                               this.ruleData.direction === 'out' ? 'Outbound' : 'Bidirectional'}\n`;
         rule += `Action: ${this.ruleData.action === 'allow' ? 'Pass' : 'Block'}\n`;
-        rule += `Interface: ${this.ruleData.interface || 'WAN'}\n`;
+        rule += `Interface: ${suggestedInterface}\n`;
         rule += `Protocol: ${this.ruleData.protocol.toUpperCase()}\n`;
         
         // Source
@@ -376,16 +478,48 @@ class FirewallRuleGenerator {
         if (this.ruleData.comment) {
             rule += `Description: ${this.ruleData.comment}\n`;
         }
-
-        return rule;
+        
+        rules.push(rule);
+        
+        // Add interface assignment hint
+        if (this.ruleData.direction === 'both') {
+            rules.push('\n# For bidirectional traffic, consider creating matching rules on both WAN and LAN interfaces');
+        }
+        
+        return rules.join('\n');
     }
 
     generateCiscoASARule() {
+        let rules = [];
+        
+        // Handle "both" direction
+        if (this.ruleData.direction === 'both') {
+            // Generate inbound rule
+            rules.push(this.generateCiscoASARuleForDirection('in'));
+            rules.push('');
+            // Generate outbound rule
+            rules.push(this.generateCiscoASARuleForDirection('out'));
+            return rules.join('\n');
+        }
+        
+        return this.generateCiscoASARuleForDirection(this.ruleData.direction);
+    }
+    
+    generateCiscoASARuleForDirection(direction) {
         let rule = 'access-list ';
         
-        // ACL name (use interface or default)
-        const aclName = (this.ruleData.interface || 'outside') + '_access_in';
+        // Determine interface based on direction if not specified
+        let interface = this.ruleData.interface;
+        if (!interface) {
+            interface = direction === 'in' ? 'outside' : 'inside';
+        }
+        
+        // ACL name based on interface and direction
+        const aclName = interface + '_access_' + (direction === 'out' ? 'out' : 'in');
         rule += aclName + ' extended ';
+        
+        // Add comment about direction
+        rule = `! Direction: ${direction === 'in' ? 'Inbound' : 'Outbound'} rule\n` + rule;
 
         // Action
         rule += this.ruleData.action === 'allow' ? 'permit ' : 'deny ';
@@ -550,10 +684,28 @@ class FirewallRuleGenerator {
     }
 
     generateWindowsRule() {
+        // Handle "both" direction by generating two rules
+        if (this.ruleData.direction === 'both') {
+            let rules = [];
+            
+            // Generate inbound rule
+            rules.push(this.generateWindowsRuleForDirection('in', `${this.ruleData.name || 'Generated Rule'} - Inbound`));
+            
+            // Generate outbound rule
+            rules.push(this.generateWindowsRuleForDirection('out', `${this.ruleData.name || 'Generated Rule'} - Outbound`));
+            
+            return rules.join('\n');
+        }
+        
+        // Single direction rule
+        return this.generateWindowsRuleForDirection(this.ruleData.direction, this.ruleData.name || 'Generated Rule');
+    }
+    
+    generateWindowsRuleForDirection(direction, ruleName) {
         let rule = 'netsh advfirewall firewall add rule ';
         
-        rule += `name="${this.ruleData.name || 'Generated Rule'}" `;
-        rule += `dir=${this.ruleData.direction === 'out' ? 'out' : 'in'} `;
+        rule += `name="${ruleName}" `;
+        rule += `dir=${direction === 'out' ? 'out' : 'in'} `;
         rule += `action=${this.ruleData.action === 'allow' ? 'allow' : 'block'} `;
         
         if (this.ruleData.protocol !== 'any') {
@@ -562,19 +714,19 @@ class FirewallRuleGenerator {
 
         // Source (remote for inbound, local for outbound)
         if (this.ruleData.source.type !== 'any' && this.ruleData.source.value) {
-            const addr = this.ruleData.direction === 'out' ? 'localip' : 'remoteip';
+            const addr = direction === 'out' ? 'localip' : 'remoteip';
             rule += `${addr}=${this.ruleData.source.value} `;
         }
 
         // Destination
         if (this.ruleData.destination.type !== 'any' && this.ruleData.destination.value) {
-            const addr = this.ruleData.direction === 'out' ? 'remoteip' : 'localip';
+            const addr = direction === 'out' ? 'remoteip' : 'localip';
             rule += `${addr}=${this.ruleData.destination.value} `;
         }
 
         // Ports
         if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any') {
-            const port = this.ruleData.direction === 'out' ? 'remoteport' : 'localport';
+            const port = direction === 'out' ? 'remoteport' : 'localport';
             rule += `${port}=${this.ruleData.destination.port} `;
         }
 
@@ -605,54 +757,237 @@ class FirewallRuleGenerator {
     }
 
     checkDangerousRule() {
-        let warning = '';
+        let warnings = [];
+        const direction = this.ruleData.direction;
         
-        // Check for overly permissive rules
-        if (this.ruleData.source.type === 'any' && 
-            this.ruleData.destination.type === 'any' && 
-            this.ruleData.action === 'allow') {
-            warning = 'This rule allows ALL traffic from ANY source to ANY destination. This is extremely permissive and could pose a security risk.';
-        } else if (this.ruleData.source.type === 'any' && this.ruleData.action === 'allow') {
-            warning = 'This rule allows traffic from ANY source. Consider restricting the source for better security.';
-        } else if (this.ruleData.destination.type === 'network' && 
-                   this.ruleData.destination.value === '0.0.0.0/0' && 
-                   this.ruleData.action === 'allow') {
-            warning = 'This rule allows traffic to the entire internet. Ensure this is intentional.';
+        // Direction-specific validation
+        if (direction === 'in' || direction === 'both') {
+            // Inbound-specific checks
+            if (this.ruleData.source.type === 'any' && 
+                this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow') {
+                warnings.push({
+                    level: 'danger',
+                    message: 'CRITICAL: This inbound rule allows ALL traffic from ANY external source to ANY internal destination. This is extremely dangerous and could expose your entire network!'
+                });
+            } else if (this.ruleData.source.type === 'any' && this.ruleData.action === 'allow') {
+                // Check for sensitive ports
+                const sensitiveInboundPorts = ['22', '3389', '3306', '5432', '1433', '27017'];
+                const destPorts = this.ruleData.destination.port ? this.ruleData.destination.port.split(',') : [];
+                const hasSensitivePort = destPorts.some(port => sensitiveInboundPorts.includes(port.trim()));
+                
+                if (hasSensitivePort) {
+                    warnings.push({
+                        level: 'danger',
+                        message: 'HIGH RISK: Allowing inbound access to sensitive services (SSH, RDP, databases) from ANY source. This could lead to unauthorized access!'
+                    });
+                } else {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'This inbound rule allows traffic from ANY external source. Consider restricting to specific IPs or networks for better security.'
+                    });
+                }
+            }
+            
+            // Check for private IP exposure
+            if (this.ruleData.source.type === 'any' && 
+                this.ruleData.destination.type === 'network' &&
+                this.isPrivateNetwork(this.ruleData.destination.value)) {
+                warnings.push({
+                    level: 'warning',
+                    message: 'This rule exposes internal/private networks to external access. Ensure this is intentional.'
+                });
+            }
         }
-
-        if (warning) {
-            this.showWarning(warning);
+        
+        if (direction === 'out' || direction === 'both') {
+            // Outbound-specific checks
+            if (this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow') {
+                // Check for data exfiltration risks
+                const riskyOutboundPorts = ['20', '21', '22', '23', '3389', '445', '139'];
+                const destPorts = this.ruleData.destination.port ? this.ruleData.destination.port.split(',') : [];
+                const hasRiskyPort = destPorts.some(port => riskyOutboundPorts.includes(port.trim()));
+                
+                if (hasRiskyPort) {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'CAUTION: Allowing outbound access to file transfer or remote access protocols. Monitor for potential data exfiltration.'
+                    });
+                } else if (!this.ruleData.destination.port || this.ruleData.destination.port === 'any') {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'This outbound rule allows traffic to ANY destination on ANY port. Consider restricting to specific services.'
+                    });
+                }
+            }
+            
+            // Check for DNS hijacking risks
+            if (this.ruleData.destination.port && this.ruleData.destination.port.includes('53') &&
+                this.ruleData.destination.type === 'any') {
+                warnings.push({
+                    level: 'info',
+                    message: 'DNS queries allowed to any server. Consider restricting to trusted DNS servers to prevent DNS hijacking.'
+                });
+            }
+        }
+        
+        // General checks for all directions
+        if (this.ruleData.destination.type === 'network' && 
+            this.ruleData.destination.value === '0.0.0.0/0' && 
+            this.ruleData.action === 'allow') {
+            warnings.push({
+                level: 'info',
+                message: 'This rule allows traffic to the entire internet (0.0.0.0/0). Ensure this is intentional.'
+            });
+        }
+        
+        // Check for missing logging on deny rules
+        if (this.ruleData.action === 'deny' && !this.ruleData.logging) {
+            warnings.push({
+                level: 'info',
+                message: 'Consider enabling logging for deny rules to track blocked connection attempts.'
+            });
+        }
+        
+        // Display warnings
+        if (warnings.length > 0) {
+            this.displayWarnings(warnings);
         } else {
             document.getElementById('warningSection').style.display = 'none';
         }
+    }
+    
+    displayWarnings(warnings) {
+        const warningSection = document.getElementById('warningSection');
+        const warningContent = document.getElementById('warningContent');
+        
+        // Sort warnings by severity
+        const severityOrder = { danger: 0, warning: 1, info: 2 };
+        warnings.sort((a, b) => severityOrder[a.level] - severityOrder[b.level]);
+        
+        // Build warning HTML
+        let html = '';
+        warnings.forEach(warning => {
+            const icon = warning.level === 'danger' ? 'fa-exclamation-triangle' :
+                        warning.level === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            const alertClass = warning.level === 'danger' ? 'alert-danger' :
+                              warning.level === 'warning' ? 'alert-warning' : 'alert-info';
+            
+            // Update main warning section class based on highest severity
+            if (warnings[0].level === warning.level) {
+                warningSection.className = `alert ${alertClass}`;
+            }
+            
+            html += `<div class="mb-2"><i class="fas ${icon} me-2"></i>${warning.message}</div>`;
+        });
+        
+        warningContent.innerHTML = html;
+        warningSection.style.display = 'block';
+    }
+    
+    isPrivateNetwork(cidr) {
+        if (!cidr || !cidr.includes('/')) return false;
+        const ip = cidr.split('/')[0];
+        const parts = ip.split('.');
+        if (parts.length !== 4) return false;
+        
+        const first = parseInt(parts[0]);
+        const second = parseInt(parts[1]);
+        
+        // Check for private IP ranges
+        return (first === 10) ||
+               (first === 172 && second >= 16 && second <= 31) ||
+               (first === 192 && second === 168);
     }
 
     loadTemplates(platform) {
         const templateGrid = document.getElementById('templateGrid');
         templateGrid.innerHTML = '';
         
-        const platformTemplates = this.templates.filter(t => 
-            t.platforms.includes('all') || t.platforms.includes(platform)
-        );
-
-        platformTemplates.forEach(template => {
-            const col = document.createElement('div');
-            col.className = 'col-md-4 col-sm-6';
-            
-            const card = document.createElement('div');
-            card.className = 'card bg-secondary h-100 cursor-pointer template-card';
-            card.innerHTML = `
-                <div class="card-body">
-                    <h6 class="card-title">${template.name}</h6>
-                    <p class="card-text small">${template.description}</p>
-                </div>
-            `;
-            
-            card.addEventListener('click', () => this.applyTemplate(template));
-            
-            col.appendChild(card);
-            templateGrid.appendChild(col);
+        // Get current direction
+        const currentDirection = document.getElementById('ruleDirection').value;
+        
+        // Filter templates by platform and direction
+        const platformTemplates = this.templates.filter(t => {
+            const platformMatch = t.platforms.includes('all') || t.platforms.includes(platform);
+            const directionMatch = !t.direction || t.direction === currentDirection || 
+                                 t.direction === 'both' || currentDirection === 'both';
+            return platformMatch && directionMatch;
         });
+        
+        // Group templates by category
+        const categories = {
+            inbound: [],
+            outbound: [],
+            bidirectional: [],
+            security: []
+        };
+        
+        platformTemplates.forEach(template => {
+            const category = template.category || 'security';
+            if (categories[category]) {
+                categories[category].push(template);
+            }
+        });
+        
+        // Render templates by category
+        Object.entries(categories).forEach(([category, templates]) => {
+            if (templates.length === 0) return;
+            
+            // Add category header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'col-12 mb-2';
+            headerDiv.innerHTML = `
+                <h6 class="text-muted text-uppercase">
+                    ${category.charAt(0).toUpperCase() + category.slice(1)} Templates
+                </h6>
+            `;
+            templateGrid.appendChild(headerDiv);
+            
+            // Add templates
+            templates.forEach(template => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6 mb-3';
+                
+                const card = document.createElement('div');
+                card.className = 'card bg-secondary h-100 cursor-pointer template-card';
+                
+                // Add direction badge
+                let directionBadge = '';
+                if (template.direction) {
+                    const badgeClass = template.direction === 'in' ? 'primary' : 
+                                     template.direction === 'out' ? 'success' : 'info';
+                    directionBadge = `<span class="badge bg-${badgeClass} position-absolute top-0 end-0 m-2">
+                        ${template.direction === 'in' ? 'Inbound' : 
+                          template.direction === 'out' ? 'Outbound' : 'Bidirectional'}
+                    </span>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="card-body">
+                        ${directionBadge}
+                        <h6 class="card-title">${template.name}</h6>
+                        <p class="card-text small">${template.description}</p>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => this.applyTemplate(template));
+                
+                col.appendChild(card);
+                templateGrid.appendChild(col);
+            });
+        });
+        
+        // Update templates when direction changes
+        if (!this.directionListener) {
+            this.directionListener = true;
+            document.getElementById('ruleDirection').addEventListener('change', () => {
+                if (this.currentPlatform) {
+                    this.loadTemplates(this.currentPlatform);
+                }
+            });
+        }
     }
 
     applyTemplate(template) {
@@ -693,140 +1028,334 @@ class FirewallRuleGenerator {
 
     getTemplates() {
         return [
+            // Inbound Templates
             {
-                name: 'Web Server',
-                description: 'Allow HTTP/HTTPS traffic',
+                name: 'Web Server (Inbound)',
+                description: 'Allow incoming HTTP/HTTPS traffic to web server',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Web Traffic',
+                    name: 'Allow Inbound Web Traffic',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '80,443' },
-                    comment: 'Allow incoming web traffic'
+                    comment: 'Allow incoming web traffic from internet'
                 }
             },
             {
-                name: 'SSH Access',
-                description: 'Allow SSH from specific network',
+                name: 'SSH Management (Inbound)',
+                description: 'Allow SSH from admin network',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow SSH Management',
+                    name: 'Allow Inbound SSH Management',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '10.0.0.0/24' },
                     destination: { type: 'any', port: '22' },
-                    comment: 'Allow SSH from management network'
+                    comment: 'Allow SSH from management network only'
                 }
             },
             {
-                name: 'Database Server',
-                description: 'Allow database connections',
+                name: 'Database Access (Inbound)',
+                description: 'Allow app servers to connect to database',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Database Access',
+                    name: 'Allow Inbound Database Access',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '10.0.1.0/24' },
                     destination: { type: 'any', port: '3306' },
-                    comment: 'Allow MySQL from app servers'
+                    comment: 'Allow MySQL connections from app servers'
                 }
             },
             {
-                name: 'Mail Server',
-                description: 'Allow email protocols',
+                name: 'Mail Server (Inbound)',
+                description: 'Accept incoming email connections',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Email Services',
+                    name: 'Allow Inbound Email',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '25,587,993,995' },
-                    comment: 'Allow SMTP, SMTP-TLS, IMAPS, POP3S'
+                    comment: 'Accept SMTP, SMTP-TLS, IMAPS, POP3S'
                 }
             },
             {
-                name: 'VPN Gateway',
-                description: 'Allow VPN connections',
+                name: 'VPN Server (Inbound)',
+                description: 'Accept VPN client connections',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow VPN Traffic',
+                    name: 'Allow Inbound VPN',
                     action: 'allow',
                     protocol: 'udp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '500,4500' },
-                    comment: 'Allow IPSec VPN'
+                    comment: 'Accept IPSec VPN connections'
                 }
             },
             {
-                name: 'DNS Server',
-                description: 'Allow DNS queries',
+                name: 'RDP Access (Inbound)',
+                description: 'Allow Remote Desktop from local network',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow DNS Queries',
-                    action: 'allow',
-                    protocol: 'udp',
-                    source: { type: 'any' },
-                    destination: { type: 'any', port: '53' },
-                    comment: 'Allow DNS UDP queries'
-                }
-            },
-            {
-                name: 'FTP Server',
-                description: 'Allow FTP connections',
-                platforms: ['all'],
-                rule: {
-                    name: 'Allow FTP Traffic',
+                    name: 'Allow Inbound RDP',
                     action: 'allow',
                     protocol: 'tcp',
-                    source: { type: 'any' },
-                    destination: { type: 'any', port: '20,21' },
-                    comment: 'Allow FTP control and data'
-                }
-            },
-            {
-                name: 'RDP Access',
-                description: 'Allow Remote Desktop',
-                platforms: ['all'],
-                rule: {
-                    name: 'Allow RDP',
-                    action: 'allow',
-                    protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '192.168.1.0/24' },
                     destination: { type: 'any', port: '3389' },
-                    comment: 'Allow RDP from internal network'
+                    comment: 'Allow RDP from internal network only'
+                }
+            },
+            
+            // Outbound Templates
+            {
+                name: 'Web Browsing (Outbound)',
+                description: 'Allow users to browse the web',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Web',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '80,443' },
+                    comment: 'Allow outbound HTTP/HTTPS traffic'
                 }
             },
             {
-                name: 'Block All',
-                description: 'Deny all traffic (default deny)',
+                name: 'DNS Queries (Outbound)',
+                description: 'Allow DNS lookups to DNS servers',
                 platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
                 rule: {
-                    name: 'Default Deny Rule',
+                    name: 'Allow Outbound DNS',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'network', value: '8.8.8.8', port: '53' },
+                    comment: 'Allow DNS queries to Google DNS'
+                }
+            },
+            {
+                name: 'Email Client (Outbound)',
+                description: 'Allow email clients to send mail',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Email',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '25,587,465' },
+                    comment: 'Allow SMTP/SMTPS for sending email'
+                }
+            },
+            {
+                name: 'Software Updates (Outbound)',
+                description: 'Allow system to download updates',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Updates',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '80,443' },
+                    comment: 'Allow package managers and update services'
+                }
+            },
+            {
+                name: 'NTP Time Sync (Outbound)',
+                description: 'Allow time synchronization',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound NTP',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '123' },
+                    comment: 'Allow NTP time synchronization'
+                }
+            },
+            {
+                name: 'Backup to Cloud (Outbound)',
+                description: 'Allow backup traffic to cloud storage',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Backup',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '443' },
+                    comment: 'Allow HTTPS backup to cloud providers'
+                }
+            },
+            
+            // Bidirectional Templates
+            {
+                name: 'Site-to-Site VPN',
+                description: 'Allow VPN tunnel between sites',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'bidirectional',
+                rule: {
+                    name: 'Site-to-Site VPN Tunnel',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'both',
+                    source: { type: 'ip', value: '203.0.113.10' },
+                    destination: { type: 'ip', value: '198.51.100.20', port: '500,4500' },
+                    comment: 'IPSec VPN between branch offices'
+                }
+            },
+            {
+                name: 'Database Replication',
+                description: 'Allow database sync between servers',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'bidirectional',
+                rule: {
+                    name: 'Database Replication',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'both',
+                    source: { type: 'ip', value: '10.0.1.10' },
+                    destination: { type: 'ip', value: '10.0.2.10', port: '3306' },
+                    comment: 'MySQL replication between primary and secondary'
+                }
+            },
+            
+            // Security Templates
+            {
+                name: 'Block All (Default Deny)',
+                description: 'Deny all traffic not explicitly allowed',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'security',
+                rule: {
+                    name: 'Default Deny All',
                     action: 'deny',
                     protocol: 'any',
+                    direction: 'both',
                     source: { type: 'any' },
                     destination: { type: 'any' },
                     logging: true,
                     comment: 'Log and drop all unmatched traffic'
+                }
+            },
+            {
+                name: 'Block Malicious IPs',
+                description: 'Block known malicious IP addresses',
+                platforms: ['all'],
+                direction: 'in',
+                category: 'security',
+                rule: {
+                    name: 'Block Malicious Sources',
+                    action: 'deny',
+                    protocol: 'any',
+                    direction: 'in',
+                    source: { type: 'network', value: '192.0.2.0/24' },
+                    destination: { type: 'any' },
+                    logging: true,
+                    comment: 'Block traffic from blacklisted IPs'
                 }
             }
         ];
     }
 
     updatePlatformUI(platform) {
-        // Show/hide platform-specific options
-        const directionField = document.getElementById('ruleDirection').parentElement;
-        const interfaceField = document.getElementById('ruleInterface').parentElement;
+        // Platform-specific UI updates
+        // Direction is now always visible in the main interface
+        // Could add platform-specific hints or validations here in the future
         
-        // Different platforms have different capabilities
-        switch (platform) {
-            case 'iptables':
-            case 'windows':
-                directionField.style.display = 'block';
+        // Update direction indicators on platform change
+        this.updateDirectionIndicators(document.getElementById('ruleDirection').value);
+    }
+    
+    updateDirectionIndicators(direction) {
+        const directionText = document.getElementById('directionText');
+        const sourceIcon = document.getElementById('sourceIcon');
+        const destIcon = document.getElementById('destIcon');
+        const sourceLabel = document.getElementById('sourceLabel');
+        const destLabel = document.getElementById('destLabel');
+        const sourceHint = document.getElementById('sourceHint');
+        const destHint = document.getElementById('destHint');
+        const sourceCard = document.getElementById('sourceCard');
+        const destCard = document.getElementById('destinationCard');
+        
+        // Remove existing border classes
+        sourceCard.classList.remove('border-primary', 'border-success', 'border-info');
+        destCard.classList.remove('border-primary', 'border-success', 'border-info');
+        
+        switch (direction) {
+            case 'in':
+                directionText.innerHTML = 'Configuring an <strong>Inbound</strong> rule: Traffic flows from external Source to local Destination';
+                sourceIcon.className = 'fas fa-globe me-2';
+                destIcon.className = 'fas fa-server me-2';
+                sourceLabel.textContent = 'Source';
+                destLabel.textContent = 'Destination';
+                sourceHint.textContent = '(External/Remote)';
+                destHint.textContent = '(Local/Protected)';
+                sourceCard.classList.add('border-primary');
+                destCard.classList.add('border-success');
                 break;
-            default:
-                directionField.style.display = 'none';
+                
+            case 'out':
+                directionText.innerHTML = 'Configuring an <strong>Outbound</strong> rule: Traffic flows from local Source to external Destination';
+                sourceIcon.className = 'fas fa-server me-2';
+                destIcon.className = 'fas fa-globe me-2';
+                sourceLabel.textContent = 'Source';
+                destLabel.textContent = 'Destination';
+                sourceHint.textContent = '(Local/Internal)';
+                destHint.textContent = '(External/Remote)';
+                sourceCard.classList.add('border-success');
+                destCard.classList.add('border-primary');
+                break;
+                
+            case 'both':
+                directionText.innerHTML = 'Configuring a <strong>Bidirectional</strong> rule: Traffic flows in both directions between Source and Destination';
+                sourceIcon.className = 'fas fa-exchange-alt me-2';
+                destIcon.className = 'fas fa-exchange-alt me-2';
+                sourceLabel.textContent = 'Endpoint A';
+                destLabel.textContent = 'Endpoint B';
+                sourceHint.textContent = '(First endpoint)';
+                destHint.textContent = '(Second endpoint)';
+                sourceCard.classList.add('border-info');
+                destCard.classList.add('border-info');
+                break;
         }
     }
 
@@ -976,7 +1505,7 @@ class FirewallRuleGenerator {
         document.getElementById('destValue').value = '';
         document.getElementById('destPort').value = '';
         document.getElementById('ruleInterface').value = '';
-        document.getElementById('ruleDirection').value = '';
+        document.getElementById('ruleDirection').value = 'in';  // Default to inbound
         document.getElementById('enableLogging').checked = false;
         document.getElementById('ruleComment').value = '';
         
@@ -1013,7 +1542,7 @@ class FirewallRuleGenerator {
             source: { type: 'any', value: '', port: '' },
             destination: { type: 'any', value: '', port: '' },
             interface: '',
-            direction: '',
+            direction: 'in',  // Default to inbound
             logging: false,
             comment: ''
         };
