@@ -50,19 +50,8 @@ export default function setupPasswordStrength() {
  * Initialize UI elements
  */
 function initializeUI() {
-  // Sync length slider with number input
-  const lengthSlider = document.getElementById('passwordLength');
-  const lengthValue = document.getElementById('passwordLengthValue');
-  
-  if (lengthSlider && lengthValue) {
-    lengthSlider.addEventListener('input', () => {
-      lengthValue.value = lengthSlider.value;
-    });
-    
-    lengthValue.addEventListener('input', () => {
-      lengthSlider.value = lengthValue.value;
-    });
-  }
+  // No longer needed - slider was removed in favor of number input only
+  console.log('Password tool UI initialized');
 }
 
 /**
@@ -96,10 +85,12 @@ function setupPasswordTester() {
   // Advanced analysis toggle
   if (advancedCheckbox) {
     advancedCheckbox.addEventListener('change', () => {
-      if (passwordInput.value) {
+      if (passwordInput && passwordInput.value) {
         analyzePassword(passwordInput.value);
       }
     });
+  } else {
+    console.warn('Advanced analysis checkbox not found');
   }
 }
 
@@ -325,14 +316,29 @@ function setupPasswordGenerator() {
  * Generate secure passwords
  */
 function generatePasswords() {
-  const length = parseInt(document.getElementById('passwordLength').value);
-  const count = parseInt(document.getElementById('passwordCount').value);
+  const lengthEl = document.getElementById('passwordLengthValue') || document.getElementById('passwordLength');
+  const countEl = document.getElementById('passwordCount');
+  const uppercaseEl = document.getElementById('includeUppercase');
+  const lowercaseEl = document.getElementById('includeLowercase');
+  const numbersEl = document.getElementById('includeNumbers');
+  const symbolsEl = document.getElementById('includeSymbols');
+  const excludeEl = document.getElementById('excludeChars');
+  
+  // Validate all elements exist
+  if (!lengthEl || !countEl || !uppercaseEl || !lowercaseEl || !numbersEl || !symbolsEl) {
+    console.error('Password generator elements not found in DOM');
+    alert('Password generator is not properly initialized. Please try refreshing the page.');
+    return;
+  }
+  
+  const length = parseInt(lengthEl.value);
+  const count = parseInt(countEl.value);
   const options = {
-    uppercase: document.getElementById('includeUppercase').checked,
-    lowercase: document.getElementById('includeLowercase').checked,
-    numbers: document.getElementById('includeNumbers').checked,
-    symbols: document.getElementById('includeSymbols').checked,
-    exclude: document.getElementById('excludeChars').value
+    uppercase: uppercaseEl.checked,
+    lowercase: lowercaseEl.checked,
+    numbers: numbersEl.checked,
+    symbols: symbolsEl.checked,
+    exclude: excludeEl ? excludeEl.value : ''
   };
   
   // Validate options

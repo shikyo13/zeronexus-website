@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="passwordStrengthModalLabel">Password Strength Tester & Generator</h5>
+                <h5 class="modal-title" id="passwordStrengthModalLabel">Password Tester & Generator</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -89,11 +89,8 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="passwordLength" class="form-label">Password Length</label>
-                                        <div class="input-group">
-                                            <input type="range" class="form-range" id="passwordLength" min="8" max="64" value="16" style="width: 70%;">
-                                            <input type="number" class="form-control" id="passwordLengthValue" min="8" max="64" value="16" style="width: 30%;">
-                                        </div>
+                                        <label for="passwordLengthValue" class="form-label">Password Length</label>
+                                        <input type="number" class="form-control" id="passwordLengthValue" min="8" max="64" value="16">
                                     </div>
                                     
                                     <div class="mb-3">
