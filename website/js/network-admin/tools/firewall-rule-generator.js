@@ -674,28 +674,89 @@ class FirewallRuleGenerator {
         const templateGrid = document.getElementById('templateGrid');
         templateGrid.innerHTML = '';
         
-        const platformTemplates = this.templates.filter(t => 
-            t.platforms.includes('all') || t.platforms.includes(platform)
-        );
-
-        platformTemplates.forEach(template => {
-            const col = document.createElement('div');
-            col.className = 'col-md-4 col-sm-6';
-            
-            const card = document.createElement('div');
-            card.className = 'card bg-secondary h-100 cursor-pointer template-card';
-            card.innerHTML = `
-                <div class="card-body">
-                    <h6 class="card-title">${template.name}</h6>
-                    <p class="card-text small">${template.description}</p>
-                </div>
-            `;
-            
-            card.addEventListener('click', () => this.applyTemplate(template));
-            
-            col.appendChild(card);
-            templateGrid.appendChild(col);
+        // Get current direction
+        const currentDirection = document.getElementById('ruleDirection').value;
+        
+        // Filter templates by platform and direction
+        const platformTemplates = this.templates.filter(t => {
+            const platformMatch = t.platforms.includes('all') || t.platforms.includes(platform);
+            const directionMatch = !t.direction || t.direction === currentDirection || 
+                                 t.direction === 'both' || currentDirection === 'both';
+            return platformMatch && directionMatch;
         });
+        
+        // Group templates by category
+        const categories = {
+            inbound: [],
+            outbound: [],
+            bidirectional: [],
+            security: []
+        };
+        
+        platformTemplates.forEach(template => {
+            const category = template.category || 'security';
+            if (categories[category]) {
+                categories[category].push(template);
+            }
+        });
+        
+        // Render templates by category
+        Object.entries(categories).forEach(([category, templates]) => {
+            if (templates.length === 0) return;
+            
+            // Add category header
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'col-12 mb-2';
+            headerDiv.innerHTML = `
+                <h6 class="text-muted text-uppercase">
+                    ${category.charAt(0).toUpperCase() + category.slice(1)} Templates
+                </h6>
+            `;
+            templateGrid.appendChild(headerDiv);
+            
+            // Add templates
+            templates.forEach(template => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6 mb-3';
+                
+                const card = document.createElement('div');
+                card.className = 'card bg-secondary h-100 cursor-pointer template-card';
+                
+                // Add direction badge
+                let directionBadge = '';
+                if (template.direction) {
+                    const badgeClass = template.direction === 'in' ? 'primary' : 
+                                     template.direction === 'out' ? 'success' : 'info';
+                    directionBadge = `<span class="badge bg-${badgeClass} position-absolute top-0 end-0 m-2">
+                        ${template.direction === 'in' ? 'Inbound' : 
+                          template.direction === 'out' ? 'Outbound' : 'Bidirectional'}
+                    </span>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="card-body">
+                        ${directionBadge}
+                        <h6 class="card-title">${template.name}</h6>
+                        <p class="card-text small">${template.description}</p>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => this.applyTemplate(template));
+                
+                col.appendChild(card);
+                templateGrid.appendChild(col);
+            });
+        });
+        
+        // Update templates when direction changes
+        if (!this.directionListener) {
+            this.directionListener = true;
+            document.getElementById('ruleDirection').addEventListener('change', () => {
+                if (this.currentPlatform) {
+                    this.loadTemplates(this.currentPlatform);
+                }
+            });
+        }
     }
 
     applyTemplate(template) {
@@ -736,122 +797,269 @@ class FirewallRuleGenerator {
 
     getTemplates() {
         return [
+            // Inbound Templates
             {
-                name: 'Web Server',
-                description: 'Allow HTTP/HTTPS traffic',
+                name: 'Web Server (Inbound)',
+                description: 'Allow incoming HTTP/HTTPS traffic to web server',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Web Traffic',
+                    name: 'Allow Inbound Web Traffic',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '80,443' },
-                    comment: 'Allow incoming web traffic'
+                    comment: 'Allow incoming web traffic from internet'
                 }
             },
             {
-                name: 'SSH Access',
-                description: 'Allow SSH from specific network',
+                name: 'SSH Management (Inbound)',
+                description: 'Allow SSH from admin network',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow SSH Management',
+                    name: 'Allow Inbound SSH Management',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '10.0.0.0/24' },
                     destination: { type: 'any', port: '22' },
-                    comment: 'Allow SSH from management network'
+                    comment: 'Allow SSH from management network only'
                 }
             },
             {
-                name: 'Database Server',
-                description: 'Allow database connections',
+                name: 'Database Access (Inbound)',
+                description: 'Allow app servers to connect to database',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Database Access',
+                    name: 'Allow Inbound Database Access',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '10.0.1.0/24' },
                     destination: { type: 'any', port: '3306' },
-                    comment: 'Allow MySQL from app servers'
+                    comment: 'Allow MySQL connections from app servers'
                 }
             },
             {
-                name: 'Mail Server',
-                description: 'Allow email protocols',
+                name: 'Mail Server (Inbound)',
+                description: 'Accept incoming email connections',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow Email Services',
+                    name: 'Allow Inbound Email',
                     action: 'allow',
                     protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '25,587,993,995' },
-                    comment: 'Allow SMTP, SMTP-TLS, IMAPS, POP3S'
+                    comment: 'Accept SMTP, SMTP-TLS, IMAPS, POP3S'
                 }
             },
             {
-                name: 'VPN Gateway',
-                description: 'Allow VPN connections',
+                name: 'VPN Server (Inbound)',
+                description: 'Accept VPN client connections',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow VPN Traffic',
+                    name: 'Allow Inbound VPN',
                     action: 'allow',
                     protocol: 'udp',
+                    direction: 'in',
                     source: { type: 'any' },
                     destination: { type: 'any', port: '500,4500' },
-                    comment: 'Allow IPSec VPN'
+                    comment: 'Accept IPSec VPN connections'
                 }
             },
             {
-                name: 'DNS Server',
-                description: 'Allow DNS queries',
+                name: 'RDP Access (Inbound)',
+                description: 'Allow Remote Desktop from local network',
                 platforms: ['all'],
+                direction: 'in',
+                category: 'inbound',
                 rule: {
-                    name: 'Allow DNS Queries',
-                    action: 'allow',
-                    protocol: 'udp',
-                    source: { type: 'any' },
-                    destination: { type: 'any', port: '53' },
-                    comment: 'Allow DNS UDP queries'
-                }
-            },
-            {
-                name: 'FTP Server',
-                description: 'Allow FTP connections',
-                platforms: ['all'],
-                rule: {
-                    name: 'Allow FTP Traffic',
+                    name: 'Allow Inbound RDP',
                     action: 'allow',
                     protocol: 'tcp',
-                    source: { type: 'any' },
-                    destination: { type: 'any', port: '20,21' },
-                    comment: 'Allow FTP control and data'
-                }
-            },
-            {
-                name: 'RDP Access',
-                description: 'Allow Remote Desktop',
-                platforms: ['all'],
-                rule: {
-                    name: 'Allow RDP',
-                    action: 'allow',
-                    protocol: 'tcp',
+                    direction: 'in',
                     source: { type: 'network', value: '192.168.1.0/24' },
                     destination: { type: 'any', port: '3389' },
-                    comment: 'Allow RDP from internal network'
+                    comment: 'Allow RDP from internal network only'
+                }
+            },
+            
+            // Outbound Templates
+            {
+                name: 'Web Browsing (Outbound)',
+                description: 'Allow users to browse the web',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Web',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '80,443' },
+                    comment: 'Allow outbound HTTP/HTTPS traffic'
                 }
             },
             {
-                name: 'Block All',
-                description: 'Deny all traffic (default deny)',
+                name: 'DNS Queries (Outbound)',
+                description: 'Allow DNS lookups to DNS servers',
                 platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
                 rule: {
-                    name: 'Default Deny Rule',
+                    name: 'Allow Outbound DNS',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'network', value: '8.8.8.8', port: '53' },
+                    comment: 'Allow DNS queries to Google DNS'
+                }
+            },
+            {
+                name: 'Email Client (Outbound)',
+                description: 'Allow email clients to send mail',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Email',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '25,587,465' },
+                    comment: 'Allow SMTP/SMTPS for sending email'
+                }
+            },
+            {
+                name: 'Software Updates (Outbound)',
+                description: 'Allow system to download updates',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Updates',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '80,443' },
+                    comment: 'Allow package managers and update services'
+                }
+            },
+            {
+                name: 'NTP Time Sync (Outbound)',
+                description: 'Allow time synchronization',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound NTP',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '123' },
+                    comment: 'Allow NTP time synchronization'
+                }
+            },
+            {
+                name: 'Backup to Cloud (Outbound)',
+                description: 'Allow backup traffic to cloud storage',
+                platforms: ['all'],
+                direction: 'out',
+                category: 'outbound',
+                rule: {
+                    name: 'Allow Outbound Backup',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'out',
+                    source: { type: 'any' },
+                    destination: { type: 'any', port: '443' },
+                    comment: 'Allow HTTPS backup to cloud providers'
+                }
+            },
+            
+            // Bidirectional Templates
+            {
+                name: 'Site-to-Site VPN',
+                description: 'Allow VPN tunnel between sites',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'bidirectional',
+                rule: {
+                    name: 'Site-to-Site VPN Tunnel',
+                    action: 'allow',
+                    protocol: 'udp',
+                    direction: 'both',
+                    source: { type: 'ip', value: '203.0.113.10' },
+                    destination: { type: 'ip', value: '198.51.100.20', port: '500,4500' },
+                    comment: 'IPSec VPN between branch offices'
+                }
+            },
+            {
+                name: 'Database Replication',
+                description: 'Allow database sync between servers',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'bidirectional',
+                rule: {
+                    name: 'Database Replication',
+                    action: 'allow',
+                    protocol: 'tcp',
+                    direction: 'both',
+                    source: { type: 'ip', value: '10.0.1.10' },
+                    destination: { type: 'ip', value: '10.0.2.10', port: '3306' },
+                    comment: 'MySQL replication between primary and secondary'
+                }
+            },
+            
+            // Security Templates
+            {
+                name: 'Block All (Default Deny)',
+                description: 'Deny all traffic not explicitly allowed',
+                platforms: ['all'],
+                direction: 'both',
+                category: 'security',
+                rule: {
+                    name: 'Default Deny All',
                     action: 'deny',
                     protocol: 'any',
+                    direction: 'both',
                     source: { type: 'any' },
                     destination: { type: 'any' },
                     logging: true,
                     comment: 'Log and drop all unmatched traffic'
+                }
+            },
+            {
+                name: 'Block Malicious IPs',
+                description: 'Block known malicious IP addresses',
+                platforms: ['all'],
+                direction: 'in',
+                category: 'security',
+                rule: {
+                    name: 'Block Malicious Sources',
+                    action: 'deny',
+                    protocol: 'any',
+                    direction: 'in',
+                    source: { type: 'network', value: '192.0.2.0/24' },
+                    destination: { type: 'any' },
+                    logging: true,
+                    comment: 'Block traffic from blacklisted IPs'
                 }
             }
         ];
