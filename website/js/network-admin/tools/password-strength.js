@@ -20,6 +20,41 @@ const COMMON_PATTERNS = [
   /^(.)\1{2,}$/  // Same character repeated 3+ times
 ];
 
+// Advanced patterns for enhanced detection
+const ADVANCED_PATTERNS = {
+  keyboardWalks: [
+    /qwerty|asdf|zxcv|yuiop|hjkl|bnm/i,
+    /123456|234567|345678|456789|567890/,
+    /qwertyui|asdfghjk|zxcvbnm/i,
+    /1qaz2wsx|qazwsx|zaq1xsw2/i
+  ],
+  leetSpeak: [
+    /p@ssw0rd|p4ssw0rd|passw0rd/i,
+    /[a@]dm[i1]n|4dm1n/i,
+    /[3e]l[i1]t[3e]|3l1t3/i,
+    /h4ck3r|h@ck3r/i,
+    /[0o]n[3e]|tw[0o]/i
+  ],
+  dates: [
+    /19\d{2}|20\d{2}/,  // Years
+    /\d{2}\/\d{2}\/\d{4}/,  // Dates
+    /\d{4}-\d{2}-\d{2}/,  // ISO dates
+    /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\d{2,4}/i
+  ],
+  sequences: [
+    /abcd|bcde|cdef|defg/i,
+    /1234|2345|3456|4567|5678|6789|7890/,
+    /zyxw|yxwv|xwvu|wvut/i
+  ]
+};
+
+// Common dictionary words (subset for demo)
+const COMMON_WORDS = [
+  'password', 'admin', 'user', 'login', 'welcome', 'guest', 'test', 'demo',
+  'master', 'root', 'super', 'secret', 'private', 'system', 'account',
+  'database', 'server', 'network', 'computer', 'internet', 'email', 'web'
+];
+
 // Strength levels
 const STRENGTH_LEVELS = {
   0: { label: 'Very Weak', class: 'bg-danger', color: '#dc3545' },
@@ -125,7 +160,7 @@ function setupPasswordTester() {
 /**
  * Analyze password strength
  */
-function analyzePassword(password) {
+async function analyzePassword(password) {
   if (!password) {
     hidePasswordAnalysis();
     return;
@@ -137,7 +172,7 @@ function analyzePassword(password) {
   
   // Update UI
   updateStrengthMeter(score);
-  updateAnalysisDetails(password, entropy, score);
+  await updateAnalysisDetails(password, entropy, score);
   
   // Show analysis sections
   document.getElementById('passwordStrengthMeter')?.classList.remove('d-none');
@@ -171,6 +206,7 @@ function getCharsetSize(password) {
  */
 function calculateStrengthScore(password, entropy) {
   let score = 0;
+  let advancedPenalties = 0;
   
   // Length scoring
   if (password.length >= 8) score++;
@@ -203,8 +239,104 @@ function calculateStrengthScore(password, entropy) {
     }
   }
   
+  // Advanced analysis penalties (only if enabled)
+  const advancedEnabled = document.getElementById('advancedAnalysis')?.checked;
+  if (advancedEnabled) {
+    const advancedIssues = performAdvancedAnalysis(password);
+    advancedPenalties = advancedIssues.length;
+    score = Math.max(0, score - advancedPenalties);
+  }
+  
   // Normalize score to 0-4
   return Math.min(4, Math.max(0, Math.floor(score / 2)));
+}
+
+/**
+ * Perform advanced password analysis
+ */
+function performAdvancedAnalysis(password) {
+  const issues = [];
+  
+  // Check keyboard walks
+  for (const pattern of ADVANCED_PATTERNS.keyboardWalks) {
+    if (pattern.test(password)) {
+      issues.push('Contains keyboard patterns (e.g., qwerty, asdf)');
+      break;
+    }
+  }
+  
+  // Check leetspeak
+  for (const pattern of ADVANCED_PATTERNS.leetSpeak) {
+    if (pattern.test(password)) {
+      issues.push('Uses common leetspeak substitutions');
+      break;
+    }
+  }
+  
+  // Check dates
+  for (const pattern of ADVANCED_PATTERNS.dates) {
+    if (pattern.test(password)) {
+      issues.push('Contains dates or years');
+      break;
+    }
+  }
+  
+  // Check sequences
+  for (const pattern of ADVANCED_PATTERNS.sequences) {
+    if (pattern.test(password)) {
+      issues.push('Contains sequential characters');
+      break;
+    }
+  }
+  
+  // Check dictionary words
+  const lowerPassword = password.toLowerCase();
+  for (const word of COMMON_WORDS) {
+    if (lowerPassword.includes(word)) {
+      issues.push('Contains common dictionary words');
+      break;
+    }
+  }
+  
+  return issues;
+}
+
+/**
+ * Check password against HaveIBeenPwned database
+ */
+async function checkHaveIBeenPwned(password) {
+  try {
+    // Use SHA-1 hash of password (first 5 chars for k-anonymity)
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    
+    const prefix = hashHex.substring(0, 5);
+    const suffix = hashHex.substring(5);
+    
+    // Query HaveIBeenPwned API (k-anonymity model)
+    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+    if (!response.ok) {
+      throw new Error('API request failed');
+    }
+    
+    const text = await response.text();
+    const lines = text.split('\n');
+    
+    for (const line of lines) {
+      const [hashSuffix, count] = line.split(':');
+      if (hashSuffix === suffix) {
+        return parseInt(count, 10);
+      }
+    }
+    
+    return 0; // Not found in breaches
+  } catch (error) {
+    console.warn('HaveIBeenPwned check failed:', error);
+    return null; // Error occurred
+  }
 }
 
 /**
@@ -230,23 +362,40 @@ function updateStrengthMeter(score) {
 /**
  * Update analysis details
  */
-function updateAnalysisDetails(password, entropy, score) {
+async function updateAnalysisDetails(password, entropy, score) {
   const statsEl = document.getElementById('passwordStats');
   const feedbackEl = document.getElementById('passwordFeedback');
   
   if (!statsEl || !feedbackEl) return;
   
-  // Stats
-  const stats = [
+  // Basic stats
+  let stats = [
     `<li><strong>Length:</strong> ${password.length} characters</li>`,
     `<li><strong>Entropy:</strong> ${entropy.toFixed(1)} bits</li>`,
     `<li><strong>Character Set Size:</strong> ${getCharsetSize(password)}</li>`,
     `<li><strong>Time to Crack:</strong> ${estimateCrackTime(entropy)}</li>`
   ];
+  
+  // Advanced analysis if enabled
+  const advancedEnabled = document.getElementById('advancedAnalysis')?.checked;
+  if (advancedEnabled) {
+    // Add HaveIBeenPwned check
+    const breachCount = await checkHaveIBeenPwned(password);
+    if (breachCount !== null) {
+      if (breachCount > 0) {
+        stats.push(`<li><strong class="text-danger">Breach Database:</strong> Found in ${breachCount.toLocaleString()} breaches! ⚠️</li>`);
+      } else {
+        stats.push(`<li><strong class="text-success">Breach Database:</strong> Not found in known breaches ✓</li>`);
+      }
+    } else {
+      stats.push(`<li><strong class="text-warning">Breach Database:</strong> Check failed (network error)</li>`);
+    }
+  }
+  
   statsEl.innerHTML = stats.join('');
   
-  // Feedback
-  const feedback = generateFeedback(password, score);
+  // Feedback with advanced analysis
+  const feedback = await generateFeedback(password, score, advancedEnabled);
   feedbackEl.innerHTML = feedback;
 }
 
@@ -276,7 +425,7 @@ function estimateCrackTime(entropy) {
 /**
  * Generate feedback based on password analysis
  */
-function generateFeedback(password, score) {
+async function generateFeedback(password, score, advancedEnabled = false) {
   const feedback = [];
   
   if (score < 3) {
@@ -299,6 +448,7 @@ function generateFeedback(password, score) {
       feedback.push('<li>Add special characters</li>');
     }
     
+    // Basic pattern check
     for (const pattern of COMMON_PATTERNS) {
       if (pattern.test(password)) {
         feedback.push('<li class="text-danger">Avoid common patterns and dictionary words</li>');
@@ -306,11 +456,30 @@ function generateFeedback(password, score) {
       }
     }
     
+    // Advanced pattern checks
+    if (advancedEnabled) {
+      const advancedIssues = performAdvancedAnalysis(password);
+      for (const issue of advancedIssues) {
+        feedback.push(`<li class="text-warning">${issue}</li>`);
+      }
+    }
+    
     feedback.push('</ul>');
   } else {
     feedback.push('<div class="alert alert-success mb-0">');
     feedback.push('<i class="fas fa-check-circle me-2"></i>');
-    feedback.push('Your password is strong!');
+    
+    if (advancedEnabled) {
+      const advancedIssues = performAdvancedAnalysis(password);
+      if (advancedIssues.length > 0) {
+        feedback.push('Your password is strong, but consider the advanced warnings above.');
+      } else {
+        feedback.push('Your password is excellent! Passed all advanced security checks.');
+      }
+    } else {
+      feedback.push('Your password is strong!');
+    }
+    
     feedback.push('</div>');
   }
   

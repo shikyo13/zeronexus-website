@@ -72,7 +72,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="advancedAnalysis">
                                     <label class="form-check-label" for="advancedAnalysis">
-                                        Enable advanced pattern detection (loads additional resources)
+                                        Enable advanced analysis (keyboard patterns, leetspeak, dates, breach database lookup)
                                     </label>
                                 </div>
                             </div>
