@@ -254,60 +254,80 @@ class FirewallRuleGenerator {
 
     // Platform-specific rule generators
     generateIptablesRule() {
-        let rule = 'iptables -A ';
+        let rules = [];
+        let baseRule = 'iptables -A ';
         
         // Chain based on direction
         if (this.ruleData.direction === 'in' || !this.ruleData.direction) {
-            rule += 'INPUT ';
+            baseRule += 'INPUT ';
+        } else if (this.ruleData.direction === 'out') {
+            baseRule += 'OUTPUT ';
         } else {
-            rule += 'OUTPUT ';
+            baseRule += 'FORWARD ';
         }
 
         // Interface
         if (this.ruleData.interface) {
-            rule += `-i ${this.ruleData.interface} `;
+            if (this.ruleData.direction === 'out') {
+                baseRule += `-o ${this.ruleData.interface} `;
+            } else {
+                baseRule += `-i ${this.ruleData.interface} `;
+            }
         }
 
         // Protocol
         if (this.ruleData.protocol !== 'any') {
-            rule += `-p ${this.ruleData.protocol} `;
+            baseRule += `-p ${this.ruleData.protocol} `;
         }
 
         // Source
         if (this.ruleData.source.type !== 'any' && this.ruleData.source.value) {
-            rule += `-s ${this.ruleData.source.value} `;
+            baseRule += `-s ${this.ruleData.source.value} `;
         }
 
-        // Source port
-        if (this.ruleData.source.port && this.ruleData.source.port !== 'any') {
-            rule += `--sport ${this.ruleData.source.port} `;
+        // Source port (only for TCP/UDP)
+        if (this.ruleData.source.port && this.ruleData.source.port !== 'any' && 
+            (this.ruleData.protocol === 'tcp' || this.ruleData.protocol === 'udp')) {
+            baseRule += `--sport ${this.ruleData.source.port} `;
         }
 
         // Destination
         if (this.ruleData.destination.type !== 'any' && this.ruleData.destination.value) {
-            rule += `-d ${this.ruleData.destination.value} `;
+            baseRule += `-d ${this.ruleData.destination.value} `;
         }
 
-        // Destination port
-        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any') {
-            rule += `--dport ${this.ruleData.destination.port} `;
+        // Destination port (only for TCP/UDP)
+        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && 
+            (this.ruleData.protocol === 'tcp' || this.ruleData.protocol === 'udp')) {
+            // Handle multiple ports
+            if (this.ruleData.destination.port.includes(',')) {
+                baseRule += `-m multiport --dports ${this.ruleData.destination.port} `;
+            } else {
+                baseRule += `--dport ${this.ruleData.destination.port} `;
+            }
         }
 
-        // Logging
-        if (this.ruleData.logging) {
-            rule += '-j LOG --log-prefix "' + (this.ruleData.name || 'FW') + ': " --log-level 4\n';
-            rule += rule.replace('-j LOG', ''); // Duplicate rule without logging
+        // State tracking for established connections
+        if (this.ruleData.action === 'allow' && this.ruleData.protocol === 'tcp') {
+            baseRule += '-m state --state NEW,ESTABLISHED ';
         }
-
-        // Action
-        rule += '-j ' + (this.ruleData.action === 'allow' ? 'ACCEPT' : 'DROP');
 
         // Comment
         if (this.ruleData.comment) {
-            rule += ` -m comment --comment "${this.ruleData.comment}"`;
+            baseRule += `-m comment --comment "${this.ruleData.comment}" `;
         }
 
-        return rule;
+        // Action
+        const action = this.ruleData.action === 'allow' ? 'ACCEPT' : 'DROP';
+
+        // Logging
+        if (this.ruleData.logging) {
+            rules.push(baseRule + `-j LOG --log-prefix "${this.ruleData.name || 'FW'}: " --log-level 4`);
+        }
+
+        rules.push(baseRule + '-j ' + action);
+
+        return rules.join('\n');
     }
 
     generatePfSenseRule() {
@@ -370,6 +390,11 @@ class FirewallRuleGenerator {
             rule += 'any ';
         } else if (this.ruleData.source.type === 'ip') {
             rule += 'host ' + this.ruleData.source.value + ' ';
+        } else if (this.ruleData.source.type === 'network') {
+            // Convert CIDR to Cisco format
+            const [network, cidr] = this.ruleData.source.value.split('/');
+            const mask = this.cidrToWildcard(parseInt(cidr));
+            rule += network + ' ' + mask + ' ';
         } else {
             rule += this.ruleData.source.value + ' ';
         }
@@ -379,13 +404,28 @@ class FirewallRuleGenerator {
             rule += 'any';
         } else if (this.ruleData.destination.type === 'ip') {
             rule += 'host ' + this.ruleData.destination.value;
+        } else if (this.ruleData.destination.type === 'network') {
+            // Convert CIDR to Cisco format
+            const [network, cidr] = this.ruleData.destination.value.split('/');
+            const mask = this.cidrToWildcard(parseInt(cidr));
+            rule += network + ' ' + mask;
         } else {
             rule += this.ruleData.destination.value;
         }
 
         // Ports
-        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any') {
-            rule += ' eq ' + this.ruleData.destination.port;
+        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any' && this.ruleData.protocol !== 'ip') {
+            // Handle port ranges
+            if (this.ruleData.destination.port.includes('-')) {
+                const [start, end] = this.ruleData.destination.port.split('-');
+                rule += ' range ' + start + ' ' + end;
+            } else if (this.ruleData.destination.port.includes(',')) {
+                // Multiple ports need separate rules in Cisco ASA
+                rule += ' eq ' + this.ruleData.destination.port.split(',')[0];
+                rule += '\n# Note: Multiple ports require separate ACL entries in Cisco ASA';
+            } else {
+                rule += ' eq ' + this.ruleData.destination.port;
+            }
         }
 
         // Logging
@@ -394,6 +434,17 @@ class FirewallRuleGenerator {
         }
 
         return rule;
+    }
+    
+    // Helper function to convert CIDR to wildcard mask
+    cidrToWildcard(cidr) {
+        const bits = 32 - cidr;
+        const wildcard = (Math.pow(2, bits) - 1);
+        const octets = [];
+        for (let i = 3; i >= 0; i--) {
+            octets.push((wildcard >> (i * 8)) & 255);
+        }
+        return octets.join('.');
     }
 
     generateFortiGateRule() {
@@ -514,7 +565,7 @@ class FirewallRuleGenerator {
         }
 
         // Ports
-        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any') {
+        if (this.ruleData.destination.port && this.ruleData.destination.port !== 'any' && this.ruleData.protocol !== 'any') {
             const port = this.ruleData.direction === 'out' ? 'remoteport' : 'localport';
             rule += `${port}=${this.ruleData.destination.port} `;
         }
