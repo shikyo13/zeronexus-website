@@ -312,27 +312,12 @@ function hidePasswordAnalysis() {
 function setupPasswordGenerator() {
   const generateBtn = document.getElementById('generatePasswordBtn');
   const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-  const pronounceableCheckbox = document.getElementById('pronounceable');
-  
   if (generateBtn) {
     generateBtn.addEventListener('click', generatePasswords);
   }
   
   if (clearHistoryBtn) {
     clearHistoryBtn.addEventListener('click', clearPasswordHistory);
-  }
-  
-  // Disable certain options when pronounceable is selected
-  if (pronounceableCheckbox) {
-    pronounceableCheckbox.addEventListener('change', (e) => {
-      const isChecked = e.target.checked;
-      document.getElementById('includeSymbols').disabled = isChecked;
-      document.getElementById('excludeChars').disabled = isChecked;
-      
-      if (isChecked) {
-        document.getElementById('includeSymbols').checked = false;
-      }
-    });
   }
 }
 
@@ -347,8 +332,7 @@ function generatePasswords() {
     lowercase: document.getElementById('includeLowercase').checked,
     numbers: document.getElementById('includeNumbers').checked,
     symbols: document.getElementById('includeSymbols').checked,
-    exclude: document.getElementById('excludeChars').value,
-    pronounceable: document.getElementById('pronounceable').checked
+    exclude: document.getElementById('excludeChars').value
   };
   
   // Validate options
@@ -359,9 +343,7 @@ function generatePasswords() {
   
   const passwords = [];
   for (let i = 0; i < count; i++) {
-    const password = options.pronounceable 
-      ? generatePronounceablePassword(length)
-      : generateSecurePassword(length, options);
+    const password = generateSecurePassword(length, options);
     passwords.push(password);
     passwordHistory.unshift({ password, timestamp: new Date() });
   }
@@ -427,42 +409,6 @@ function ensureCharacterType(password, typeCharset, fullCharset) {
   return password.substring(0, randomIndex) + randomChar + password.substring(randomIndex + 1);
 }
 
-/**
- * Generate a pronounceable password
- */
-function generatePronounceablePassword(length) {
-  const consonants = 'bcdfghjklmnpqrstvwxyz';
-  const vowels = 'aeiou';
-  const numbers = '0123456789';
-  
-  let password = '';
-  let useConsonant = crypto.getRandomValues(new Uint8Array(1))[0] % 2 === 0;
-  
-  while (password.length < length) {
-    if (useConsonant) {
-      password += consonants[crypto.getRandomValues(new Uint8Array(1))[0] % consonants.length];
-    } else {
-      password += vowels[crypto.getRandomValues(new Uint8Array(1))[0] % vowels.length];
-    }
-    
-    // Occasionally add a number
-    if (password.length < length && crypto.getRandomValues(new Uint8Array(1))[0] % 5 === 0) {
-      password += numbers[crypto.getRandomValues(new Uint8Array(1))[0] % numbers.length];
-    }
-    
-    // Occasionally capitalize
-    if (password.length > 0 && crypto.getRandomValues(new Uint8Array(1))[0] % 3 === 0) {
-      const lastChar = password[password.length - 1];
-      if (/[a-z]/.test(lastChar)) {
-        password = password.slice(0, -1) + lastChar.toUpperCase();
-      }
-    }
-    
-    useConsonant = !useConsonant;
-  }
-  
-  return password.substring(0, length);
-}
 
 /**
  * Display generated passwords

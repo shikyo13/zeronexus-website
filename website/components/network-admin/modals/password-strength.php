@@ -132,14 +132,6 @@
                                         <div class="form-text">Characters to exclude from the password</div>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="pronounceable">
-                                            <label class="form-check-label" for="pronounceable">
-                                                Make pronounceable (easier to remember)
-                                            </label>
-                                        </div>
-                                    </div>
                                     
                                     <div class="mb-3">
                                         <label for="passwordCount" class="form-label">Number of Passwords</label>
