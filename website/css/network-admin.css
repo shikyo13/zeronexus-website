@@ -236,6 +236,56 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Firewall Rule Generator Modal Styling */
+#firewallRuleGeneratorModal .template-card {
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#firewallRuleGeneratorModal .template-card:hover {
+  transform: translateY(-2px);
+  border-color: #0dcaf0;
+  box-shadow: 0 4px 8px rgba(13, 202, 240, 0.2);
+}
+
+#firewallRuleGeneratorModal .card-header h6 {
+  color: #f8f9fa;
+  margin-bottom: 0;
+}
+
+#firewallRuleGeneratorModal pre code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+#firewallRuleGeneratorModal .alert-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+#firewallRuleGeneratorModal .alert-info {
+  background-color: rgba(13, 202, 240, 0.1);
+  border-color: rgba(13, 202, 240, 0.3);
+  color: #0dcaf0;
+}
+
+#firewallRuleGeneratorModal .dropdown-menu {
+  background-color: #212529;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+#firewallRuleGeneratorModal .dropdown-item:hover {
+  background-color: rgba(13, 202, 240, 0.2);
+  color: #fff;
+}
+
+#firewallRuleGeneratorModal .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Security Headers Help Modal Styling */
 #headerHelpModal .accordion-button {
   background-color: rgba(13, 110, 253, 0.1);

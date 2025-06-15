@@ -11,7 +11,8 @@ const toolHashMap = {
   'dns-lookup': '#dnsLookupModal',
   'ping-traceroute': '#pingTracerouteModal',
   'security-headers': '#securityHeadersModal',
-  'security-headers-generator': '#securityHeadersGeneratorModal'
+  'security-headers-generator': '#securityHeadersGeneratorModal',
+  'firewall-rule-generator': '#firewallRuleGeneratorModal'
 };
 
 /**

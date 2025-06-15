@@ -23,7 +23,7 @@ The Network Admin Tools page provides a collection of utilities and references f
 | Security Headers Checker | Complete | Analyzes website security headers |
 | Security Headers Generator | Complete | Generates custom security headers for web servers |
 | Password Strength Tester | Complete | Real-time password analysis and secure generation |
-| Firewall Rule Generator | Planned | High priority for next implementation |
+| Firewall Rule Generator | Complete | Multi-platform firewall rule generation |
 | Command Cheat Sheets | Planned | |
 | OSI Model Reference | Planned | |
 | Common Ports Reference | Planned | |
@@ -146,12 +146,50 @@ The Security Headers Checker will analyze website security headers and provide r
 
 ### Firewall Rule Generator
 
-The Firewall Rule Generator will help create rules for various firewall implementations. Planned features:
+The Firewall Rule Generator helps create syntactically correct firewall rules for multiple platforms. 
 
-- Support for multiple firewall types (iptables, UFW, Windows Firewall)
-- Common rule templates for various services
-- Custom rule generation based on user inputs
-- Rule validation and syntax highlighting
+#### Features
+
+- **Multi-Platform Support**: 
+  - iptables (Linux)
+  - pfSense
+  - Cisco ASA
+  - FortiGate
+  - Palo Alto
+  - Windows Firewall
+
+- **Visual Rule Builder**:
+  - Form-based interface with source/destination configuration
+  - Protocol selection (TCP/UDP/ICMP/Any)
+  - Port configuration with common service presets
+  - Advanced options (interfaces, zones, logging)
+
+- **Template System**:
+  - Quick-start templates for common scenarios
+  - Pre-configured rules for web servers, SSH, databases, mail servers, etc.
+  - One-click template application
+
+- **Validation & Safety**:
+  - Real-time IP address and CIDR validation
+  - Port range validation
+  - Warnings for overly permissive rules
+  - Platform-specific syntax checking
+
+- **Advanced Features**:
+  - Syntax highlighting with Prism.js
+  - Copy-to-clipboard functionality
+  - Platform-specific notes and tips
+  - Keyboard shortcuts (Ctrl+G to generate)
+
+#### Technical Implementation
+
+The Firewall Rule Generator is implemented as a JavaScript class with the following key components:
+
+- `FirewallRuleGenerator` - Main class handling all functionality
+- Platform-specific generators for each firewall type
+- Real-time validation system with visual feedback
+- Template management system
+- URL hash navigation support (#firewall-rule-generator)
 
 ## Development Guidelines
 

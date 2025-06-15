@@ -17,6 +17,7 @@ import setupPingTraceroute from './network-admin/tools/ping-traceroute.js';
 import setupSecurityHeadersChecker from './network-admin/tools/security-headers.js';
 import setupSecurityHeadersGenerator from './network-admin/tools/security-headers-generator.js';
 import setupPasswordStrength from './network-admin/tools/password-strength.js';
+import setupFirewallRuleGenerator from './network-admin/tools/firewall-rule-generator.js';
 
 // Initialize tools when DOM is loaded
 window.addEventListener('DOMContentLoaded', function() {
@@ -45,4 +46,11 @@ window.addEventListener('DOMContentLoaded', function() {
     console.error('Failed to initialize Security Headers Generator:', e);
   }
   setupPasswordStrength();
+  try {
+    console.log('Initializing Firewall Rule Generator...');
+    setupFirewallRuleGenerator();
+    console.log('Successfully initialized Firewall Rule Generator');
+  } catch (e) {
+    console.error('Failed to initialize Firewall Rule Generator:', e);
+  }
 });
