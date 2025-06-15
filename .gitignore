@@ -64,6 +64,12 @@ backups/
 *.gz
 *.zip
 
+# Test artifacts
+tests/tmp/
+tests/node_modules/
+tests/coverage/
+tests/reports/
+
 # Server-specific configs that shouldn't be in version control
 nginx/sites-available/prod-*.conf
 

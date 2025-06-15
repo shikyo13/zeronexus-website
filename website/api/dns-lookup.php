@@ -96,10 +96,22 @@ if (empty($domain)) {
     exit;
 }
 
-// Validate for basic domain format
-if (!preg_match('/^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}$/', $domain)) {
+// Validate domain or IP format
+$isDomain = preg_match('/^[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}$/', $domain);
+$isIPv4 = filter_var($domain, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+$isIPv6 = filter_var($domain, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
+
+// For PTR records, the domain should be an IP address
+if ($type === 'PTR' && !$isIPv4 && !$isIPv6) {
     http_response_code(400);
-    echo json_encode(['error' => true, 'message' => 'Invalid domain format']);
+    echo json_encode(['error' => true, 'message' => 'For PTR lookups, please provide a valid IP address']);
+    exit;
+}
+
+// For records other than PTR, we need a domain
+if ($type !== 'PTR' && !$isDomain) {
+    http_response_code(400);
+    echo json_encode(['error' => true, 'message' => 'Please enter a valid domain name (e.g., example.com)']);
     exit;
 }
 
@@ -137,20 +149,13 @@ $response = [
     'timestamp' => time()
 ];
 
-// For PTR records, the domain should be an IP address
+// If this is a PTR lookup, prepare the reverse lookup domain
 if ($type === 'PTR') {
-    if (!filter_var($domain, FILTER_VALIDATE_IP)) {
-        http_response_code(400);
-        echo json_encode(['error' => true, 'message' => 'For PTR lookups, please provide a valid IP address']);
-        exit;
-    }
-    
-    // Reverse the IP for PTR lookup
-    if (filter_var($domain, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+    if ($isIPv4) {
         // IPv4 - Reverse the octets and append in-addr.arpa
         $reversed = implode('.', array_reverse(explode('.', $domain))) . '.in-addr.arpa';
     } else {
-        // IPv6 - More complex transformation required
+        // IPv6 - More complex transformation
         $ipv6 = inet_pton($domain);
         $reversed = '';
         for ($i = strlen($ipv6) - 1; $i >= 0; $i--) {
@@ -159,15 +164,71 @@ if ($type === 'PTR') {
         $reversed .= 'ip6.arpa';
     }
     
-    $domain = $reversed;
-    $lookupType = 'PTR';
+    $lookupDomain = $reversed;
 } else {
-    $lookupType = $type;
+    $lookupDomain = $domain;
 }
 
+// Map the UI record types to DNS_* constants
+// Check that constants exist before using them (PHP may not have all DNS constants defined)
+$dnsTypeConstants = [];
+
+if (defined('DNS_A')) $dnsTypeConstants['A'] = DNS_A;
+if (defined('DNS_AAAA')) $dnsTypeConstants['AAAA'] = DNS_AAAA;
+if (defined('DNS_MX')) $dnsTypeConstants['MX'] = DNS_MX;
+if (defined('DNS_TXT')) $dnsTypeConstants['TXT'] = DNS_TXT;
+if (defined('DNS_NS')) $dnsTypeConstants['NS'] = DNS_NS;
+if (defined('DNS_SOA')) $dnsTypeConstants['SOA'] = DNS_SOA;
+if (defined('DNS_CNAME')) $dnsTypeConstants['CNAME'] = DNS_CNAME;
+if (defined('DNS_PTR')) $dnsTypeConstants['PTR'] = DNS_PTR;
+if (defined('DNS_CAA')) $dnsTypeConstants['CAA'] = DNS_CAA;
+if (defined('DNS_SRV')) $dnsTypeConstants['SRV'] = DNS_SRV;
+if (defined('DNS_DNSKEY')) $dnsTypeConstants['DNSKEY'] = DNS_DNSKEY;
+if (defined('DNS_DS')) $dnsTypeConstants['DS'] = DNS_DS;
+if (defined('DNS_RRSIG')) $dnsTypeConstants['RRSIG'] = DNS_RRSIG;
+if (defined('DNS_NAPTR')) $dnsTypeConstants['NAPTR'] = DNS_NAPTR;
+if (defined('DNS_ALL')) $dnsTypeConstants['ANY'] = DNS_ALL;
+else if (defined('DNS_ANY')) $dnsTypeConstants['ANY'] = DNS_ANY;
+
+// Special handling for ANY type to fetch multiple record types
+if ($type === 'ANY') {
+    // We'll manually query multiple record types
+    $useManualLookup = true;
+    $dnsTypeConstant = 0; // Placeholder, not used for ANY in our implementation
+} else {
+    $useManualLookup = false;
+    // Use the specific type constant or fall back to 0 (DNS_A) + fallback error handling
+    if (isset($dnsTypeConstants[$type])) {
+        $dnsTypeConstant = $dnsTypeConstants[$type];
+    } else {
+        // If the requested type isn't available, use DNS_A as fallback
+        $dnsTypeConstant = isset($dnsTypeConstants['A']) ? $dnsTypeConstants['A'] : 0;
+    }
+}
+
+// Disable error output to ensure we return only JSON
+ini_set('display_errors', 0);
+error_reporting(0);
+
+// Wrap in try/catch for extra safety
 try {
-    // Perform DNS lookup
-    $records = dns_get_record($domain, constant("DNS_" . $lookupType));
+    $records = [];
+    
+    // For 'ANY', manually query the most common record types
+    if ($useManualLookup && $type === 'ANY') {
+        $commonTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA'];
+        foreach ($commonTypes as $recordType) {
+            if (isset($dnsTypeConstants[$recordType])) {
+                $typeRecords = @dns_get_record($lookupDomain, $dnsTypeConstants[$recordType]);
+                if ($typeRecords && is_array($typeRecords)) {
+                    $records = array_merge($records, $typeRecords);
+                }
+            }
+        }
+    } else {
+        // Perform standard DNS lookup - suppress warnings with @
+        $records = @dns_get_record($lookupDomain, $dnsTypeConstant);
+    }
     
     if ($records === false || count($records) === 0) {
         // No records found, but not an error
@@ -177,12 +238,17 @@ try {
     }
     
     // Cache the successful result
-    file_put_contents($cacheFile, json_encode($response));
+    @file_put_contents($cacheFile, json_encode($response));
     
     // Return the response
     header('X-Cache: MISS');
     echo json_encode($response);
 } catch (Exception $e) {
+    // Provide a clean JSON error response
     http_response_code(500);
     echo json_encode(['error' => true, 'message' => 'DNS lookup failed: ' . $e->getMessage()]);
+} catch (Error $e) {
+    // Catch PHP 7+ errors as well
+    http_response_code(500);
+    echo json_encode(['error' => true, 'message' => 'Server error during DNS lookup: ' . $e->getMessage()]);
 }

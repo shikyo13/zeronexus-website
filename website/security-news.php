@@ -6,8 +6,7 @@ $page_css = "/css/security-news.css";
 $page_js = "/js/security-news.js";
 $header_title = "Security News";
 
-// Hide standard header with social links
-$hide_social_icons = true;
+// No need to hide social icons with unified navigation
 
 // Extra resources for this page
 $extra_head = '<link rel="preconnect" href="https://feeds.zeronexus.net" crossorigin />';
@@ -17,13 +16,7 @@ include 'includes/header.php';
 ?>
 
 <main class="feed-container">
-  <!-- Page header and navigation -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <a href="/" class="back-link">
-      <i class="fa-solid fa-arrow-left"></i>
-      Back to ZeroNexus
-    </a>
-  </div>
+  <!-- Page header -->
 
   <!-- Page title -->
   <div class="page-header">
