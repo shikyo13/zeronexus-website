@@ -306,6 +306,8 @@ function performAdvancedAnalysis(password) {
  */
 async function checkHaveIBeenPwned(password) {
   try {
+    console.log('Checking password against HaveIBeenPwned...');
+    
     // Use SHA-1 hash of password (first 5 chars for k-anonymity)
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -316,25 +318,47 @@ async function checkHaveIBeenPwned(password) {
     const prefix = hashHex.substring(0, 5);
     const suffix = hashHex.substring(5);
     
-    // Query HaveIBeenPwned API (k-anonymity model)
-    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+    console.log(`Hash prefix: ${prefix}, looking for suffix: ${suffix}`);
+    
+    // Use PHP proxy to avoid CORS issues
+    const response = await fetch('/api/hibp-proxy.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prefix: prefix
+      })
+    });
+    
     if (!response.ok) {
-      throw new Error('API request failed');
+      throw new Error(`Proxy request failed with status: ${response.status}`);
     }
     
-    const text = await response.text();
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Unknown proxy error');
+    }
+    
+    const text = result.data;
+    console.log(`Received ${text.split('\n').length} hash lines from API`);
+    
     const lines = text.split('\n');
     
     for (const line of lines) {
       const [hashSuffix, count] = line.split(':');
-      if (hashSuffix === suffix) {
-        return parseInt(count, 10);
+      if (hashSuffix && hashSuffix.trim() === suffix) {
+        const breachCount = parseInt(count, 10);
+        console.log(`Password found in breaches: ${breachCount}`);
+        return breachCount;
       }
     }
     
+    console.log('Password not found in breaches');
     return 0; // Not found in breaches
   } catch (error) {
-    console.warn('HaveIBeenPwned check failed:', error);
+    console.error('HaveIBeenPwned check failed:', error);
     return null; // Error occurred
   }
 }
@@ -379,17 +403,29 @@ async function updateAnalysisDetails(password, entropy, score) {
   // Advanced analysis if enabled
   const advancedEnabled = document.getElementById('advancedAnalysis')?.checked;
   if (advancedEnabled) {
+    // Add placeholder for breach check while it loads
+    stats.push(`<li><strong class="text-info">Breach Database:</strong> Checking... <i class="fas fa-spinner fa-spin"></i></li>`);
+    
+    // Update stats first, then check breaches
+    statsEl.innerHTML = stats.join('');
+    
     // Add HaveIBeenPwned check
     const breachCount = await checkHaveIBeenPwned(password);
+    
+    // Update the breach check result
     if (breachCount !== null) {
       if (breachCount > 0) {
-        stats.push(`<li><strong class="text-danger">Breach Database:</strong> Found in ${breachCount.toLocaleString()} breaches! ⚠️</li>`);
+        stats[stats.length - 1] = `<li><strong class="text-danger">Breach Database:</strong> Found in ${breachCount.toLocaleString()} breaches! ⚠️</li>`;
       } else {
-        stats.push(`<li><strong class="text-success">Breach Database:</strong> Not found in known breaches ✓</li>`);
+        stats[stats.length - 1] = `<li><strong class="text-success">Breach Database:</strong> Not found in known breaches ✓</li>`;
       }
     } else {
-      stats.push(`<li><strong class="text-warning">Breach Database:</strong> Check failed (network error)</li>`);
+      stats[stats.length - 1] = `<li><strong class="text-warning">Breach Database:</strong> Check failed (CORS/network error)</li>`;
     }
+    
+    // Update stats again with final result
+    statsEl.innerHTML = stats.join('');
+    return; // Early return since we already updated statsEl
   }
   
   statsEl.innerHTML = stats.join('');
