@@ -84,12 +84,11 @@ export default function setupPasswordStrength() {
   setTimeout(() => {
     console.log('=== Password Tool Debug ===');
     console.log('Advanced pattern detection: ALWAYS ENABLED');
-    console.log('Breach database check: controlled by checkbox');
-    const checkboxes = ['includeUppercase', 'includeLowercase', 'includeNumbers', 'includeSymbols', 'advancedAnalysis'];
+    console.log('Breach database check: ALWAYS ENABLED');
+    const checkboxes = ['includeUppercase', 'includeLowercase', 'includeNumbers', 'includeSymbols'];
     checkboxes.forEach(id => {
       const element = document.getElementById(id);
-      const desc = id === 'advancedAnalysis' ? '(breach DB check)' : '';
-      console.log(`${id} ${desc}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
+      console.log(`${id}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
     });
   }, 1000);
 }
@@ -130,34 +129,6 @@ function setupPasswordTester() {
     });
   }
   
-  // Advanced analysis toggle
-  if (advancedCheckbox) {
-    advancedCheckbox.addEventListener('change', () => {
-      console.log('Advanced analysis toggled:', advancedCheckbox.checked);
-      if (passwordInput && passwordInput.value) {
-        analyzePassword(passwordInput.value);
-      }
-      
-      // Show feedback that breach database check is enabled/disabled
-      const feedbackEl = document.getElementById('passwordFeedback');
-      if (feedbackEl && advancedCheckbox.checked) {
-        const existingBreachNote = feedbackEl.querySelector('.breach-check-note');
-        if (!existingBreachNote) {
-          const note = document.createElement('div');
-          note.className = 'alert alert-info mt-2 breach-check-note';
-          note.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Breach database checking enabled - Will verify against known compromised passwords';
-          feedbackEl.appendChild(note);
-        }
-      } else if (feedbackEl) {
-        const existingBreachNote = feedbackEl.querySelector('.breach-check-note');
-        if (existingBreachNote) {
-          existingBreachNote.remove();
-        }
-      }
-    });
-  } else {
-    console.warn('Advanced analysis checkbox not found');
-  }
 }
 
 /**
@@ -246,7 +217,10 @@ function calculateStrengthScore(password, entropy) {
   const advancedIssues = performAdvancedAnalysis(password);
   advancedPenalties = advancedIssues.length;
   
-  // Apply heavier penalties for certain patterns
+  // Check for leetspeak specifically
+  const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
+  
+  // Apply penalties for patterns
   for (const issue of advancedIssues) {
     if (issue.includes('leetspeak')) {
       // Leetspeak gets extra penalty since it's a weak obfuscation attempt
@@ -258,7 +232,17 @@ function calculateStrengthScore(password, entropy) {
   }
   
   // Normalize score to 0-4
-  return Math.min(4, Math.max(0, Math.floor(score / 2)));
+  let finalScore = Math.min(4, Math.max(0, Math.floor(score / 2)));
+  
+  // Leetspeak passwords should be "Very Weak" if they're short/simple
+  // Only cap at "Weak" if they have other good factors
+  if (hasLeetspeak && finalScore > 1 && password.length < 12) {
+    finalScore = 0; // Force to "Very Weak" for short leetspeak passwords
+  } else if (hasLeetspeak && finalScore > 1) {
+    finalScore = 1; // Cap at "Weak" for longer leetspeak passwords
+  }
+  
+  return finalScore;
 }
 
 /**
@@ -410,9 +394,9 @@ async function updateAnalysisDetails(password, entropy, score) {
     `<li><strong>Time to Crack:</strong> ${estimateCrackTime(entropy)}</li>`
   ];
   
-  // Advanced analysis (now always enabled, checkbox just controls breach DB lookup)
-  const breachCheckEnabled = document.getElementById('advancedAnalysis')?.checked;
-  if (breachCheckEnabled) {
+  // Advanced analysis and breach check (now always enabled)
+  // Always check breach database
+  if (true) {
     // Add placeholder for breach check while it loads
     stats.push(`<li><strong class="text-info">Breach Database:</strong> Checking... <i class="fas fa-spinner fa-spin"></i></li>`);
     
@@ -476,6 +460,16 @@ async function generateFeedback(password, score, breachCheckEnabled = false) {
   
   // Always perform advanced analysis now
   const advancedIssues = performAdvancedAnalysis(password);
+  const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
+  
+  // Show leetspeak warning prominently at the top if detected
+  if (hasLeetspeak) {
+    feedback.push('<div class="alert alert-danger mb-3">');
+    feedback.push('<i class="fas fa-exclamation-triangle me-2"></i>');
+    feedback.push('<strong>Character substitution detected!</strong><br>');
+    feedback.push('Using @ for a, 0 for o, etc. (leetspeak) is a well-known pattern that hackers check first. This significantly weakens your password.');
+    feedback.push('</div>');
+  }
   
   if (score < 3) {
     feedback.push('<h6 class="text-warning">Suggestions:</h6>');
@@ -505,36 +499,26 @@ async function generateFeedback(password, score, breachCheckEnabled = false) {
       }
     }
     
-    // Advanced pattern checks (now always shown)
+    // Advanced pattern checks (now always shown) - but skip leetspeak since we show it above
     for (const issue of advancedIssues) {
-      if (issue.includes('leetspeak')) {
-        feedback.push(`<li class="text-danger fw-bold">${issue} <strong>(significantly weakens password)</strong></li>`);
-      } else {
+      if (!issue.includes('leetspeak')) {
         feedback.push(`<li class="text-warning">${issue}</li>`);
       }
     }
     
     feedback.push('</ul>');
   } else {
-    // Check if there are still issues even with a "good" score
-    const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
-    
-    if (hasLeetspeak) {
-      // Downgrade to warning if leetspeak is detected
-      feedback.push('<div class="alert alert-warning mb-0">');
-      feedback.push('<i class="fas fa-exclamation-triangle me-2"></i>');
-      feedback.push('Your password has decent complexity but uses weak obfuscation patterns.');
-      
-      // Show the leetspeak warning prominently
-      for (const issue of advancedIssues) {
-        if (issue.includes('leetspeak')) {
-          feedback.push(`<br><strong class="text-danger">${issue} - significantly weakens password</strong>`);
-        }
-      }
-    } else if (advancedIssues.length > 0) {
+    // For "good" scores, show appropriate message
+    // Note: Leetspeak passwords are already capped at "Weak" so won't reach here
+    if (advancedIssues.length > 0) {
       feedback.push('<div class="alert alert-info mb-0">');
       feedback.push('<i class="fas fa-info-circle me-2"></i>');
       feedback.push('Your password is strong, but consider the warnings above.');
+      
+      // List remaining issues
+      for (const issue of advancedIssues) {
+        feedback.push(`<br><small class="text-warning">• ${issue}</small>`);
+      }
     } else {
       feedback.push('<div class="alert alert-success mb-0">');
       feedback.push('<i class="fas fa-check-circle me-2"></i>');

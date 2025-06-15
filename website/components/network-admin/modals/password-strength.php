@@ -51,31 +51,23 @@
                             </div>
                             
                             <!-- Password Analysis Results -->
-                            <div id="passwordAnalysis" class="d-none">
-                                <h6 class="mb-3">Analysis Details</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <ul class="list-unstyled" id="passwordStats">
-                                            <!-- Stats will be populated here -->
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div id="passwordFeedback">
-                                            <!-- Feedback will be populated here -->
-                                        </div>
+                            <div id="passwordAnalysis" class="d-none text-center">
+                                <h5 class="mb-4">Analysis Details</h5>
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-3">Statistics</h6>
+                                    <ul class="list-unstyled mb-0" id="passwordStats">
+                                        <!-- Stats will be populated here -->
+                                    </ul>
+                                </div>
+                                <hr class="my-4">
+                                <div>
+                                    <h6 class="text-muted mb-3">Security Analysis</h6>
+                                    <div id="passwordFeedback" class="mx-auto" style="max-width: 600px;">
+                                        <!-- Feedback will be populated here -->
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Advanced Analysis Toggle -->
-                            <div class="mt-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="advancedAnalysis" checked>
-                                    <label class="form-check-label" for="advancedAnalysis">
-                                        Check password against known data breaches
-                                    </label>
-                                </div>
-                            </div>
                         </form>
                     </div>
                     
