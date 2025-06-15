@@ -64,10 +64,17 @@ The ZeroNexus website uses a simple yet effective architecture:
 
 ### Network Admin Tools (`network-admin.php`)
 
-- Recently added page with admin tools
+- Comprehensive suite of IT administration tools
 - Tab-based interface for different tool categories
 - Modal-based tool implementations
-- Currently includes IP Subnet Calculator (see `NETWORK_ADMIN_TOOLS.md` for details)
+- Includes multiple tools:
+  - IP Subnet Calculator - CIDR calculations and network analysis
+  - DNS Lookup - Forward/reverse DNS queries
+  - Ping/Traceroute - Network diagnostics
+  - Security Headers Checker - Website security analysis
+  - Security Headers Generator - Create security configurations
+  - Firewall Rule Generator - Multi-platform firewall rule creation
+- See `NETWORK_ADMIN_TOOLS.md` for detailed documentation
 
 ## API Endpoints
 

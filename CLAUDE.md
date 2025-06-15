@@ -244,9 +244,9 @@ The website uses Bootstrap 5.3 with custom CSS. Most style rules are in:
 
 According to the latest handover document (`docs/HANDOVER.md`), the following tasks are high priority:
 
-1. Complete the Security Headers Checker tool
-2. Implement Firewall Rule Generator 
-3. Create interactive Command Cheat Sheets
+1. Create interactive Command Cheat Sheets
+2. Implement additional network tools (Port Scanner, Bandwidth Calculator)
+3. Add more documentation templates
 
 ## Cache Implementation
 
