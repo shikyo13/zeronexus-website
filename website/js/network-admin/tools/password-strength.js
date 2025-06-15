@@ -278,7 +278,7 @@ function performAdvancedAnalysis(password) {
   // Check leetspeak
   for (const pattern of ADVANCED_PATTERNS.leetSpeak) {
     if (pattern.test(password)) {
-      issues.push('Uses common leetspeak substitutions');
+      issues.push('leetspeak: Uses common character substitutions like @ for a, 0 for o');
       break;
     }
   }
@@ -508,7 +508,7 @@ async function generateFeedback(password, score, breachCheckEnabled = false) {
     // Advanced pattern checks (now always shown)
     for (const issue of advancedIssues) {
       if (issue.includes('leetspeak')) {
-        feedback.push(`<li class="text-danger">${issue} (significantly weakens password)</li>`);
+        feedback.push(`<li class="text-danger fw-bold">${issue} <strong>(significantly weakens password)</strong></li>`);
       } else {
         feedback.push(`<li class="text-warning">${issue}</li>`);
       }
@@ -516,12 +516,28 @@ async function generateFeedback(password, score, breachCheckEnabled = false) {
     
     feedback.push('</ul>');
   } else {
-    feedback.push('<div class="alert alert-success mb-0">');
-    feedback.push('<i class="fas fa-check-circle me-2"></i>');
+    // Check if there are still issues even with a "good" score
+    const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
     
-    if (advancedIssues.length > 0) {
+    if (hasLeetspeak) {
+      // Downgrade to warning if leetspeak is detected
+      feedback.push('<div class="alert alert-warning mb-0">');
+      feedback.push('<i class="fas fa-exclamation-triangle me-2"></i>');
+      feedback.push('Your password has decent complexity but uses weak obfuscation patterns.');
+      
+      // Show the leetspeak warning prominently
+      for (const issue of advancedIssues) {
+        if (issue.includes('leetspeak')) {
+          feedback.push(`<br><strong class="text-danger">${issue} - significantly weakens password</strong>`);
+        }
+      }
+    } else if (advancedIssues.length > 0) {
+      feedback.push('<div class="alert alert-info mb-0">');
+      feedback.push('<i class="fas fa-info-circle me-2"></i>');
       feedback.push('Your password is strong, but consider the warnings above.');
     } else {
+      feedback.push('<div class="alert alert-success mb-0">');
+      feedback.push('<i class="fas fa-check-circle me-2"></i>');
       feedback.push('Your password is excellent! Passed all security checks.');
     }
     

@@ -70,9 +70,9 @@
                             <!-- Advanced Analysis Toggle -->
                             <div class="mt-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="advancedAnalysis">
+                                    <input class="form-check-input" type="checkbox" id="advancedAnalysis" checked>
                                     <label class="form-check-label" for="advancedAnalysis">
-                                        Check password against breach database (requires internet connection)
+                                        Check password against known data breaches
                                     </label>
                                 </div>
                             </div>
