@@ -21,6 +21,7 @@ services:
     container_name: zeronexus-php-dev
     volumes:
       - ./website:/usr/share/nginx/html:ro
+      - ./website/api/data:/usr/share/nginx/html/api/data:rw
     environment:
       - ENVIRONMENT=development
       - PHP_INI_DIR=/usr/local/etc/php
