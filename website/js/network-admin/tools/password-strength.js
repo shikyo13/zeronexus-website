@@ -83,10 +83,13 @@ export default function setupPasswordStrength() {
   // Debug checkbox elements
   setTimeout(() => {
     console.log('=== Password Tool Debug ===');
+    console.log('Advanced pattern detection: ALWAYS ENABLED');
+    console.log('Breach database check: controlled by checkbox');
     const checkboxes = ['includeUppercase', 'includeLowercase', 'includeNumbers', 'includeSymbols', 'advancedAnalysis'];
     checkboxes.forEach(id => {
       const element = document.getElementById(id);
-      console.log(`${id}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
+      const desc = id === 'advancedAnalysis' ? '(breach DB check)' : '';
+      console.log(`${id} ${desc}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
     });
   }, 1000);
 }
@@ -135,20 +138,20 @@ function setupPasswordTester() {
         analyzePassword(passwordInput.value);
       }
       
-      // Show feedback that advanced analysis is enabled/disabled
+      // Show feedback that breach database check is enabled/disabled
       const feedbackEl = document.getElementById('passwordFeedback');
       if (feedbackEl && advancedCheckbox.checked) {
-        const existingAdvancedNote = feedbackEl.querySelector('.advanced-analysis-note');
-        if (!existingAdvancedNote) {
+        const existingBreachNote = feedbackEl.querySelector('.breach-check-note');
+        if (!existingBreachNote) {
           const note = document.createElement('div');
-          note.className = 'alert alert-info mt-2 advanced-analysis-note';
-          note.innerHTML = '<i class="fas fa-brain me-2"></i>Advanced pattern detection enabled - More thorough analysis active';
+          note.className = 'alert alert-info mt-2 breach-check-note';
+          note.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Breach database checking enabled - Will verify against known compromised passwords';
           feedbackEl.appendChild(note);
         }
       } else if (feedbackEl) {
-        const existingAdvancedNote = feedbackEl.querySelector('.advanced-analysis-note');
-        if (existingAdvancedNote) {
-          existingAdvancedNote.remove();
+        const existingBreachNote = feedbackEl.querySelector('.breach-check-note');
+        if (existingBreachNote) {
+          existingBreachNote.remove();
         }
       }
     });
@@ -239,12 +242,19 @@ function calculateStrengthScore(password, entropy) {
     }
   }
   
-  // Advanced analysis penalties (only if enabled)
-  const advancedEnabled = document.getElementById('advancedAnalysis')?.checked;
-  if (advancedEnabled) {
-    const advancedIssues = performAdvancedAnalysis(password);
-    advancedPenalties = advancedIssues.length;
-    score = Math.max(0, score - advancedPenalties);
+  // Advanced analysis penalties (now always enabled)
+  const advancedIssues = performAdvancedAnalysis(password);
+  advancedPenalties = advancedIssues.length;
+  
+  // Apply heavier penalties for certain patterns
+  for (const issue of advancedIssues) {
+    if (issue.includes('leetspeak')) {
+      // Leetspeak gets extra penalty since it's a weak obfuscation attempt
+      score = Math.max(0, score - 2);
+    } else {
+      // Other patterns get standard penalty
+      score = Math.max(0, score - 1);
+    }
   }
   
   // Normalize score to 0-4
@@ -400,9 +410,9 @@ async function updateAnalysisDetails(password, entropy, score) {
     `<li><strong>Time to Crack:</strong> ${estimateCrackTime(entropy)}</li>`
   ];
   
-  // Advanced analysis if enabled
-  const advancedEnabled = document.getElementById('advancedAnalysis')?.checked;
-  if (advancedEnabled) {
+  // Advanced analysis (now always enabled, checkbox just controls breach DB lookup)
+  const breachCheckEnabled = document.getElementById('advancedAnalysis')?.checked;
+  if (breachCheckEnabled) {
     // Add placeholder for breach check while it loads
     stats.push(`<li><strong class="text-info">Breach Database:</strong> Checking... <i class="fas fa-spinner fa-spin"></i></li>`);
     
@@ -420,7 +430,7 @@ async function updateAnalysisDetails(password, entropy, score) {
         stats[stats.length - 1] = `<li><strong class="text-success">Breach Database:</strong> Not found in known breaches ✓</li>`;
       }
     } else {
-      stats[stats.length - 1] = `<li><strong class="text-warning">Breach Database:</strong> Check failed (CORS/network error)</li>`;
+      stats[stats.length - 1] = `<li><strong class="text-warning">Breach Database:</strong> Check failed (network error)</li>`;
     }
     
     // Update stats again with final result
@@ -461,8 +471,11 @@ function estimateCrackTime(entropy) {
 /**
  * Generate feedback based on password analysis
  */
-async function generateFeedback(password, score, advancedEnabled = false) {
+async function generateFeedback(password, score, breachCheckEnabled = false) {
   const feedback = [];
+  
+  // Always perform advanced analysis now
+  const advancedIssues = performAdvancedAnalysis(password);
   
   if (score < 3) {
     feedback.push('<h6 class="text-warning">Suggestions:</h6>');
@@ -492,10 +505,11 @@ async function generateFeedback(password, score, advancedEnabled = false) {
       }
     }
     
-    // Advanced pattern checks
-    if (advancedEnabled) {
-      const advancedIssues = performAdvancedAnalysis(password);
-      for (const issue of advancedIssues) {
+    // Advanced pattern checks (now always shown)
+    for (const issue of advancedIssues) {
+      if (issue.includes('leetspeak')) {
+        feedback.push(`<li class="text-danger">${issue} (significantly weakens password)</li>`);
+      } else {
         feedback.push(`<li class="text-warning">${issue}</li>`);
       }
     }
@@ -505,15 +519,10 @@ async function generateFeedback(password, score, advancedEnabled = false) {
     feedback.push('<div class="alert alert-success mb-0">');
     feedback.push('<i class="fas fa-check-circle me-2"></i>');
     
-    if (advancedEnabled) {
-      const advancedIssues = performAdvancedAnalysis(password);
-      if (advancedIssues.length > 0) {
-        feedback.push('Your password is strong, but consider the advanced warnings above.');
-      } else {
-        feedback.push('Your password is excellent! Passed all advanced security checks.');
-      }
+    if (advancedIssues.length > 0) {
+      feedback.push('Your password is strong, but consider the warnings above.');
     } else {
-      feedback.push('Your password is strong!');
+      feedback.push('Your password is excellent! Passed all security checks.');
     }
     
     feedback.push('</div>');
