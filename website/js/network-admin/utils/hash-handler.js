@@ -12,7 +12,8 @@ const toolHashMap = {
   'ping-traceroute': '#pingTracerouteModal',
   'security-headers': '#securityHeadersModal',
   'security-headers-generator': '#securityHeadersGeneratorModal',
-  'firewall-rule-generator': '#firewallRuleGeneratorModal'
+  'firewall-rule-generator': '#firewallRuleGeneratorModal',
+  'linux-commands': '#linuxCommandsModal'
 };
 
 /**

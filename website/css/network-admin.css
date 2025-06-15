@@ -1471,6 +1471,41 @@ input:-webkit-autofill:active {
 }
 
 /* Password Strength Tool Styles */
+#passwordStrengthModal .form-check-input {
+  background-color: #FFFFFF !important;
+  border: 1px solid #ced4da !important;
+  width: 1em !important;
+  height: 1em !important;
+  margin-top: 0.25em !important;
+  vertical-align: top !important;
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  -moz-appearance: checkbox !important;
+}
+
+#passwordStrengthModal .form-check-input:checked {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+}
+
+#passwordStrengthModal .form-check-input:focus {
+  border-color: #86b7fe !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+#passwordStrengthModal .form-check-label {
+  color: var(--text-color) !important;
+  margin-left: 0.5rem !important;
+  cursor: pointer !important;
+}
+
+#passwordStrengthModal .form-check {
+  margin-bottom: 0.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
 #passwordStrengthModal .progress {
   height: 25px;
   background-color: rgba(0, 0, 0, 0.2);
@@ -1482,14 +1517,6 @@ input:-webkit-autofill:active {
   font-weight: 600;
 }
 
-#passwordStrengthModal .form-range {
-  width: 100%;
-  margin-right: 1rem;
-}
-
-#passwordStrengthModal .input-group .form-range {
-  border-radius: 0.25rem 0 0 0.25rem;
-}
 
 #passwordStrengthModal .list-group-item {
   background-color: rgba(0, 0, 0, 0.2);
@@ -1543,6 +1570,12 @@ input:-webkit-autofill:active {
 #passwordAnalysis ul li {
   margin-bottom: 0.5rem;
   color: var(--text-color);
+}
+
+/* Center align password stats */
+#passwordStats li {
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
 #passwordHistory {
@@ -1706,4 +1739,235 @@ input:-webkit-autofill:active {
 #sourceCard .fa-exchange-alt,
 #destinationCard .fa-exchange-alt {
   color: #0dcaf0;
+}
+
+/* Linux Commands Reference Tool Styles */
+#linuxCommandsModal .modal-dialog {
+  max-width: 90vw;
+}
+
+#linuxCommandsModal .command-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 1rem;
+}
+
+#linuxCommandsModal .command-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: rgba(13, 110, 253, 0.3);
+}
+
+#linuxCommandsModal .command-card .card-header {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+}
+
+#linuxCommandsModal .command-card .card-body {
+  padding: 1rem;
+}
+
+#linuxCommandsModal .syntax-section code {
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: block;
+  margin-top: 0.25rem;
+}
+
+#linuxCommandsModal .example-item {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#linuxCommandsModal .example-item .text-muted {
+  color: #adb5bd !important;
+}
+
+#linuxCommandsModal .description-section .text-muted {
+  color: #adb5bd !important;
+}
+
+#linuxCommandsModal .example-item code {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+}
+
+#linuxCommandsModal .toggle-options,
+#linuxCommandsModal .toggle-examples {
+  transition: all 0.3s ease;
+}
+
+#linuxCommandsModal .toggle-options:hover,
+#linuxCommandsModal .toggle-examples:hover {
+  background-color: rgba(13, 110, 253, 0.2);
+}
+
+#linuxCommandsModal .favorite-btn.active {
+  background-color: rgba(255, 193, 7, 0.2);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+#linuxCommandsModal .copy-btn,
+#linuxCommandsModal .copy-example-btn {
+  transition: all 0.3s ease;
+}
+
+#linuxCommandsModal .copy-btn:hover,
+#linuxCommandsModal .copy-example-btn:hover {
+  background-color: rgba(13, 110, 253, 0.2);
+  border-color: #0d6efd;
+}
+
+#linuxCommandsModal .difficulty-pills .btn {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#linuxCommandsModal .difficulty-pills .btn.active {
+  background-color: rgba(25, 135, 84, 0.3);
+  border-color: #198754;
+  color: #198754;
+}
+
+#linuxCommandsModal .badge {
+  font-size: 0.75rem;
+}
+
+#linuxCommandsModal .bg-success {
+  background-color: rgba(25, 135, 84, 0.3) !important;
+}
+
+#linuxCommandsModal .bg-warning {
+  background-color: rgba(255, 193, 7, 0.3) !important;
+}
+
+#linuxCommandsModal .bg-danger {
+  background-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+#linuxCommandsModal .options-section,
+#linuxCommandsModal .examples-section {
+  margin-bottom: 1rem;
+}
+
+#linuxCommandsModal .options-section .border-start {
+  border-left: 3px solid #17a2b8 !important;
+  padding-left: 0.75rem !important;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+#linuxCommandsModal .options-section .border-start code {
+  min-width: 3rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+#linuxCommandsModal .options-section .border-start .ms-2 {
+  color: #adb5bd !important;
+}
+
+#linuxCommandsModal .options-section .border-start span {
+  color: #adb5bd !important;
+}
+
+#linuxCommandsModal .options-section .small,
+#linuxCommandsModal .examples-section .small {
+  font-size: 0.875rem;
+}
+
+#linuxCommandsModal .related-section {
+  font-size: 0.875rem;
+}
+
+#linuxCommandsModal .tags-section .badge {
+  font-size: 0.7rem;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+#linuxCommandsModal .text-success {
+  color: #28a745 !important;
+}
+
+#linuxCommandsModal .btn-xs {
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border-radius: 0.15rem;
+}
+
+/* Command search and filter styling */
+#linuxCommandsModal .tool-input-group .input-group .form-control {
+  background-color: #FFFFFF !important;
+  color: #212529;
+}
+
+#linuxCommandsModal .tool-input-group .input-group .btn {
+  background-color: rgba(108, 117, 125, 0.2);
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+#linuxCommandsModal .tool-input-group .input-group .btn:hover {
+  background-color: rgba(108, 117, 125, 0.3);
+  border-color: #6c757d;
+  color: #ffffff;
+}
+
+/* Loading and no results styling */
+#linuxCommandsModal #commandsLoading {
+  color: var(--text-muted);
+}
+
+#linuxCommandsModal #noResults {
+  color: var(--text-muted);
+}
+
+#linuxCommandsModal #noResults i {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive adjustments for Linux commands */
+@media (max-width: 768px) {
+  #linuxCommandsModal .modal-dialog {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+  
+  #linuxCommandsModal .command-card .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  #linuxCommandsModal .command-card .card-header > div {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  #linuxCommandsModal .command-card .card-header > div:last-child {
+    margin-bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  #linuxCommandsModal .example-item .d-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  #linuxCommandsModal .copy-example-btn {
+    margin-top: 0.5rem;
+    align-self: flex-end;
+  }
 }

@@ -20,6 +20,41 @@ const COMMON_PATTERNS = [
   /^(.)\1{2,}$/  // Same character repeated 3+ times
 ];
 
+// Advanced patterns for enhanced detection
+const ADVANCED_PATTERNS = {
+  keyboardWalks: [
+    /qwerty|asdf|zxcv|yuiop|hjkl|bnm/i,
+    /123456|234567|345678|456789|567890/,
+    /qwertyui|asdfghjk|zxcvbnm/i,
+    /1qaz2wsx|qazwsx|zaq1xsw2/i
+  ],
+  leetSpeak: [
+    /p@ssw0rd|p4ssw0rd|passw0rd/i,
+    /[a@]dm[i1]n|4dm1n/i,
+    /[3e]l[i1]t[3e]|3l1t3/i,
+    /h4ck3r|h@ck3r/i,
+    /[0o]n[3e]|tw[0o]/i
+  ],
+  dates: [
+    /19\d{2}|20\d{2}/,  // Years
+    /\d{2}\/\d{2}\/\d{4}/,  // Dates
+    /\d{4}-\d{2}-\d{2}/,  // ISO dates
+    /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\d{2,4}/i
+  ],
+  sequences: [
+    /abcd|bcde|cdef|defg/i,
+    /1234|2345|3456|4567|5678|6789|7890/,
+    /zyxw|yxwv|xwvu|wvut/i
+  ]
+};
+
+// Common dictionary words (subset for demo)
+const COMMON_WORDS = [
+  'password', 'admin', 'user', 'login', 'welcome', 'guest', 'test', 'demo',
+  'master', 'root', 'super', 'secret', 'private', 'system', 'account',
+  'database', 'server', 'network', 'computer', 'internet', 'email', 'web'
+];
+
 // Strength levels
 const STRENGTH_LEVELS = {
   0: { label: 'Very Weak', class: 'bg-danger', color: '#dc3545' },
@@ -44,25 +79,26 @@ export default function setupPasswordStrength() {
   
   // Initialize UI elements
   initializeUI();
+  
+  // Debug checkbox elements
+  setTimeout(() => {
+    console.log('=== Password Tool Debug ===');
+    console.log('Advanced pattern detection: ALWAYS ENABLED');
+    console.log('Breach database check: ALWAYS ENABLED');
+    const checkboxes = ['includeUppercase', 'includeLowercase', 'includeNumbers', 'includeSymbols'];
+    checkboxes.forEach(id => {
+      const element = document.getElementById(id);
+      console.log(`${id}:`, element ? 'found' : 'NOT FOUND', element ? `checked: ${element.checked}` : '');
+    });
+  }, 1000);
 }
 
 /**
  * Initialize UI elements
  */
 function initializeUI() {
-  // Sync length slider with number input
-  const lengthSlider = document.getElementById('passwordLength');
-  const lengthValue = document.getElementById('passwordLengthValue');
-  
-  if (lengthSlider && lengthValue) {
-    lengthSlider.addEventListener('input', () => {
-      lengthValue.value = lengthSlider.value;
-    });
-    
-    lengthValue.addEventListener('input', () => {
-      lengthSlider.value = lengthValue.value;
-    });
-  }
+  // No longer needed - slider was removed in favor of number input only
+  console.log('Password tool UI initialized');
 }
 
 /**
@@ -93,20 +129,12 @@ function setupPasswordTester() {
     });
   }
   
-  // Advanced analysis toggle
-  if (advancedCheckbox) {
-    advancedCheckbox.addEventListener('change', () => {
-      if (passwordInput.value) {
-        analyzePassword(passwordInput.value);
-      }
-    });
-  }
 }
 
 /**
  * Analyze password strength
  */
-function analyzePassword(password) {
+async function analyzePassword(password) {
   if (!password) {
     hidePasswordAnalysis();
     return;
@@ -118,7 +146,7 @@ function analyzePassword(password) {
   
   // Update UI
   updateStrengthMeter(score);
-  updateAnalysisDetails(password, entropy, score);
+  await updateAnalysisDetails(password, entropy, score);
   
   // Show analysis sections
   document.getElementById('passwordStrengthMeter')?.classList.remove('d-none');
@@ -152,6 +180,7 @@ function getCharsetSize(password) {
  */
 function calculateStrengthScore(password, entropy) {
   let score = 0;
+  let advancedPenalties = 0;
   
   // Length scoring
   if (password.length >= 8) score++;
@@ -184,8 +213,148 @@ function calculateStrengthScore(password, entropy) {
     }
   }
   
+  // Advanced analysis penalties (now always enabled)
+  const advancedIssues = performAdvancedAnalysis(password);
+  advancedPenalties = advancedIssues.length;
+  
+  // Check for leetspeak specifically
+  const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
+  
+  // Apply penalties for patterns
+  for (const issue of advancedIssues) {
+    if (issue.includes('leetspeak')) {
+      // Leetspeak gets extra penalty since it's a weak obfuscation attempt
+      score = Math.max(0, score - 2);
+    } else {
+      // Other patterns get standard penalty
+      score = Math.max(0, score - 1);
+    }
+  }
+  
   // Normalize score to 0-4
-  return Math.min(4, Math.max(0, Math.floor(score / 2)));
+  let finalScore = Math.min(4, Math.max(0, Math.floor(score / 2)));
+  
+  // Leetspeak passwords should be "Very Weak" if they're short/simple
+  // Only cap at "Weak" if they have other good factors
+  if (hasLeetspeak && finalScore > 1 && password.length < 12) {
+    finalScore = 0; // Force to "Very Weak" for short leetspeak passwords
+  } else if (hasLeetspeak && finalScore > 1) {
+    finalScore = 1; // Cap at "Weak" for longer leetspeak passwords
+  }
+  
+  return finalScore;
+}
+
+/**
+ * Perform advanced password analysis
+ */
+function performAdvancedAnalysis(password) {
+  const issues = [];
+  
+  // Check keyboard walks
+  for (const pattern of ADVANCED_PATTERNS.keyboardWalks) {
+    if (pattern.test(password)) {
+      issues.push('Contains keyboard patterns (e.g., qwerty, asdf)');
+      break;
+    }
+  }
+  
+  // Check leetspeak
+  for (const pattern of ADVANCED_PATTERNS.leetSpeak) {
+    if (pattern.test(password)) {
+      issues.push('leetspeak: Uses common character substitutions like @ for a, 0 for o');
+      break;
+    }
+  }
+  
+  // Check dates
+  for (const pattern of ADVANCED_PATTERNS.dates) {
+    if (pattern.test(password)) {
+      issues.push('Contains dates or years');
+      break;
+    }
+  }
+  
+  // Check sequences
+  for (const pattern of ADVANCED_PATTERNS.sequences) {
+    if (pattern.test(password)) {
+      issues.push('Contains sequential characters');
+      break;
+    }
+  }
+  
+  // Check dictionary words
+  const lowerPassword = password.toLowerCase();
+  for (const word of COMMON_WORDS) {
+    if (lowerPassword.includes(word)) {
+      issues.push('Contains common dictionary words');
+      break;
+    }
+  }
+  
+  return issues;
+}
+
+/**
+ * Check password against HaveIBeenPwned database
+ */
+async function checkHaveIBeenPwned(password) {
+  try {
+    console.log('Checking password against HaveIBeenPwned...');
+    
+    // Use SHA-1 hash of password (first 5 chars for k-anonymity)
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    
+    const prefix = hashHex.substring(0, 5);
+    const suffix = hashHex.substring(5);
+    
+    console.log(`Hash prefix: ${prefix}, looking for suffix: ${suffix}`);
+    
+    // Use PHP proxy to avoid CORS issues
+    const response = await fetch('/api/hibp-proxy.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prefix: prefix
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Proxy request failed with status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Unknown proxy error');
+    }
+    
+    const text = result.data;
+    console.log(`Received ${text.split('\n').length} hash lines from API`);
+    
+    const lines = text.split('\n');
+    
+    for (const line of lines) {
+      const [hashSuffix, count] = line.split(':');
+      if (hashSuffix && hashSuffix.trim() === suffix) {
+        const breachCount = parseInt(count, 10);
+        console.log(`Password found in breaches: ${breachCount}`);
+        return breachCount;
+      }
+    }
+    
+    console.log('Password not found in breaches');
+    return 0; // Not found in breaches
+  } catch (error) {
+    console.error('HaveIBeenPwned check failed:', error);
+    return null; // Error occurred
+  }
 }
 
 /**
@@ -211,23 +380,52 @@ function updateStrengthMeter(score) {
 /**
  * Update analysis details
  */
-function updateAnalysisDetails(password, entropy, score) {
+async function updateAnalysisDetails(password, entropy, score) {
   const statsEl = document.getElementById('passwordStats');
   const feedbackEl = document.getElementById('passwordFeedback');
   
   if (!statsEl || !feedbackEl) return;
   
-  // Stats
-  const stats = [
+  // Basic stats
+  let stats = [
     `<li><strong>Length:</strong> ${password.length} characters</li>`,
     `<li><strong>Entropy:</strong> ${entropy.toFixed(1)} bits</li>`,
     `<li><strong>Character Set Size:</strong> ${getCharsetSize(password)}</li>`,
     `<li><strong>Time to Crack:</strong> ${estimateCrackTime(entropy)}</li>`
   ];
+  
+  // Advanced analysis and breach check (now always enabled)
+  // Always check breach database
+  if (true) {
+    // Add placeholder for breach check while it loads
+    stats.push(`<li><strong class="text-info">Breach Database:</strong> Checking... <i class="fas fa-spinner fa-spin"></i></li>`);
+    
+    // Update stats first, then check breaches
+    statsEl.innerHTML = stats.join('');
+    
+    // Add HaveIBeenPwned check
+    const breachCount = await checkHaveIBeenPwned(password);
+    
+    // Update the breach check result
+    if (breachCount !== null) {
+      if (breachCount > 0) {
+        stats[stats.length - 1] = `<li><strong class="text-danger">Breach Database:</strong> Found in ${breachCount.toLocaleString()} breaches! ⚠️</li>`;
+      } else {
+        stats[stats.length - 1] = `<li><strong class="text-success">Breach Database:</strong> Not found in known breaches ✓</li>`;
+      }
+    } else {
+      stats[stats.length - 1] = `<li><strong class="text-warning">Breach Database:</strong> Check failed (network error)</li>`;
+    }
+    
+    // Update stats again with final result
+    statsEl.innerHTML = stats.join('');
+    return; // Early return since we already updated statsEl
+  }
+  
   statsEl.innerHTML = stats.join('');
   
-  // Feedback
-  const feedback = generateFeedback(password, score);
+  // Feedback with advanced analysis
+  const feedback = await generateFeedback(password, score, advancedEnabled);
   feedbackEl.innerHTML = feedback;
 }
 
@@ -257,8 +455,21 @@ function estimateCrackTime(entropy) {
 /**
  * Generate feedback based on password analysis
  */
-function generateFeedback(password, score) {
+async function generateFeedback(password, score, breachCheckEnabled = false) {
   const feedback = [];
+  
+  // Always perform advanced analysis now
+  const advancedIssues = performAdvancedAnalysis(password);
+  const hasLeetspeak = advancedIssues.some(issue => issue.includes('leetspeak'));
+  
+  // Show leetspeak warning prominently at the top if detected
+  if (hasLeetspeak) {
+    feedback.push('<div class="alert alert-danger mb-3">');
+    feedback.push('<i class="fas fa-exclamation-triangle me-2"></i>');
+    feedback.push('<strong>Character substitution detected!</strong><br>');
+    feedback.push('Using @ for a, 0 for o, etc. (leetspeak) is a well-known pattern that hackers check first. This significantly weakens your password.');
+    feedback.push('</div>');
+  }
   
   if (score < 3) {
     feedback.push('<h6 class="text-warning">Suggestions:</h6>');
@@ -280,6 +491,7 @@ function generateFeedback(password, score) {
       feedback.push('<li>Add special characters</li>');
     }
     
+    // Basic pattern check
     for (const pattern of COMMON_PATTERNS) {
       if (pattern.test(password)) {
         feedback.push('<li class="text-danger">Avoid common patterns and dictionary words</li>');
@@ -287,11 +499,32 @@ function generateFeedback(password, score) {
       }
     }
     
+    // Advanced pattern checks (now always shown) - but skip leetspeak since we show it above
+    for (const issue of advancedIssues) {
+      if (!issue.includes('leetspeak')) {
+        feedback.push(`<li class="text-warning">${issue}</li>`);
+      }
+    }
+    
     feedback.push('</ul>');
   } else {
-    feedback.push('<div class="alert alert-success mb-0">');
-    feedback.push('<i class="fas fa-check-circle me-2"></i>');
-    feedback.push('Your password is strong!');
+    // For "good" scores, show appropriate message
+    // Note: Leetspeak passwords are already capped at "Weak" so won't reach here
+    if (advancedIssues.length > 0) {
+      feedback.push('<div class="alert alert-info mb-0">');
+      feedback.push('<i class="fas fa-info-circle me-2"></i>');
+      feedback.push('Your password is strong, but consider the warnings above.');
+      
+      // List remaining issues
+      for (const issue of advancedIssues) {
+        feedback.push(`<br><small class="text-warning">• ${issue}</small>`);
+      }
+    } else {
+      feedback.push('<div class="alert alert-success mb-0">');
+      feedback.push('<i class="fas fa-check-circle me-2"></i>');
+      feedback.push('Your password is excellent! Passed all security checks.');
+    }
+    
     feedback.push('</div>');
   }
   
@@ -325,14 +558,29 @@ function setupPasswordGenerator() {
  * Generate secure passwords
  */
 function generatePasswords() {
-  const length = parseInt(document.getElementById('passwordLength').value);
-  const count = parseInt(document.getElementById('passwordCount').value);
+  const lengthEl = document.getElementById('passwordLengthValue') || document.getElementById('passwordLength');
+  const countEl = document.getElementById('passwordCount');
+  const uppercaseEl = document.getElementById('includeUppercase');
+  const lowercaseEl = document.getElementById('includeLowercase');
+  const numbersEl = document.getElementById('includeNumbers');
+  const symbolsEl = document.getElementById('includeSymbols');
+  const excludeEl = document.getElementById('excludeChars');
+  
+  // Validate all elements exist
+  if (!lengthEl || !countEl || !uppercaseEl || !lowercaseEl || !numbersEl || !symbolsEl) {
+    console.error('Password generator elements not found in DOM');
+    alert('Password generator is not properly initialized. Please try refreshing the page.');
+    return;
+  }
+  
+  const length = parseInt(lengthEl.value);
+  const count = parseInt(countEl.value);
   const options = {
-    uppercase: document.getElementById('includeUppercase').checked,
-    lowercase: document.getElementById('includeLowercase').checked,
-    numbers: document.getElementById('includeNumbers').checked,
-    symbols: document.getElementById('includeSymbols').checked,
-    exclude: document.getElementById('excludeChars').value
+    uppercase: uppercaseEl.checked,
+    lowercase: lowercaseEl.checked,
+    numbers: numbersEl.checked,
+    symbols: symbolsEl.checked,
+    exclude: excludeEl ? excludeEl.value : ''
   };
   
   // Validate options
