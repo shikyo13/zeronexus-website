@@ -1741,34 +1741,40 @@ input:-webkit-autofill:active {
   color: #0dcaf0;
 }
 
-/* Linux Commands Reference Tool Styles */
-#linuxCommandsModal .modal-dialog {
+/* Command Reference Tools - Shared Styles */
+#linuxCommandsModal .modal-dialog,
+#windowsCommandsModal .modal-dialog {
   max-width: 90vw;
 }
 
-#linuxCommandsModal .command-card {
+#linuxCommandsModal .command-card,
+#windowsCommandsModal .command-card {
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 1rem;
 }
 
-#linuxCommandsModal .command-card:hover {
+#linuxCommandsModal .command-card:hover,
+#windowsCommandsModal .command-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-color: rgba(13, 110, 253, 0.3);
 }
 
-#linuxCommandsModal .command-card .card-header {
+#linuxCommandsModal .command-card .card-header,
+#windowsCommandsModal .command-card .card-header {
   background-color: rgba(0, 0, 0, 0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.75rem 1rem;
 }
 
-#linuxCommandsModal .command-card .card-body {
+#linuxCommandsModal .command-card .card-body,
+#windowsCommandsModal .command-card .card-body {
   padding: 1rem;
 }
 
-#linuxCommandsModal .syntax-section code {
+#linuxCommandsModal .syntax-section code,
+#windowsCommandsModal .syntax-section code {
   background-color: rgba(0, 0, 0, 0.4);
   padding: 0.5rem;
   border-radius: 0.25rem;
@@ -1777,22 +1783,36 @@ input:-webkit-autofill:active {
   margin-top: 0.25rem;
 }
 
-#linuxCommandsModal .example-item {
+#linuxCommandsModal .example-item,
+#windowsCommandsModal .example-item {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 0.25rem;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-#linuxCommandsModal .example-item .text-muted {
+#linuxCommandsModal .example-item .text-muted,
+#windowsCommandsModal .example-item .text-muted {
   color: #adb5bd !important;
 }
 
-#linuxCommandsModal .description-section .text-muted {
+#linuxCommandsModal .description-section .text-muted,
+#windowsCommandsModal .description-section .text-muted {
   color: #adb5bd !important;
 }
 
-#linuxCommandsModal .example-item code {
+#linuxCommandsModal .options-section span,
+#windowsCommandsModal .options-section span {
+  color: #dee2e6 !important;
+}
+
+#linuxCommandsModal .card-text,
+#windowsCommandsModal .card-text {
+  color: #f8f9fa !important;
+}
+
+#linuxCommandsModal .example-item code,
+#windowsCommandsModal .example-item code {
   background-color: rgba(0, 0, 0, 0.3);
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
@@ -1800,44 +1820,56 @@ input:-webkit-autofill:active {
 }
 
 #linuxCommandsModal .toggle-options,
-#linuxCommandsModal .toggle-examples {
+#linuxCommandsModal .toggle-examples,
+#windowsCommandsModal .windows-toggle-options,
+#windowsCommandsModal .windows-toggle-examples {
   transition: all 0.3s ease;
 }
 
 #linuxCommandsModal .toggle-options:hover,
-#linuxCommandsModal .toggle-examples:hover {
+#linuxCommandsModal .toggle-examples:hover,
+#windowsCommandsModal .windows-toggle-options:hover,
+#windowsCommandsModal .windows-toggle-examples:hover {
   background-color: rgba(13, 110, 253, 0.2);
 }
 
-#linuxCommandsModal .favorite-btn.active {
+#linuxCommandsModal .favorite-btn.active,
+#windowsCommandsModal .windows-favorite-btn.active {
   background-color: rgba(255, 193, 7, 0.2);
   border-color: #ffc107;
   color: #ffc107;
 }
 
 #linuxCommandsModal .copy-btn,
-#linuxCommandsModal .copy-example-btn {
+#linuxCommandsModal .copy-example-btn,
+#windowsCommandsModal .windows-copy-btn,
+#windowsCommandsModal .windows-copy-example-btn {
   transition: all 0.3s ease;
 }
 
 #linuxCommandsModal .copy-btn:hover,
-#linuxCommandsModal .copy-example-btn:hover {
+#linuxCommandsModal .copy-example-btn:hover,
+#windowsCommandsModal .windows-copy-btn:hover,
+#windowsCommandsModal .windows-copy-example-btn:hover {
   background-color: rgba(13, 110, 253, 0.2);
   border-color: #0d6efd;
 }
 
-#linuxCommandsModal .difficulty-pills .btn {
+#linuxCommandsModal .difficulty-pills .btn,
+#windowsCommandsModal .difficulty-pills .btn {
   margin-right: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-#linuxCommandsModal .difficulty-pills .btn.active {
+#linuxCommandsModal .difficulty-pills .btn.active,
+#windowsCommandsModal .difficulty-pills .btn.active {
   background-color: rgba(25, 135, 84, 0.3);
   border-color: #198754;
   color: #198754;
 }
 
-#linuxCommandsModal .badge {
+#linuxCommandsModal .badge,
+#windowsCommandsModal .badge {
   font-size: 0.75rem;
 }
 
