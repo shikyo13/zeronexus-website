@@ -283,6 +283,9 @@ function displayGlobalResults(data, host) {
     
     // Create location cards visualization
     createLocationCards(data.data);
+    
+    // Add export and share functionality
+    addExportShareButtons(data, host);
 }
 
 /**
@@ -384,6 +387,258 @@ function updateGlobalStats(results, host) {
             if (statsSuccess) statsSuccess.textContent = `${successRate.toFixed(1)}%`;
         }
     }
+}
+
+/**
+ * Add export and share buttons to the results
+ */
+function addExportShareButtons(data, host) {
+    const copyButton = document.getElementById('copyNetworkToolBtn');
+    if (!copyButton) return;
+    
+    // Remove existing export buttons
+    const existingButtons = copyButton.parentNode.querySelectorAll('.export-btn, .share-btn');
+    existingButtons.forEach(btn => btn.remove());
+    
+    // Add export button
+    const exportButton = document.createElement('button');
+    exportButton.type = 'button';
+    exportButton.className = 'btn btn-sm btn-outline-info ms-2 export-btn';
+    exportButton.innerHTML = '<i class="fas fa-download me-1"></i>Export';
+    exportButton.addEventListener('click', () => exportResults(data, host));
+    
+    // Add share button
+    const shareButton = document.createElement('button');
+    shareButton.type = 'button';
+    shareButton.className = 'btn btn-sm btn-outline-success ms-2 share-btn';
+    shareButton.innerHTML = '<i class="fas fa-share-alt me-1"></i>Share';
+    shareButton.addEventListener('click', () => shareResults(data, host));
+    
+    copyButton.parentNode.appendChild(exportButton);
+    copyButton.parentNode.appendChild(shareButton);
+}
+
+/**
+ * Export results to JSON or CSV
+ */
+async function exportResults(data, host) {
+    const formats = ['JSON', 'CSV'];
+    const format = await showFormatSelector(formats);
+    
+    if (!format) return;
+    
+    let content, filename, mimeType;
+    
+    if (format === 'JSON') {
+        content = JSON.stringify(data, null, 2);
+        filename = `global-${data.tool}-${host}-${new Date().toISOString().slice(0, 10)}.json`;
+        mimeType = 'application/json';
+    } else if (format === 'CSV') {
+        content = convertToCSV(data, host);
+        filename = `global-${data.tool}-${host}-${new Date().toISOString().slice(0, 10)}.csv`;
+        mimeType = 'text/csv';
+    }
+    
+    // Download file
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Convert results to CSV format
+ */
+function convertToCSV(data, host) {
+    const headers = [
+        'Location', 'Country', 'City', 'Network', 'ASN', 
+        'Status', 'Min Latency (ms)', 'Avg Latency (ms)', 
+        'Max Latency (ms)', 'Packet Loss (%)'
+    ];
+    
+    let csv = headers.join(',') + '\n';
+    
+    data.data.forEach(result => {
+        const location = result.location;
+        const stats = result.stats || {};
+        
+        const row = [
+            `"${location.city || location.country}"`,
+            `"${location.country}"`,
+            `"${location.city || ''}"`,
+            `"${location.network || ''}"`,
+            location.asn || '',
+            `"${result.status}"`,
+            stats.min || '',
+            stats.avg || '',
+            stats.max || '',
+            stats.loss !== undefined ? stats.loss : ''
+        ];
+        
+        csv += row.join(',') + '\n';
+    });
+    
+    return csv;
+}
+
+/**
+ * Share results via unique link
+ */
+async function shareResults(data, host) {
+    const shareButton = document.querySelector('.share-btn');
+    const originalText = shareButton.innerHTML;
+    
+    try {
+        shareButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sharing...';
+        shareButton.disabled = true;
+        
+        const response = await fetch('/api/shared-results.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to share results');
+        }
+        
+        // Copy share URL to clipboard
+        await navigator.clipboard.writeText(result.share_url);
+        
+        shareButton.innerHTML = '<i class="fas fa-check me-1"></i>Link Copied!';
+        
+        // Show share modal with details
+        showShareModal(result);
+        
+        setTimeout(() => {
+            shareButton.innerHTML = originalText;
+            shareButton.disabled = false;
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Share error:', error);
+        shareButton.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Share Failed';
+        
+        setTimeout(() => {
+            shareButton.innerHTML = originalText;
+            shareButton.disabled = false;
+        }, 3000);
+        
+        alert('Failed to share results: ' + error.message);
+    }
+}
+
+/**
+ * Show format selector
+ */
+function showFormatSelector(formats) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Export Format</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select export format:</p>
+                        <div class="d-grid gap-2">
+                            ${formats.map(format => 
+                                `<button type="button" class="btn btn-outline-primary format-btn" data-format="${format}">
+                                    ${format}
+                                </button>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('format-btn')) {
+                const format = e.target.dataset.format;
+                bsModal.hide();
+                resolve(format);
+            }
+        });
+        
+        modal.addEventListener('hidden.bs.modal', () => {
+            document.body.removeChild(modal);
+            resolve(null);
+        });
+    });
+}
+
+/**
+ * Show share modal with link details
+ */
+function showShareModal(shareData) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Results Shared Successfully</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your network test results have been shared! The link has been copied to your clipboard.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Share URL:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="${shareData.share_url}" readonly>
+                            <button type="button" class="btn btn-outline-secondary copy-url-btn">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This link will expire in 30 days.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Copy URL button
+    modal.querySelector('.copy-url-btn').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(shareData.share_url);
+        const btn = modal.querySelector('.copy-url-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i>';
+        }, 2000);
+    });
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+        document.body.removeChild(modal);
+    });
 }
 
 /**

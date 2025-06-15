@@ -180,6 +180,21 @@ The website provides several API endpoints:
    - Optional parameters: `source` for site-specific extraction
    - Example: `/api/article-image.php?url=https://example.com/article&source=bleepingcomputer`
 
+7. **Global Network Tools** (`/api/global-network-tools.php`)
+   - Executes network diagnostics (ping, traceroute, mtr) from multiple global locations
+   - Required parameters: `host`, `tool`
+   - Optional parameters: `locations` (array), `packetCount`
+   - Uses Globalping.io API for distributed testing
+   - Includes caching, rate limiting, and request deduplication
+   - Example: POST to `/api/global-network-tools.php` with JSON body
+
+8. **Shared Results** (`/api/shared-results.php`)
+   - Stores and retrieves shared network test results
+   - POST: Store results, returns share ID and URL
+   - GET: Retrieve shared results by ID
+   - Results expire after 30 days
+   - Example: GET `/api/shared-results.php?id=abc123def456`
+
 ## Content Security Policy (CSP)
 
 The website implements a strict Content Security Policy, particularly for Bluesky video content. When modifying JavaScript or embedding external content, ensure that:
