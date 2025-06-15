@@ -21,12 +21,22 @@ echo "Press Ctrl+C to stop\n\n";
 
 // Track sync state
 $lastRecentSync = 0;
+$lastCisaSync = 0;
+$lastFullSync = 0;
 $recentSyncInterval = 3600; // Sync recent CVEs every hour
-$fullSyncRunning = false;
+$cisaSyncInterval = 86400; // Sync CISA KEV every 24 hours
+$fullSyncInterval = 300; // Try full sync every 5 minutes if needed
+
+// Track if we've completed a full sync
+$fullSyncCompleted = false;
 
 while (true) {
     try {
         $currentTime = time();
+        
+        // Get current database stats
+        $status = $service->getStatus();
+        $dbStats = $status['database_stats'];
         
         // Sync recent CVEs every hour
         if ($currentTime - $lastRecentSync > $recentSyncInterval) {
@@ -36,25 +46,42 @@ while (true) {
             $lastRecentSync = $currentTime;
         }
         
-        // Continue full sync if not completed
-        $fullProgress = $service->getSyncProgress('full');
-        if (!$fullProgress || $fullProgress['status'] !== 'completed') {
-            echo "[" . date('Y-m-d H:i:s') . "] Continuing full historical sync...\n";
-            $fullCount = $service->sync('continue');
-            echo "[" . date('Y-m-d H:i:s') . "] Synced $fullCount historical CVEs\n";
+        // If we have very few CVEs, attempt a full historical sync
+        // The full sync will handle its own pagination and rate limiting
+        if (!$fullSyncCompleted && $dbStats['total_cves'] < 300000 && ($currentTime - $lastFullSync > $fullSyncInterval)) {
+            echo "[" . date('Y-m-d H:i:s') . "] Starting/continuing full historical sync (current: {$dbStats['total_cves']} CVEs)...\n";
+            
+            try {
+                $fullCount = $service->sync('full');
+                echo "[" . date('Y-m-d H:i:s') . "] Full sync batch completed. Synced $fullCount CVEs in this batch\n";
+                
+                // Check if we've reached a reasonable number of CVEs
+                $newStatus = $service->getStatus();
+                if ($newStatus['database_stats']['total_cves'] > 300000) {
+                    $fullSyncCompleted = true;
+                    echo "[" . date('Y-m-d H:i:s') . "] Full sync appears to be complete with {$newStatus['database_stats']['total_cves']} total CVEs\n";
+                }
+            } catch (Exception $e) {
+                echo "[" . date('Y-m-d H:i:s') . "] Full sync error: " . $e->getMessage() . "\n";
+                // Don't update lastFullSync on error, so we retry sooner
+            }
+            
+            $lastFullSync = $currentTime;
         }
         
-        // Also sync CISA KEV data periodically
-        $cisaProgress = $service->getSyncProgress('cisa');
-        if (!$cisaProgress || (time() - strtotime($cisaProgress['last_sync_date']) > 86400)) {
+        // Sync CISA KEV data periodically
+        if ($currentTime - $lastCisaSync > $cisaSyncInterval) {
             echo "[" . date('Y-m-d H:i:s') . "] Syncing CISA Known Exploited Vulnerabilities...\n";
-            $cisaCount = $service->sync('cisa');
-            echo "[" . date('Y-m-d H:i:s') . "] Synced $cisaCount CISA CVEs\n";
+            try {
+                $cisaCount = $service->sync('cisa');
+                echo "[" . date('Y-m-d H:i:s') . "] Synced $cisaCount CISA CVEs\n";
+                $lastCisaSync = $currentTime;
+            } catch (Exception $e) {
+                echo "[" . date('Y-m-d H:i:s') . "] CISA sync error: " . $e->getMessage() . "\n";
+            }
         }
         
-        // Get current database stats
-        $status = $service->getStatus();
-        $dbStats = $status['database_stats'];
+        // Display current database stats
         echo "[" . date('Y-m-d H:i:s') . "] Database stats: " . 
              $dbStats['total_cves'] . " total CVEs, " .
              "Date range: " . $dbStats['oldest_cve'] . " to " . $dbStats['newest_cve'] . "\n";
