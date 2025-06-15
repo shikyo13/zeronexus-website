@@ -41,6 +41,11 @@ class FirewallRuleGenerator {
         // Direction change handler
         document.getElementById('ruleDirection').addEventListener('change', (e) => {
             this.updateDirectionIndicators(e.target.value);
+            this.updateRuleData();
+            // Re-validate with new direction context
+            if (document.getElementById('generatedOutput').style.display !== 'none') {
+                this.checkDangerousRule();
+            }
         });
 
         // Source/Destination type changes
@@ -177,6 +182,11 @@ class FirewallRuleGenerator {
             this.showWarning(validation.message);
             return;
         }
+        
+        // Show validation warning if present but continue
+        if (validation.warning) {
+            this.showWarning(validation.warning);
+        }
 
         // Generate rule based on platform
         let rule = '';
@@ -260,6 +270,41 @@ class FirewallRuleGenerator {
         
         if (this.ruleData.destination.port && !this.isValidPort(this.ruleData.destination.port)) {
             return { valid: false, message: 'Invalid destination port format' };
+        }
+        
+        // Direction-specific validation
+        const direction = this.ruleData.direction;
+        
+        // Inbound validation
+        if (direction === 'in' || direction === 'both') {
+            // Warn about inbound rules to all interfaces
+            if (this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow' &&
+                (!this.ruleData.interface || this.ruleData.interface === 'any')) {
+                return { 
+                    valid: false, 
+                    message: 'Inbound rules should specify a destination or interface to avoid exposing all services' 
+                };
+            }
+            
+            // Validate source ports for inbound rules (usually should be any/empty)
+            if (this.ruleData.source.port && this.ruleData.source.port !== 'any') {
+                // This is usually a mistake for inbound rules
+                console.warn('Source port specified for inbound rule - this is unusual and may not work as expected');
+            }
+        }
+        
+        // Outbound validation
+        if (direction === 'out' || direction === 'both') {
+            // Check for overly broad outbound rules
+            if (this.ruleData.protocol === 'any' && 
+                this.ruleData.destination.type === 'any' &&
+                (!this.ruleData.destination.port || this.ruleData.destination.port === 'any')) {
+                return { 
+                    valid: true, 
+                    warning: 'This outbound rule is very permissive. Consider restricting protocol or ports.' 
+                };
+            }
         }
 
         return { valid: true };
@@ -648,26 +693,148 @@ class FirewallRuleGenerator {
     }
 
     checkDangerousRule() {
-        let warning = '';
+        let warnings = [];
+        const direction = this.ruleData.direction;
         
-        // Check for overly permissive rules
-        if (this.ruleData.source.type === 'any' && 
-            this.ruleData.destination.type === 'any' && 
-            this.ruleData.action === 'allow') {
-            warning = 'This rule allows ALL traffic from ANY source to ANY destination. This is extremely permissive and could pose a security risk.';
-        } else if (this.ruleData.source.type === 'any' && this.ruleData.action === 'allow') {
-            warning = 'This rule allows traffic from ANY source. Consider restricting the source for better security.';
-        } else if (this.ruleData.destination.type === 'network' && 
-                   this.ruleData.destination.value === '0.0.0.0/0' && 
-                   this.ruleData.action === 'allow') {
-            warning = 'This rule allows traffic to the entire internet. Ensure this is intentional.';
+        // Direction-specific validation
+        if (direction === 'in' || direction === 'both') {
+            // Inbound-specific checks
+            if (this.ruleData.source.type === 'any' && 
+                this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow') {
+                warnings.push({
+                    level: 'danger',
+                    message: 'CRITICAL: This inbound rule allows ALL traffic from ANY external source to ANY internal destination. This is extremely dangerous and could expose your entire network!'
+                });
+            } else if (this.ruleData.source.type === 'any' && this.ruleData.action === 'allow') {
+                // Check for sensitive ports
+                const sensitiveInboundPorts = ['22', '3389', '3306', '5432', '1433', '27017'];
+                const destPorts = this.ruleData.destination.port ? this.ruleData.destination.port.split(',') : [];
+                const hasSensitivePort = destPorts.some(port => sensitiveInboundPorts.includes(port.trim()));
+                
+                if (hasSensitivePort) {
+                    warnings.push({
+                        level: 'danger',
+                        message: 'HIGH RISK: Allowing inbound access to sensitive services (SSH, RDP, databases) from ANY source. This could lead to unauthorized access!'
+                    });
+                } else {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'This inbound rule allows traffic from ANY external source. Consider restricting to specific IPs or networks for better security.'
+                    });
+                }
+            }
+            
+            // Check for private IP exposure
+            if (this.ruleData.source.type === 'any' && 
+                this.ruleData.destination.type === 'network' &&
+                this.isPrivateNetwork(this.ruleData.destination.value)) {
+                warnings.push({
+                    level: 'warning',
+                    message: 'This rule exposes internal/private networks to external access. Ensure this is intentional.'
+                });
+            }
         }
-
-        if (warning) {
-            this.showWarning(warning);
+        
+        if (direction === 'out' || direction === 'both') {
+            // Outbound-specific checks
+            if (this.ruleData.destination.type === 'any' && 
+                this.ruleData.action === 'allow') {
+                // Check for data exfiltration risks
+                const riskyOutboundPorts = ['20', '21', '22', '23', '3389', '445', '139'];
+                const destPorts = this.ruleData.destination.port ? this.ruleData.destination.port.split(',') : [];
+                const hasRiskyPort = destPorts.some(port => riskyOutboundPorts.includes(port.trim()));
+                
+                if (hasRiskyPort) {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'CAUTION: Allowing outbound access to file transfer or remote access protocols. Monitor for potential data exfiltration.'
+                    });
+                } else if (!this.ruleData.destination.port || this.ruleData.destination.port === 'any') {
+                    warnings.push({
+                        level: 'warning',
+                        message: 'This outbound rule allows traffic to ANY destination on ANY port. Consider restricting to specific services.'
+                    });
+                }
+            }
+            
+            // Check for DNS hijacking risks
+            if (this.ruleData.destination.port && this.ruleData.destination.port.includes('53') &&
+                this.ruleData.destination.type === 'any') {
+                warnings.push({
+                    level: 'info',
+                    message: 'DNS queries allowed to any server. Consider restricting to trusted DNS servers to prevent DNS hijacking.'
+                });
+            }
+        }
+        
+        // General checks for all directions
+        if (this.ruleData.destination.type === 'network' && 
+            this.ruleData.destination.value === '0.0.0.0/0' && 
+            this.ruleData.action === 'allow') {
+            warnings.push({
+                level: 'info',
+                message: 'This rule allows traffic to the entire internet (0.0.0.0/0). Ensure this is intentional.'
+            });
+        }
+        
+        // Check for missing logging on deny rules
+        if (this.ruleData.action === 'deny' && !this.ruleData.logging) {
+            warnings.push({
+                level: 'info',
+                message: 'Consider enabling logging for deny rules to track blocked connection attempts.'
+            });
+        }
+        
+        // Display warnings
+        if (warnings.length > 0) {
+            this.displayWarnings(warnings);
         } else {
             document.getElementById('warningSection').style.display = 'none';
         }
+    }
+    
+    displayWarnings(warnings) {
+        const warningSection = document.getElementById('warningSection');
+        const warningContent = document.getElementById('warningContent');
+        
+        // Sort warnings by severity
+        const severityOrder = { danger: 0, warning: 1, info: 2 };
+        warnings.sort((a, b) => severityOrder[a.level] - severityOrder[b.level]);
+        
+        // Build warning HTML
+        let html = '';
+        warnings.forEach(warning => {
+            const icon = warning.level === 'danger' ? 'fa-exclamation-triangle' :
+                        warning.level === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            const alertClass = warning.level === 'danger' ? 'alert-danger' :
+                              warning.level === 'warning' ? 'alert-warning' : 'alert-info';
+            
+            // Update main warning section class based on highest severity
+            if (warnings[0].level === warning.level) {
+                warningSection.className = `alert ${alertClass}`;
+            }
+            
+            html += `<div class="mb-2"><i class="fas ${icon} me-2"></i>${warning.message}</div>`;
+        });
+        
+        warningContent.innerHTML = html;
+        warningSection.style.display = 'block';
+    }
+    
+    isPrivateNetwork(cidr) {
+        if (!cidr || !cidr.includes('/')) return false;
+        const ip = cidr.split('/')[0];
+        const parts = ip.split('.');
+        if (parts.length !== 4) return false;
+        
+        const first = parseInt(parts[0]);
+        const second = parseInt(parts[1]);
+        
+        // Check for private IP ranges
+        return (first === 10) ||
+               (first === 172 && second >= 16 && second <= 31) ||
+               (first === 192 && second === 168);
     }
 
     loadTemplates(platform) {
