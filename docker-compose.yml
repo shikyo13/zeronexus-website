@@ -38,10 +38,13 @@ services:
 
   # New PHP-FPM service
   php:
-    image: php:8.2-fpm-alpine
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.php
     container_name: zeronexus-php
     volumes:
       - ./website:/usr/share/nginx/html:ro
+      - ./website/api/data:/usr/share/nginx/html/api/data:rw
     
     deploy:
       resources:
