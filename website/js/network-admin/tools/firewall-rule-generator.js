@@ -196,26 +196,36 @@ class FirewallRuleGenerator {
             case 'iptables':
                 rule = this.generateIptablesRule();
                 notes = 'Add this rule to your iptables configuration. Use iptables-save to persist.';
+                if (this.ruleData.direction === 'both') {
+                    notes += ' Note: Two rules generated for bidirectional traffic.';
+                }
                 break;
             case 'pfsense':
                 rule = this.generatePfSenseRule();
-                notes = 'Add this rule through the pfSense web interface under Firewall > Rules.';
+                notes = 'Add this rule through the pfSense web interface under Firewall > Rules. ';
+                notes += 'Direction is determined by the interface where the rule is applied.';
                 break;
             case 'cisco-asa':
                 rule = this.generateCiscoASARule();
-                notes = 'Apply this rule in configuration mode. Remember to save with "write memory".';
+                notes = 'Apply this rule in configuration mode. Remember to save with "write memory". ';
+                notes += 'Direction is controlled by ACL assignment to interface (in/out).';
                 break;
             case 'fortigate':
                 rule = this.generateFortiGateRule();
-                notes = 'Apply this in FortiGate CLI. Commit changes with "end" command.';
+                notes = 'Apply this in FortiGate CLI. Commit changes with "end" command. ';
+                notes += 'FortiGate uses srcintf/dstintf to control traffic direction.';
                 break;
             case 'paloalto':
                 rule = this.generatePaloAltoRule();
-                notes = 'Add through Panorama or device CLI. Commit to activate.';
+                notes = 'Add through Panorama or device CLI. Commit to activate. ';
+                notes += 'Direction is implicit based on zone configuration.';
                 break;
             case 'windows':
                 rule = this.generateWindowsRule();
                 notes = 'Run this command in an elevated PowerShell or Command Prompt.';
+                if (this.ruleData.direction === 'both') {
+                    notes += ' Note: Two rules generated for bidirectional traffic.';
+                }
                 break;
         }
 
@@ -409,10 +419,32 @@ class FirewallRuleGenerator {
     }
 
     generatePfSenseRule() {
-        let rule = '';
+        let rules = [];
         
+        // Handle "both" direction
+        if (this.ruleData.direction === 'both') {
+            rules.push('# Note: pfSense handles direction implicitly based on interface assignment');
+            rules.push('# You may need to create two separate rules for true bidirectional traffic');
+            rules.push('');
+        }
+        
+        // Determine interface based on direction
+        let suggestedInterface = this.ruleData.interface;
+        if (!suggestedInterface) {
+            if (this.ruleData.direction === 'in') {
+                suggestedInterface = 'WAN';  // Inbound typically on WAN
+            } else if (this.ruleData.direction === 'out') {
+                suggestedInterface = 'LAN';  // Outbound typically on LAN
+            } else {
+                suggestedInterface = 'WAN';  // Default
+            }
+        }
+        
+        let rule = '';
+        rule += `# Direction: ${this.ruleData.direction === 'in' ? 'Inbound' : 
+                               this.ruleData.direction === 'out' ? 'Outbound' : 'Bidirectional'}\n`;
         rule += `Action: ${this.ruleData.action === 'allow' ? 'Pass' : 'Block'}\n`;
-        rule += `Interface: ${this.ruleData.interface || 'WAN'}\n`;
+        rule += `Interface: ${suggestedInterface}\n`;
         rule += `Protocol: ${this.ruleData.protocol.toUpperCase()}\n`;
         
         // Source
@@ -446,16 +478,48 @@ class FirewallRuleGenerator {
         if (this.ruleData.comment) {
             rule += `Description: ${this.ruleData.comment}\n`;
         }
-
-        return rule;
+        
+        rules.push(rule);
+        
+        // Add interface assignment hint
+        if (this.ruleData.direction === 'both') {
+            rules.push('\n# For bidirectional traffic, consider creating matching rules on both WAN and LAN interfaces');
+        }
+        
+        return rules.join('\n');
     }
 
     generateCiscoASARule() {
+        let rules = [];
+        
+        // Handle "both" direction
+        if (this.ruleData.direction === 'both') {
+            // Generate inbound rule
+            rules.push(this.generateCiscoASARuleForDirection('in'));
+            rules.push('');
+            // Generate outbound rule
+            rules.push(this.generateCiscoASARuleForDirection('out'));
+            return rules.join('\n');
+        }
+        
+        return this.generateCiscoASARuleForDirection(this.ruleData.direction);
+    }
+    
+    generateCiscoASARuleForDirection(direction) {
         let rule = 'access-list ';
         
-        // ACL name (use interface or default)
-        const aclName = (this.ruleData.interface || 'outside') + '_access_in';
+        // Determine interface based on direction if not specified
+        let interface = this.ruleData.interface;
+        if (!interface) {
+            interface = direction === 'in' ? 'outside' : 'inside';
+        }
+        
+        // ACL name based on interface and direction
+        const aclName = interface + '_access_' + (direction === 'out' ? 'out' : 'in');
         rule += aclName + ' extended ';
+        
+        // Add comment about direction
+        rule = `! Direction: ${direction === 'in' ? 'Inbound' : 'Outbound'} rule\n` + rule;
 
         // Action
         rule += this.ruleData.action === 'allow' ? 'permit ' : 'deny ';
