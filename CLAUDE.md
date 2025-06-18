@@ -100,12 +100,26 @@ git merge feature-name
 
 ## Testing and Validation
 
-The project uses manual testing with no formal testing framework:
+The project uses automated code quality checks via GitHub Actions:
 
-1. Test API endpoints directly in the browser or using curl/Postman
-2. Validate JavaScript and CSS using browser dev tools
-3. Check responsive design across different screen sizes
-4. Validate PHP by checking error logs: `docker-compose exec php cat /var/log/php-fpm/error.log`
+1. **PHP Linting**:
+   - PHPStan for static analysis (level 0)
+   - PHP_CodeSniffer for PSR-12 compliance
+   - Run locally: `docker run --rm -v $PWD:/app phpstan/phpstan analyse`
+
+2. **JavaScript Linting**:
+   - ESLint for code quality
+   - Run locally: `docker run --rm -v $PWD:/work cytopia/eslint website/js/`
+
+3. **CSS Linting**:
+   - Stylelint for style consistency
+   - Run locally: `docker run --rm -v $PWD:/work cytopia/stylelint 'website/css/*.css'`
+
+4. **Manual Testing**:
+   - Test API endpoints directly in the browser or using curl/Postman
+   - Validate JavaScript and CSS using browser dev tools
+   - Check responsive design across different screen sizes
+   - Validate PHP by checking error logs: `docker-compose exec php cat /var/log/php-fpm/error.log`
 
 ## Project Structure
 

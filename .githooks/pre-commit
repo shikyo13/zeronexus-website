@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Pre-commit hook to run basic syntax checks
+# To use: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "Running pre-commit checks..."
+
+# Check PHP syntax
+echo "Checking PHP syntax..."
+for file in $(git diff --cached --name-only --diff-filter=ACM | grep '\.php$'); do
+    if [ -f "$file" ]; then
+        docker run --rm -v "$PWD:/work" -w /work php:8.2-cli php -l "$file" > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "❌ PHP syntax error in: $file"
+            exit 1
+        fi
+    fi
+done
+
+# Check JavaScript files
+echo "Checking JavaScript files..."
+JS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.js$' | grep -v '\.min\.js$')
+if [ ! -z "$JS_FILES" ]; then
+    docker run --rm -v "$PWD:/work" -w /work cytopia/eslint $JS_FILES
+    if [ $? -ne 0 ]; then
+        echo "❌ JavaScript linting failed"
+        exit 1
+    fi
+fi
+
+# Check CSS files
+echo "Checking CSS files..."
+CSS_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.css$' | grep -v '\.min\.css$')
+if [ ! -z "$CSS_FILES" ]; then
+    docker run --rm -v "$PWD:/work" -w /work cytopia/stylelint $CSS_FILES
+    if [ $? -ne 0 ]; then
+        echo "❌ CSS linting failed"
+        exit 1
+    fi
+fi
+
+echo "✅ All pre-commit checks passed!"

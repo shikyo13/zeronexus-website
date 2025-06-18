@@ -1,0 +1,6 @@
+# Ignore vendor and third-party files
+website/js/bootstrap.bundle.min.js
+website/js/jquery-*.js
+website/artwork/
+website/img/
+*.min.js
